@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, LayoutList, Loader2, Plus, Trash2, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -107,11 +107,21 @@ export default function ListView() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
-        </p>
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
+          </p>
+        </div>
+        <div className="flex gap-1 rounded-md border p-0.5">
+          <Button variant="secondary" size="sm" className="h-8">
+            <LayoutList className="h-4 w-4 mr-1.5" />Lista
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8">
+            <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 mr-1.5" />Kanban</Link>
+          </Button>
+        </div>
       </header>
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-4">
