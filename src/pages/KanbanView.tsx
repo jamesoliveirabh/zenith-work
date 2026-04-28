@@ -153,6 +153,7 @@ export default function KanbanView() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -313,6 +314,7 @@ export default function KanbanView() {
                   status={s}
                   tasks={tasksByStatus[s.id] ?? []}
                   onAddTask={handleAddTask}
+                  onOpenTask={setOpenTaskId}
                 />
               ))}
             </SortableContext>
