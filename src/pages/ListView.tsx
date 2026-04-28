@@ -225,6 +225,15 @@ export default function ListView() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => setOpenTaskId(task.id)}
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                  aria-label="Abrir detalhes"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => deleteTask(task.id)}
                   className="h-7 w-7 opacity-0 group-hover:opacity-100"
                   aria-label="Excluir"
