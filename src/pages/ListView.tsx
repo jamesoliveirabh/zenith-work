@@ -158,7 +158,7 @@ export default function ListView() {
             return (
               <div
                 key={task.id}
-                className="grid grid-cols-[1fr_140px_120px_140px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+                className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
                 <Input
                   defaultValue={task.title}
