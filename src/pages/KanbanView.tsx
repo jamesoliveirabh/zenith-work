@@ -181,14 +181,14 @@ export default function KanbanView() {
     return map;
   }, [tasks, statuses]);
 
-  const handleAddTask = async (statusId: string, title: string) => {
+  const handleAddTask = async (statusId: string, title: string): Promise<void> => {
     if (!current || !listId || !user) return;
     const sameCol = tasksByStatus[statusId] ?? [];
     const { data, error } = await supabase.from("tasks").insert({
       list_id: listId, workspace_id: current.id, status_id: statusId,
       title, created_by: user.id, position: sameCol.length,
     }).select("id,title,status_id,priority,due_date,position").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (data) setTasks((p) => [...p, data as Task]);
   };
 
