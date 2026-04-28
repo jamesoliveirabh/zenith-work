@@ -37,7 +37,7 @@ const priorityLabel: Record<Priority, string> = {
   low: "Baixa", medium: "Média", high: "Alta", urgent: "Urgente",
 };
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: "task", task },
@@ -49,6 +49,7 @@ function TaskCard({ task }: { task: Task }) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => onOpen?.(task.id)}
       className={cn(
         "rounded-md border bg-card p-3 shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors",
         isDragging && "opacity-40"
