@@ -157,7 +157,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     const completed = !s.completed_at;
     setSubtasks((p) => p.map((x) => x.id === s.id
       ? { ...x, completed_at: completed ? new Date().toISOString() : null } : x));
-    const patch: Record<string, unknown> = {
+    const patch: { completed_at: string | null; status_id?: string } = {
       completed_at: completed ? new Date().toISOString() : null,
     };
     if (completed && doneStatusId) patch.status_id = doneStatusId;
