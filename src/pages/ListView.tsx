@@ -48,6 +48,7 @@ export default function ListView() {
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const load = async () => {
     if (!listId) return;
