@@ -12,6 +12,7 @@ import AuthPage from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import ListView from "./pages/ListView";
+import KanbanView from "./pages/KanbanView";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                 >
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/list/:listId" element={<ListView />} />
+                  <Route path="/list/:listId/kanban" element={<KanbanView />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
