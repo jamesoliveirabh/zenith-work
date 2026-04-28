@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, LayoutList, Loader2, Plus, Trash2, Trello } from "lucide-react";
+import { CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Trash2, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
