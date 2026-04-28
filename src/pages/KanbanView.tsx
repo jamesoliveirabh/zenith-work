@@ -16,6 +16,7 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ const priorityLabel: Record<Priority, string> = {
   low: "Baixa", medium: "Média", high: "Alta", urgent: "Urgente",
 };
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: "task", task },
@@ -48,6 +49,7 @@ function TaskCard({ task }: { task: Task }) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => onOpen?.(task.id)}
       className={cn(
         "rounded-md border bg-card p-3 shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors",
         isDragging && "opacity-40"
@@ -70,11 +72,12 @@ function TaskCard({ task }: { task: Task }) {
 }
 
 function Column({
-  status, tasks, onAddTask,
+  status, tasks, onAddTask, onOpenTask,
 }: {
   status: Status;
   tasks: Task[];
   onAddTask: (statusId: string, title: string) => Promise<void>;
+  onOpenTask: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useSortable({
     id: status.id,
@@ -99,7 +102,7 @@ function Column({
         )}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map((t) => <TaskCard key={t.id} task={t} />)}
+          {tasks.map((t) => <TaskCard key={t.id} task={t} onOpen={onOpenTask} />)}
         </SortableContext>
 
         {adding ? (
@@ -150,6 +153,7 @@ export default function KanbanView() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -310,6 +314,7 @@ export default function KanbanView() {
                   status={s}
                   tasks={tasksByStatus[s.id] ?? []}
                   onAddTask={handleAddTask}
+                  onOpenTask={setOpenTaskId}
                 />
               ))}
             </SortableContext>
@@ -319,6 +324,14 @@ export default function KanbanView() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      <TaskDetailDialog
+        taskId={openTaskId}
+        listId={listId ?? ""}
+        doneStatusId={statuses.find((s) => s.is_done)?.id ?? null}
+        open={!!openTaskId}
+        onOpenChange={(o) => { if (!o) setOpenTaskId(null); }}
+      />
     </div>
   );
 }

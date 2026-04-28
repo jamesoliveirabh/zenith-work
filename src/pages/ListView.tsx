@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, LayoutList, Loader2, Plus, Trash2, Trello } from "lucide-react";
+import { CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Trash2, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ export default function ListView() {
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const load = async () => {
     if (!listId) return;
@@ -137,11 +139,12 @@ export default function ListView() {
       </form>
 
       <div className="rounded-lg border bg-card overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_120px_140px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+        <div className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
           <div>Tarefa</div>
           <div>Status</div>
           <div>Prioridade</div>
           <div>Vencimento</div>
+          <div />
           <div />
         </div>
 
@@ -155,7 +158,7 @@ export default function ListView() {
             return (
               <div
                 key={task.id}
-                className="grid grid-cols-[1fr_140px_120px_140px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+                className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
                 <Input
                   defaultValue={task.title}
@@ -222,6 +225,15 @@ export default function ListView() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => setOpenTaskId(task.id)}
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                  aria-label="Abrir detalhes"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => deleteTask(task.id)}
                   className="h-7 w-7 opacity-0 group-hover:opacity-100"
                   aria-label="Excluir"
@@ -233,6 +245,14 @@ export default function ListView() {
           })
         )}
       </div>
+
+      <TaskDetailDialog
+        taskId={openTaskId}
+        listId={listId ?? ""}
+        doneStatusId={statuses.find((s) => s.is_done)?.id ?? null}
+        open={!!openTaskId}
+        onOpenChange={(o) => { if (!o) setOpenTaskId(null); }}
+      />
     </div>
   );
 }
