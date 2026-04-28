@@ -324,6 +324,14 @@ export default function KanbanView() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      <TaskDetailDialog
+        taskId={openTaskId}
+        listId={listId ?? ""}
+        doneStatusId={statuses.find((s) => s.is_done)?.id ?? null}
+        open={!!openTaskId}
+        onOpenChange={(o) => { if (!o) setOpenTaskId(null); }}
+      />
     </div>
   );
 }
