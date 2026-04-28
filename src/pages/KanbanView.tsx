@@ -72,11 +72,12 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
 }
 
 function Column({
-  status, tasks, onAddTask,
+  status, tasks, onAddTask, onOpenTask,
 }: {
   status: Status;
   tasks: Task[];
   onAddTask: (statusId: string, title: string) => Promise<void>;
+  onOpenTask: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useSortable({
     id: status.id,
@@ -101,7 +102,7 @@ function Column({
         )}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map((t) => <TaskCard key={t.id} task={t} />)}
+          {tasks.map((t) => <TaskCard key={t.id} task={t} onOpen={onOpenTask} />)}
         </SortableContext>
 
         {adding ? (
