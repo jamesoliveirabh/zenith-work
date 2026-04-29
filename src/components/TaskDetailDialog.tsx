@@ -225,6 +225,20 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           {/* Custom fields */}
           {taskId && <CustomFieldsSection taskId={taskId} listId={listId} />}
 
+          {/* Time tracking */}
+          {taskId && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Tempo
+              </label>
+              <TimeTracker
+                taskId={taskId}
+                estimateSeconds={detail?.time_estimate_seconds ?? null}
+                onEstimateChange={(s) => updateMeta.mutate({ time_estimate_seconds: s })}
+              />
+            </div>
+          )}
+
           <Separator />
 
           {/* Subtasks */}
