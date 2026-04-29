@@ -61,6 +61,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   priority: 140,
   assignees: 180,
   due_date: 150,
+  time: 140,
   tags: 220,
 };
 
