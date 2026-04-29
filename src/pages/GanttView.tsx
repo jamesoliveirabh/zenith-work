@@ -104,7 +104,39 @@ export default function GanttView() {
   const [leftWidth, setLeftWidth] = useState(LEFT_PANEL_DEFAULT);
 
   // Time anchor (visible window start) — adjustable via nav buttons
-  const [anchor, setAnchor] = useState<Date>(() => addDays(startOfDay(new Date()), -30));
+  const [anchor, setAnchor] = useState<Date>(() => addDays(startOfDay(new Date()), -7));
+
+  // Period filter (controls how many days are rendered in the day-zoom timeline).
+  // Persisted in localStorage so the user gets the same view next time.
+  type PeriodPreset = "7" | "15" | "30" | "60" | "custom";
+  const PERIOD_STORAGE_KEY = "gantt:period:v1";
+  const [period, setPeriod] = useState<PeriodPreset>("30");
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [customError, setCustomError] = useState<string | null>(null);
+
+  // Hydrate from localStorage once
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PERIOD_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { period: PeriodPreset; from?: string; to?: string };
+      if (saved.period) setPeriod(saved.period);
+      if (saved.from && saved.to) {
+        setCustomRange({ from: parseISO(saved.from), to: parseISO(saved.to) });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist
+  useEffect(() => {
+    try {
+      localStorage.setItem(PERIOD_STORAGE_KEY, JSON.stringify({
+        period,
+        from: customRange.from?.toISOString(),
+        to: customRange.to?.toISOString(),
+      }));
+    } catch { /* ignore */ }
+  }, [period, customRange]);
 
   // Container refs
   const scrollRef = useRef<HTMLDivElement>(null);
