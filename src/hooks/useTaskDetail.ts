@@ -260,6 +260,7 @@ export interface TaskMetaPatch {
   title?: string;
   description?: unknown | null;
   tags?: string[];
+  time_estimate_seconds?: number | null;
 }
 
 export function useUpdateTaskMeta(taskId: string) {
@@ -278,6 +279,7 @@ export function useUpdateTaskMeta(taskId: string) {
           ...(patch.title !== undefined ? { title: patch.title } : {}),
           ...(patch.description !== undefined ? { description: patch.description } : {}),
           ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
+          ...(patch.time_estimate_seconds !== undefined ? { time_estimate_seconds: patch.time_estimate_seconds } : {}),
         });
       }
       return { prev };
