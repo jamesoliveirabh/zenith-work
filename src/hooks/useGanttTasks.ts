@@ -61,7 +61,7 @@ export function useUpdateTaskDates(listId: string | undefined) {
     mutationFn: async ({ id, start_date, due_date }: {
       id: string; start_date?: string | null; due_date?: string | null;
     }) => {
-      const patch: Record<string, any> = {};
+      const patch: { start_date?: string | null; due_date?: string | null } = {};
       if (start_date !== undefined) patch.start_date = start_date;
       if (due_date !== undefined) patch.due_date = due_date;
       const { error } = await supabase.from("tasks").update(patch).eq("id", id);
