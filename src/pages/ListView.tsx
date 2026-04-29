@@ -160,6 +160,17 @@ export default function ListView() {
         </div>
       </header>
 
+      {listId && (
+        <ListFilterBar
+          listId={listId}
+          filters={filters}
+          onChange={setFilters}
+          statuses={statuses}
+          members={members}
+          availableTags={availableTags}
+        />
+      )}
+
       <form onSubmit={handleCreate} className="flex gap-2 mb-4">
         <Input
           value={newTitle}
