@@ -68,6 +68,18 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
             {format(new Date(task.due_date), "dd MMM")}
           </span>
         )}
+        {task.assignees.length > 0 && (
+          <div className="ml-auto flex items-center" onClick={(e) => e.stopPropagation()}>
+            <AssigneeSelect
+              members={task.assignees}
+              selectedIds={task.assignees.map((a) => a.id)}
+              onAdd={() => {}}
+              onRemove={() => {}}
+              disabled
+              maxVisible={3}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
