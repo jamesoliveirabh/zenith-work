@@ -87,7 +87,7 @@ function promptLink(editor: Editor) {
 }
 
 export function RichTextEditor({
-  content, onChange, editable = true, placeholder = "Adicione uma descrição...", className,
+  content, onChange, editable = true, placeholder = "Adicione uma descrição...", className, onImageUpload,
 }: Props) {
   const editor = useEditor({
     extensions: buildExtensions(placeholder),
@@ -102,6 +102,45 @@ export function RichTextEditor({
           "prose-p:my-1.5 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5",
           "prose-a:text-primary",
         ),
+      },
+      handlePaste: (view, event) => {
+        if (!onImageUpload) return false;
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        const imgs = Array.from(items)
+          .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+          .map((it) => it.getAsFile())
+          .filter((f): f is File => !!f);
+        if (imgs.length === 0) return false;
+        event.preventDefault();
+        void Promise.all(imgs.map((f) => onImageUpload(f))).then((urls) => {
+          urls.filter((u): u is string => !!u).forEach((url) => {
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(
+                view.state.schema.nodes.image.create({ src: url }),
+              ),
+            );
+          });
+        });
+        return true;
+      },
+      handleDrop: (view, event) => {
+        if (!onImageUpload) return false;
+        const files = event.dataTransfer?.files;
+        if (!files || files.length === 0) return false;
+        const imgs = Array.from(files).filter((f) => f.type.startsWith("image/"));
+        if (imgs.length === 0) return false;
+        event.preventDefault();
+        void Promise.all(imgs.map((f) => onImageUpload(f))).then((urls) => {
+          urls.filter((u): u is string => !!u).forEach((url) => {
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(
+                view.state.schema.nodes.image.create({ src: url }),
+              ),
+            );
+          });
+        });
+        return true;
       },
     },
     onUpdate: ({ editor }) => {
