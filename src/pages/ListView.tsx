@@ -228,10 +228,11 @@ export default function ListView() {
       </form>
 
       <div className="rounded-lg border bg-card overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+        <div className="grid grid-cols-[1fr_140px_120px_140px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
           <div>Tarefa</div>
           <div>Status</div>
           <div>Prioridade</div>
+          <div>Responsáveis</div>
           <div>Vencimento</div>
           <div />
           <div />
