@@ -178,7 +178,7 @@ export default function KanbanView() {
     const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,due_date,position")
+      supabase.from("tasks").select("id,title,status_id,priority,due_date,position,description_text")
         .eq("list_id", listId).is("parent_task_id", null).order("position"),
     ]);
     setListName(list?.name ?? "");
@@ -225,7 +225,7 @@ export default function KanbanView() {
     const { data, error } = await supabase.from("tasks").insert({
       list_id: listId, workspace_id: current.id, status_id: statusId,
       title, created_by: user.id, position: sameCol.length,
-    }).select("id,title,status_id,priority,due_date,position").single();
+    }).select("id,title,status_id,priority,due_date,position,description_text").single();
     if (error) { toast.error(error.message); return; }
     if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
   };
