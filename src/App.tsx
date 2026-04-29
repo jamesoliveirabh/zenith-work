@@ -60,6 +60,7 @@ const App = () => (
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/settings/fields" element={<FieldsSettings />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
