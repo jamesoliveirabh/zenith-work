@@ -672,8 +672,8 @@ export default function GanttView() {
                         const x1 = Math.min(createDrag.startX, createDrag.endX);
                         const x2 = Math.max(createDrag.startX, createDrag.endX);
                         if (x2 - x1 < 8) { setCreateDrag(null); return; }
-                        const s = xToDate(x1, anchor, zoom);
-                        const e = xToDate(x2, anchor, zoom);
+                        const s = xToDate(x1, effectiveAnchor, zoom);
+                        const e = xToDate(x2, effectiveAnchor, zoom);
                         setPendingCreate({
                           start: s, end: e, status_id: createDrag.status_id,
                           popoverX: (x1 + x2) / 2, rowTop: createDrag.rowTop,
@@ -683,8 +683,8 @@ export default function GanttView() {
                     >
                       {start && end ? (
                         <Bar
-                          startX={dateToX(start, anchor, zoom)}
-                          endX={dateToX(end, anchor, zoom) + pxPerDay(zoom)}
+                          startX={dateToX(start, effectiveAnchor, zoom)}
+                          endX={dateToX(end, effectiveAnchor, zoom) + pxPerDay(zoom)}
                           color={color}
                           title={t.title}
                           isSub={r.isSub}
@@ -694,7 +694,7 @@ export default function GanttView() {
                         />
                       ) : end ? (
                         <Diamond
-                          x={dateToX(end, anchor, zoom) + pxPerDay(zoom) / 2}
+                          x={dateToX(end, effectiveAnchor, zoom) + pxPerDay(zoom) / 2}
                           color={color}
                           onClick={() => setOpenTaskId(t.id)}
                           title={t.title}
