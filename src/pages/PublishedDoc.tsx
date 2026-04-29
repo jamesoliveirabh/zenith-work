@@ -25,7 +25,7 @@ export default function PublishedDoc() {
 
   const editor = useEditor({
     editable: false,
-    content: doc?.content ?? null,
+    content: (doc?.content as any) ?? null,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] }, link: false, codeBlock: false }),
       Underline, TaskList, TaskItem.configure({ nested: true }),
