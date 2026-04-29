@@ -29,6 +29,7 @@ interface Task {
   position: number;
   created_at: string;
   tags: string[] | null;
+  description_text: string | null;
   assignees: AssigneeMember[];
 }
 
