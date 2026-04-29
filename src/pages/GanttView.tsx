@@ -332,7 +332,7 @@ export default function GanttView() {
   // Center on today on mount / zoom change
   useEffect(() => {
     if (!scrollRef.current) return;
-    const x = dateToX(new Date(), anchor, zoom);
+    const x = dateToX(new Date(), effectiveAnchor, zoom);
     if (x >= 0 && x <= totalWidth) {
       scrollRef.current.scrollLeft = Math.max(0, x - 200);
     }
