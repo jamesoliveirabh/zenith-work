@@ -50,7 +50,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const { user } = useAuth();
   const { current } = useWorkspace();
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState<JSONContent | null>(null);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -61,6 +61,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const [posting, setPosting] = useState(false);
   const [members, setMembers] = useState<AssigneeMember[]>([]);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load task data
   useEffect(() => {
