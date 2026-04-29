@@ -507,6 +507,54 @@ export default function GanttView() {
           </Button>
         </div>
 
+        {/* Period selector — only relevant in day-zoom; visible always for clarity */}
+        <div className="flex items-center gap-1">
+          <Select value={period} onValueChange={(v) => setPeriod(v as PeriodPreset)}>
+            <SelectTrigger className="h-8 w-36" aria-label="Período exibido">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 dias</SelectItem>
+              <SelectItem value="15">15 dias</SelectItem>
+              <SelectItem value="30">30 dias</SelectItem>
+              <SelectItem value="60">60 dias</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+          {period === "custom" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {customValid
+                    ? `${format(customRange.from!, "dd/MM/yy")} – ${format(customRange.to!, "dd/MM/yy")}`
+                    : "Selecionar datas"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={{ from: customRange.from, to: customRange.to }}
+                  onSelect={(range) => {
+                    if (!range) { setCustomRange({}); setCustomError(null); return; }
+                    if (range.from && range.to && range.from > range.to) {
+                      setCustomError("A data inicial deve ser anterior ou igual à final.");
+                      return;
+                    }
+                    setCustomError(null);
+                    setCustomRange({ from: range.from, to: range.to });
+                  }}
+                  numberOfMonths={2}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+                {customError && (
+                  <div className="px-3 pb-3 text-xs text-destructive">{customError}</div>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
+
         <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
           <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
