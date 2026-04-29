@@ -423,11 +423,7 @@ export default function DocEditor() {
       </aside>
 
       {openTaskId && (
-        <TaskDetailDialog
-          taskId={openTaskId}
-          open={!!openTaskId}
-          onOpenChange={(o) => !o && setOpenTaskId(null)}
-        />
+        <TaskDialogLoader taskId={openTaskId} onClose={() => setOpenTaskId(null)} />
       )}
     </div>
   );
