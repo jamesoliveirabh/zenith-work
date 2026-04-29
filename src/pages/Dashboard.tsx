@@ -206,14 +206,14 @@ export default function Dashboard() {
             {loading ? <Skeleton className="h-[240px] w-full" /> : statusBreakdown.length === 0 ? (
               <EmptyState text="Nenhuma tarefa ainda" />
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer config={{}} className="h-[240px] w-full">
                 <PieChart>
                   <Pie data={statusBreakdown} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
                     {statusBreakdown.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
             {!loading && statusBreakdown.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3 text-xs">
