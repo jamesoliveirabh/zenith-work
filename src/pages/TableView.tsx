@@ -563,12 +563,18 @@ function TableRow({
             onClick={onOpen}
             onDoubleClick={(e) => { e.stopPropagation(); onStartTitleEdit(); }}
             className={cn(
-              "text-sm text-left w-full truncate hover:text-primary",
+              "text-sm text-left w-full hover:text-primary inline-flex items-center gap-1.5",
               isDone && "line-through",
             )}
             title={task.title}
           >
-            {task.title}
+            <span className="truncate">{task.title}</span>
+            {(task.attachment_count ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground shrink-0">
+                <Paperclip className="h-3 w-3" />
+                {task.attachment_count}
+              </span>
+            )}
           </button>
         )}
       </Cell>
