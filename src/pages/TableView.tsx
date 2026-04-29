@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  ChevronDown, ChevronRight, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
+  ChevronDown, ChevronRight, GanttChart, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
   ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays, Paperclip,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

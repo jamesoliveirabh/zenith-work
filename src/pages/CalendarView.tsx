@@ -7,7 +7,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, LayoutList, Loader2, Plus,
+  CalendarDays, ChevronLeft, ChevronRight, GanttChart, LayoutList, Loader2, Plus,
   Table as TableIcon, Trello,
 } from "lucide-react";
 import {
