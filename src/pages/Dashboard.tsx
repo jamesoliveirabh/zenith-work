@@ -183,6 +183,8 @@ function RenderWidget({
       return <PriorityOverviewWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
     case "weekly-activity":
       return <WeeklyActivityWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
+    case "goals-overview":
+      return <GoalsOverviewWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
   }
 }
 
