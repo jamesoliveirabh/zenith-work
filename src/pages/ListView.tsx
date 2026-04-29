@@ -197,8 +197,12 @@ export default function ListView() {
           <div className="px-4 py-12 text-center text-sm text-muted-foreground">
             Nenhuma tarefa ainda. Adicione a primeira acima.
           </div>
+        ) : visibleTasks.length === 0 ? (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            Nenhuma tarefa corresponde aos filtros.
+          </div>
         ) : (
-          tasks.map((task) => {
+          visibleTasks.map((task) => {
             const status = statuses.find((s) => s.id === task.status_id);
             return (
               <div
