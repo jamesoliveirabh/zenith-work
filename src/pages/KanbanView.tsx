@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { Calendar, CalendarDays, LayoutList, Loader2, Plus, Table as TableIcon, Trello } from "lucide-react";
+import { Calendar, CalendarDays, GanttChart, LayoutList, Loader2, Plus, Table as TableIcon, Trello } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
