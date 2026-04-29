@@ -16,6 +16,7 @@ import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
 import { AssigneeSelect } from "@/components/AssigneeSelect";
 import { TimeTracker } from "@/components/TimeTracker";
+import { TaskAttachments } from "@/components/TaskAttachments";
 import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import {
   taskDetailKey, useCreateComment, useCreateSubtask, useDeleteComment,
