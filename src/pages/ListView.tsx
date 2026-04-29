@@ -264,6 +264,11 @@ export default function ListView() {
                     }}
                     className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
                   />
+                  {task.description_text && (
+                    <p className="text-xs text-muted-foreground/70 px-2 mt-0.5 line-clamp-2">
+                      {task.description_text}
+                    </p>
+                  )}
                   {task.tags && task.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 px-2 mt-0.5">
                       {task.tags.map((t) => (
