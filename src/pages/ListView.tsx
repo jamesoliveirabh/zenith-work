@@ -21,6 +21,8 @@ import {
   useCreateTask, useDeleteTask, useTasks, useUpdateTask, useUpdateTaskAssigneesInList,
 } from "@/hooks/useTasks";
 import { useListMembers } from "@/hooks/useListMembers";
+import { useTaskTimeTotals } from "@/hooks/useTimeTracking";
+import { TaskTimeCell } from "@/components/TaskTimeCell";
 import type { Priority, Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
