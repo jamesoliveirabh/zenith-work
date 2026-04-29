@@ -18,6 +18,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
 import Automations from "./pages/Automations";
 import Security from "./pages/Security";
+import Permissions from "./pages/Permissions";
 import ListPermissions from "./pages/ListPermissions";
 import NotFound from "./pages/NotFound.tsx";
 
