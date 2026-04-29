@@ -244,6 +244,49 @@ export function useUpdateTaskAssignees(taskId: string) {
       toast.error(e.message);
       if (ctx?.prev) qc.setQueryData(taskDetailKey(taskId), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: taskDetailKey(taskId) }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: taskDetailKey(taskId) });
+      // Also refresh any list cache that may show this task's assignees
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+}
+
+// ---------- Meta (title / description / tags) ----------
+
+export interface TaskMetaPatch {
+  title?: string;
+  description?: unknown | null;
+  tags?: string[];
+}
+
+export function useUpdateTaskMeta(taskId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (patch: TaskMetaPatch) => {
+      const { error } = await supabase.from("tasks").update(patch as never).eq("id", taskId);
+      if (error) throw error;
+    },
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: taskDetailKey(taskId) });
+      const prev = qc.getQueryData<TaskDetail>(taskDetailKey(taskId));
+      if (prev) {
+        qc.setQueryData<TaskDetail>(taskDetailKey(taskId), {
+          ...prev,
+          ...(patch.title !== undefined ? { title: patch.title } : {}),
+          ...(patch.description !== undefined ? { description: patch.description } : {}),
+          ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
+        });
+      }
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      toast.error(e.message);
+      if (ctx?.prev) qc.setQueryData(taskDetailKey(taskId), ctx.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: taskDetailKey(taskId) });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
   });
 }

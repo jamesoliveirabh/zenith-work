@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Check, CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -13,30 +14,16 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
-import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
+import { AssigneeSelect } from "@/components/AssigneeSelect";
 import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
+import {
+  taskDetailKey, useCreateComment, useCreateSubtask, useDeleteComment,
+  useDeleteSubtask, useTaskDetail, useToggleSubtask, useUpdateTaskAssignees,
+  useUpdateTaskMeta,
+} from "@/hooks/useTaskDetail";
+import { useListMembers } from "@/hooks/useListMembers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-interface Subtask {
-  id: string;
-  title: string;
-  completed_at: string | null;
-  position: number;
-}
-
-interface Comment {
-  id: string;
-  body: string;
-  author_id: string;
-  created_at: string;
-}
-
-interface Profile {
-  id: string;
-  display_name: string | null;
-  email: string | null;
-}
 
 interface Props {
   taskId: string | null;
@@ -49,72 +36,34 @@ interface Props {
 export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenChange }: Props) {
   const { user } = useAuth();
   const { current } = useWorkspace();
+  const qc = useQueryClient();
+
+  const { data: detail, isLoading: loading } = useTaskDetail(open ? taskId : null);
+  const { data: members = [] } = useListMembers(open ? current?.id : undefined);
+
+  const updateMeta = useUpdateTaskMeta(taskId ?? "");
+  const createSubtask = useCreateSubtask(taskId ?? "");
+  const toggleSubtaskMut = useToggleSubtask(taskId ?? "", doneStatusId);
+  const deleteSubtaskMut = useDeleteSubtask(taskId ?? "");
+  const createComment = useCreateComment(taskId ?? "");
+  const deleteCommentMut = useDeleteComment(taskId ?? "");
+  const updateAssignees = useUpdateTaskAssignees(taskId ?? "");
+
+  // Local UI state for inputs (kept controlled)
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState<JSONContent | null>(null);
-  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [loading, setLoading] = useState(false);
   const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
-  const [members, setMembers] = useState<AssigneeMember[]>([]);
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load task data
+  // Sync title from query data when it (re)loads
   useEffect(() => {
-    if (!taskId || !open) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const [{ data: task }, { data: subs }, { data: cmts }, { data: ta }] = await Promise.all([
-        supabase.from("tasks").select("title,description,tags").eq("id", taskId).maybeSingle(),
-        supabase.from("tasks").select("id,title,completed_at,position")
-          .eq("parent_task_id", taskId).order("position").order("created_at"),
-        supabase.from("task_comments").select("id,body,author_id,created_at")
-          .eq("task_id", taskId).order("created_at"),
-        supabase.from("task_assignees").select("user_id").eq("task_id", taskId),
-      ]);
-      if (cancelled) return;
-      setTitle(task?.title ?? "");
-      setDescription((task?.description ?? null) as JSONContent | null);
-      setTags((task?.tags ?? []) as string[]);
-      setSubtasks((subs ?? []) as Subtask[]);
-      setComments((cmts ?? []) as Comment[]);
-      setAssigneeIds((ta ?? []).map((r) => r.user_id));
+    if (detail) setTitle(detail.title);
+  }, [detail?.id]);
 
-      const ids = Array.from(new Set((cmts ?? []).map((c) => c.author_id)));
-      if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,email").in("id", ids);
-        if (!cancelled && profs) {
-          setProfiles(Object.fromEntries(profs.map((p) => [p.id, p as Profile])));
-        }
-      }
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [taskId, open]);
-
-  // Load workspace members for AssigneeSelect
-  useEffect(() => {
-    if (!current || !open) return;
-    (async () => {
-      const { data: m } = await supabase
-        .from("workspace_members").select("user_id").eq("workspace_id", current.id);
-      const ids = (m ?? []).map((x) => x.user_id);
-      if (ids.length === 0) { setMembers([]); return; }
-      const { data: p } = await supabase
-        .from("profiles").select("id,display_name,avatar_url,email").in("id", ids);
-      setMembers((p ?? []) as AssigneeMember[]);
-    })();
-  }, [current?.id, open]);
-
-  // Realtime: comments + subtasks for this task
+  // Realtime: invalidate cache on remote changes for this task
   useEffect(() => {
     if (!taskId || !open) return;
     const channel = supabase
@@ -122,73 +71,18 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "task_comments", filter: `task_id=eq.${taskId}` },
-        async (payload) => {
-          if (payload.eventType === "INSERT") {
-            const c = payload.new as Comment;
-            setComments((p) => (p.find((x) => x.id === c.id) ? p : [...p, c]));
-            if (!profiles[c.author_id]) {
-              const { data: prof } = await supabase
-                .from("profiles").select("id,display_name,email").eq("id", c.author_id).maybeSingle();
-              if (prof) setProfiles((p) => ({ ...p, [prof.id]: prof as Profile }));
-            }
-          } else if (payload.eventType === "DELETE") {
-            setComments((p) => p.filter((c) => c.id !== (payload.old as Comment).id));
-          } else if (payload.eventType === "UPDATE") {
-            const c = payload.new as Comment;
-            setComments((p) => p.map((x) => (x.id === c.id ? c : x)));
-          }
-        },
+        () => { qc.invalidateQueries({ queryKey: taskDetailKey(taskId) }); },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tasks", filter: `parent_task_id=eq.${taskId}` },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const s = payload.new as Subtask;
-            setSubtasks((p) => (p.find((x) => x.id === s.id) ? p : [...p, s]));
-          } else if (payload.eventType === "DELETE") {
-            setSubtasks((p) => p.filter((s) => s.id !== (payload.old as Subtask).id));
-          } else if (payload.eventType === "UPDATE") {
-            const s = payload.new as Subtask;
-            setSubtasks((p) => p.map((x) => (x.id === s.id ? { ...x, ...s } : x)));
-          }
-        },
+        () => { qc.invalidateQueries({ queryKey: taskDetailKey(taskId) }); },
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [taskId, open, profiles]);
+  }, [taskId, open, qc]);
 
-  const saveTask = async (patch: { title?: string; description?: JSONContent | null; tags?: string[] }) => {
-    if (!taskId) return;
-    const { error } = await supabase.from("tasks").update(patch as never).eq("id", taskId);
-    if (error) toast.error(error.message);
-  };
-
-  const updateTags = (next: string[]) => {
-    setTags(next);
-    saveTask({ tags: next });
-  };
-
-  const handleDescriptionChange = (next: JSONContent) => {
-    setDescription(next);
-    setSaveStatus("saving");
-    if (descTimer.current) clearTimeout(descTimer.current);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    descTimer.current = setTimeout(async () => {
-      if (!taskId) return;
-      const { error } = await supabase.from("tasks")
-        .update({ description: next as never }).eq("id", taskId);
-      if (error) {
-        setSaveStatus("idle");
-        toast.error(error.message);
-        return;
-      }
-      setSaveStatus("saved");
-      savedTimer.current = setTimeout(() => setSaveStatus("idle"), 1500);
-    }, 1000);
-  };
-
-  // Cleanup timers when task changes / dialog closes
+  // Cleanup save-status timers
   useEffect(() => {
     return () => {
       if (descTimer.current) clearTimeout(descTimer.current);
@@ -196,86 +90,76 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     };
   }, [taskId]);
 
+  const handleDescriptionChange = (next: JSONContent) => {
+    if (!taskId) return;
+    setSaveStatus("saving");
+    if (descTimer.current) clearTimeout(descTimer.current);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    descTimer.current = setTimeout(async () => {
+      try {
+        await updateMeta.mutateAsync({ description: next });
+        setSaveStatus("saved");
+        savedTimer.current = setTimeout(() => setSaveStatus("idle"), 1500);
+      } catch {
+        setSaveStatus("idle");
+      }
+    }, 1000);
+  };
+
+  const updateTags = (next: string[]) => {
+    updateMeta.mutate({ tags: next });
+  };
+
   const addSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubtask.trim() || !taskId || !current || !user) return;
-    const title = newSubtask.trim();
+    const t = newSubtask.trim();
     setNewSubtask("");
-    const { error } = await supabase.from("tasks").insert({
+    await createSubtask.mutateAsync({
+      title: t,
       list_id: listId,
       workspace_id: current.id,
-      parent_task_id: taskId,
-      title,
       created_by: user.id,
-      position: subtasks.length,
+      position: detail?.subtasks.length ?? 0,
     });
-    if (error) toast.error(error.message);
-  };
-
-  const toggleSubtask = async (s: Subtask) => {
-    const completed = !s.completed_at;
-    setSubtasks((p) => p.map((x) => x.id === s.id
-      ? { ...x, completed_at: completed ? new Date().toISOString() : null } : x));
-    const patch: { completed_at: string | null; status_id?: string } = {
-      completed_at: completed ? new Date().toISOString() : null,
-    };
-    if (completed && doneStatusId) patch.status_id = doneStatusId;
-    const { error } = await supabase.from("tasks").update(patch).eq("id", s.id);
-    if (error) toast.error(error.message);
-  };
-
-  const deleteSubtask = async (id: string) => {
-    setSubtasks((p) => p.filter((s) => s.id !== id));
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (error) toast.error(error.message);
   };
 
   const postComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !taskId || !current || !user) return;
     setPosting(true);
-    const body = newComment.trim();
-    const { error } = await supabase.from("task_comments").insert({
-      task_id: taskId,
-      workspace_id: current.id,
-      author_id: user.id,
-      body,
-    });
-    setPosting(false);
-    if (error) return toast.error(error.message);
-    setNewComment("");
-  };
-
-  const deleteComment = async (id: string) => {
-    const { error } = await supabase.from("task_comments").delete().eq("id", id);
-    if (error) toast.error(error.message);
-  };
-
-  const addAssignee = async (userId: string) => {
-    if (!taskId || !current) return;
-    if (assigneeIds.includes(userId)) return;
-    setAssigneeIds((p) => [...p, userId]);
-    const { error } = await supabase.from("task_assignees").insert({
-      task_id: taskId, user_id: userId, workspace_id: current.id,
-    });
-    if (error) {
-      setAssigneeIds((p) => p.filter((id) => id !== userId));
-      toast.error(error.message);
+    try {
+      await createComment.mutateAsync({
+        body: newComment.trim(),
+        workspace_id: current.id,
+        author_id: user.id,
+      });
+      setNewComment("");
+    } catch {
+      // error toast handled in hook
+    } finally {
+      setPosting(false);
     }
   };
 
-  const removeAssignee = async (userId: string) => {
-    if (!taskId) return;
-    const prev = assigneeIds;
-    setAssigneeIds((p) => p.filter((id) => id !== userId));
-    const { error } = await supabase.from("task_assignees").delete()
-      .eq("task_id", taskId).eq("user_id", userId);
-    if (error) {
-      setAssigneeIds(prev);
-      toast.error(error.message);
-    }
+  const addAssignee = (userId: string) => {
+    if (!current) return;
+    const u = members.find((m) => m.id === userId);
+    if (!u) return;
+    updateAssignees.mutate({ workspaceId: current.id, add: { user: u } });
   };
 
+  const removeAssignee = (userId: string) => {
+    if (!current) return;
+    updateAssignees.mutate({ workspaceId: current.id, remove: { userId } });
+  };
+
+  const subtasks = detail?.subtasks ?? [];
+  const comments = detail?.comments ?? [];
+  const profiles = detail?.profiles ?? {};
+  const tags = detail?.tags ?? [];
+  const assigneeIds = (detail?.assignees ?? []).map((a) => a.id);
+  const description = (detail?.description ?? null) as JSONContent | null;
   const completedCount = subtasks.filter((s) => s.completed_at).length;
 
   return (
@@ -289,7 +173,10 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => saveTask({ title: title.trim() })}
+              onBlur={() => {
+                const v = title.trim();
+                if (v && v !== detail?.title) updateMeta.mutate({ title: v });
+              }}
               className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1"
               placeholder="Título da tarefa"
             />
@@ -355,7 +242,10 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                 const done = !!s.completed_at;
                 return (
                   <div key={s.id} className="flex items-center gap-2 group rounded-md hover:bg-muted/40 px-1 py-0.5">
-                    <button onClick={() => toggleSubtask(s)} aria-label="Alternar conclusão">
+                    <button
+                      onClick={() => toggleSubtaskMut.mutate({ subtask: s })}
+                      aria-label="Alternar conclusão"
+                    >
                       {done ? (
                         <CheckCircle2 className="h-4 w-4 text-priority-low" />
                       ) : (
@@ -368,7 +258,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                     <Button
                       variant="ghost" size="icon"
                       className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={() => deleteSubtask(s.id)}
+                      onClick={() => deleteSubtaskMut.mutate(s.id)}
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
@@ -421,7 +311,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                         </span>
                         {mine && (
                           <button
-                            onClick={() => deleteComment(c.id)}
+                            onClick={() => deleteCommentMut.mutate(c.id)}
                             className="ml-auto text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
                           >
                             Excluir
@@ -460,3 +350,6 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     </Dialog>
   );
 }
+
+// Suppress unused-import warning if `toast` not referenced after refactor
+void toast;
