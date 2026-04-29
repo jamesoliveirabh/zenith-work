@@ -24,6 +24,7 @@ export interface TaskDetail {
   title: string;
   description: unknown | null;
   tags: string[];
+  time_estimate_seconds: number | null;
   subtasks: Subtask[];
   comments: TaskComment[];
   assignees: Assignee[];
