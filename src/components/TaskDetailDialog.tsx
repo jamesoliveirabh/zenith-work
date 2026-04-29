@@ -284,6 +284,19 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
             <TagsInput value={tags} onChange={updateTags} />
           </div>
 
+          {/* Assignees */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Responsáveis</label>
+            <AssigneeSelect
+              members={members}
+              selectedIds={assigneeIds}
+              onAdd={addAssignee}
+              onRemove={removeAssignee}
+              size="md"
+              maxVisible={5}
+            />
+          </div>
+
           {/* Custom fields */}
           {taskId && <CustomFieldsSection taskId={taskId} listId={listId} />}
 
