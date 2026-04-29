@@ -202,7 +202,28 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                 </span>
               )}
             </div>
-            <RichTextEditor content={description} onChange={handleDescriptionChange} />
+            <RichTextEditor
+              content={description}
+              onChange={handleDescriptionChange}
+              onImageUpload={async (file) => {
+                if (!taskId || !current || !user) return null;
+                if (!isImageMime(file.type)) return null;
+                if (file.size > 50 * 1024 * 1024) {
+                  toast.error(`"${file.name}" excede 50MB`);
+                  return null;
+                }
+                try {
+                  const att = await uploadAttachment(taskId, {
+                    file, workspaceId: current.id, userId: user.id,
+                  });
+                  qc.invalidateQueries({ queryKey: attachmentsKey(taskId) });
+                  return att.preview_url ?? (await createSignedUrl(att.storage_path));
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Erro ao enviar imagem");
+                  return null;
+                }
+              }}
+            />
           </div>
 
           {/* Tags */}
