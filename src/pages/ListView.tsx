@@ -142,12 +142,33 @@ export default function ListView() {
     setCreating(false);
     if (error) return toast.error(error.message);
     setNewTitle("");
-    if (data) setTasks((p) => [...p, data as Task]);
+    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
   };
 
-  const updateTask = async (id: string, patch: Partial<Task>) => {
+  const updateTask = async (id: string, patch: Partial<Omit<Task, "assignees">>) => {
     setTasks((p) => p.map((t) => (t.id === id ? { ...t, ...patch } : t)));
     const { error } = await supabase.from("tasks").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); load(); }
+  };
+
+  const addAssignee = async (taskId: string, userId: string) => {
+    if (!current) return;
+    setTasks((p) => p.map((t) => {
+      if (t.id !== taskId || t.assignees.some((a) => a.id === userId)) return t;
+      const m = members.find((x) => x.id === userId);
+      return m ? { ...t, assignees: [...t.assignees, m] } : t;
+    }));
+    const { error } = await supabase.from("task_assignees").insert({
+      task_id: taskId, user_id: userId, workspace_id: current.id,
+    });
+    if (error) { toast.error(error.message); load(); }
+  };
+
+  const removeAssignee = async (taskId: string, userId: string) => {
+    setTasks((p) => p.map((t) => t.id === taskId
+      ? { ...t, assignees: t.assignees.filter((a) => a.id !== userId) } : t));
+    const { error } = await supabase.from("task_assignees").delete()
+      .eq("task_id", taskId).eq("user_id", userId);
     if (error) { toast.error(error.message); load(); }
   };
 
