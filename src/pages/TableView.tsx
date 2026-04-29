@@ -233,6 +233,7 @@ export default function TableView() {
       (widths.priority ?? DEFAULT_WIDTHS.priority) +
       (widths.assignees ?? DEFAULT_WIDTHS.assignees) +
       (widths.due_date ?? DEFAULT_WIDTHS.due_date) +
+      (widths.time ?? DEFAULT_WIDTHS.time) +
       (widths.tags ?? DEFAULT_WIDTHS.tags);
     const fieldsW = fields.reduce((s, f) => s + (widths[f.id] ?? 160), 0);
     return base + fieldsW + 56 /* + button */ + 44 /* delete */;
