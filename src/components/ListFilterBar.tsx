@@ -208,6 +208,90 @@ export function ListFilterBar({ listId, filters, onChange, statuses, members, av
         className="h-8 w-48"
       />
 
+      {/* Quick Assignee filter */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8">
+            <User2 className="h-3.5 w-3.5 mr-1.5" />
+            {(() => {
+              const ids = filters.assigneeIds ?? [];
+              if (ids.length === 0) return "Responsável";
+              if (ids.length === 1) {
+                const id = ids[0];
+                if (id === "unassigned") return "Sem responsável";
+                const m = members.find((x) => x.user_id === id);
+                return m?.name ?? "Responsável";
+              }
+              return `Responsável (${ids.length})`;
+            })()}
+            {(filters.assigneeIds?.length ?? 0) > 0 && (
+              <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">
+                {filters.assigneeIds!.length}
+              </Badge>
+            )}
+            <ChevronDown className="h-3.5 w-3.5 ml-1" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-72 p-0">
+          <div className="p-2 border-b">
+            <div className="relative">
+              <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={assigneeSearch}
+                onChange={(e) => setAssigneeSearch(e.target.value)}
+                placeholder="Pesquisar usuário..."
+                className="h-8 pl-8"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="max-h-64 overflow-y-auto p-2 space-y-0.5">
+            {[
+              { value: "unassigned" as const, label: "Sem responsável" },
+              ...members
+                .filter((m) =>
+                  !assigneeSearch.trim() ||
+                  m.name.toLowerCase().includes(assigneeSearch.trim().toLowerCase()),
+                )
+                .map((m) => ({ value: m.user_id, label: m.name })),
+            ].map((opt) => {
+              const selected = (filters.assigneeIds ?? []).includes(opt.value);
+              return (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 rounded px-2 py-1.5"
+                >
+                  <Checkbox
+                    checked={selected}
+                    onCheckedChange={() => {
+                      const cur = new Set(filters.assigneeIds ?? []);
+                      cur.has(opt.value) ? cur.delete(opt.value) : cur.add(opt.value);
+                      onChange({ ...filters, assigneeIds: Array.from(cur) as (string | "unassigned")[] });
+                    }}
+                  />
+                  <span className="truncate flex-1">{opt.label}</span>
+                </label>
+              );
+            })}
+            {assigneeSearch && members.filter((m) =>
+              m.name.toLowerCase().includes(assigneeSearch.trim().toLowerCase()),
+            ).length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-3">Nenhum usuário encontrado</div>
+            )}
+          </div>
+          {(filters.assigneeIds?.length ?? 0) > 0 && (
+            <div className="border-t p-2">
+              <Button
+                variant="ghost" size="sm" className="w-full h-7"
+                onClick={() => onChange({ ...filters, assigneeIds: [] })}
+              >
+                <X className="h-3.5 w-3.5 mr-1" /> Limpar responsável
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+
       {/* Filters popover */}
       <Popover>
         <PopoverTrigger asChild>
