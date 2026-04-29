@@ -44,8 +44,10 @@ const ITEMS: SlashItem[] = [
     },
   },
   { title: "Tabela", description: "Tabela 3x3", icon: TableIcon, keywords: ["table"],
-    command: (e) => e.chain().focus().deleteRange({ from: e.state.selection.from - 1, to: e.state.selection.from })
-      (.insertTable as any)({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+    command: (e) => {
+      const chain = e.chain().focus().deleteRange({ from: e.state.selection.from - 1, to: e.state.selection.from }) as any;
+      chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    } },
   { title: "Mencionar tarefa", description: "Vincular uma tarefa", icon: AtSign, keywords: ["task", "mention"],
     command: (e) => e.chain().focus().deleteRange({ from: e.state.selection.from - 1, to: e.state.selection.from }).insertContent("@").run() },
 ];
