@@ -409,6 +409,7 @@ function TableHeaderRow({
     { key: "priority", label: "Prioridade", sortable: true, w: widths.priority ?? DEFAULT_WIDTHS.priority },
     { key: "assignees", label: "Responsáveis", w: widths.assignees ?? DEFAULT_WIDTHS.assignees },
     { key: "due_date", label: "Vencimento", sortable: true, w: widths.due_date ?? DEFAULT_WIDTHS.due_date },
+    { key: "time", label: "Tempo", w: widths.time ?? DEFAULT_WIDTHS.time },
     { key: "tags", label: "Tags", w: widths.tags ?? DEFAULT_WIDTHS.tags },
     ...fields.map((f) => ({
       key: f.id, label: f.name, sortable: true, w: widths[f.id] ?? 160,
