@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { Check, CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
 import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
+import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const { user } = useAuth();
   const { current } = useWorkspace();
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState<JSONContent | null>(null);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -60,6 +61,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const [posting, setPosting] = useState(false);
   const [members, setMembers] = useState<AssigneeMember[]>([]);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load task data
   useEffect(() => {
@@ -77,7 +81,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
       ]);
       if (cancelled) return;
       setTitle(task?.title ?? "");
-      setDescription(task?.description ?? "");
+      setDescription((task?.description ?? null) as JSONContent | null);
       setTags((task?.tags ?? []) as string[]);
       setSubtasks((subs ?? []) as Subtask[]);
       setComments((cmts ?? []) as Comment[]);
@@ -154,9 +158,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     return () => { supabase.removeChannel(channel); };
   }, [taskId, open, profiles]);
 
-  const saveTask = async (patch: { title?: string; description?: string; tags?: string[] }) => {
+  const saveTask = async (patch: { title?: string; description?: JSONContent | null; tags?: string[] }) => {
     if (!taskId) return;
-    const { error } = await supabase.from("tasks").update(patch).eq("id", taskId);
+    const { error } = await supabase.from("tasks").update(patch as never).eq("id", taskId);
     if (error) toast.error(error.message);
   };
 
@@ -164,6 +168,33 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     setTags(next);
     saveTask({ tags: next });
   };
+
+  const handleDescriptionChange = (next: JSONContent) => {
+    setDescription(next);
+    setSaveStatus("saving");
+    if (descTimer.current) clearTimeout(descTimer.current);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    descTimer.current = setTimeout(async () => {
+      if (!taskId) return;
+      const { error } = await supabase.from("tasks")
+        .update({ description: next as never }).eq("id", taskId);
+      if (error) {
+        setSaveStatus("idle");
+        toast.error(error.message);
+        return;
+      }
+      setSaveStatus("saved");
+      savedTimer.current = setTimeout(() => setSaveStatus("idle"), 1500);
+    }, 1000);
+  };
+
+  // Cleanup timers when task changes / dialog closes
+  useEffect(() => {
+    return () => {
+      if (descTimer.current) clearTimeout(descTimer.current);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    };
+  }, [taskId]);
 
   const addSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,14 +299,20 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
         <div className="space-y-5">
           {/* Description */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={() => saveTask({ description })}
-              placeholder="Adicione uma descrição..."
-              className="min-h-[80px] resize-none"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+              {saveStatus === "saving" && (
+                <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Salvando...
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="text-[11px] text-priority-low inline-flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Salvo
+                </span>
+              )}
+            </div>
+            <RichTextEditor content={description} onChange={handleDescriptionChange} />
           </div>
 
           {/* Tags */}

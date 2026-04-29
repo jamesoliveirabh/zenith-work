@@ -696,7 +696,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
-          description: string | null
+          description: Json | null
+          description_text: string | null
           due_date: string | null
           id: string
           list_id: string
@@ -715,7 +716,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          description?: string | null
+          description?: Json | null
+          description_text?: string | null
           due_date?: string | null
           id?: string
           list_id: string
@@ -734,7 +736,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          description?: string | null
+          description?: Json | null
+          description_text?: string | null
           due_date?: string | null
           id?: string
           list_id?: string
@@ -920,6 +923,7 @@ export type Database = {
       }
       seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
       task_link_path: { Args: { _task_id: string }; Returns: string }
+      tiptap_to_text: { Args: { _doc: Json }; Returns: string }
       user_can_access_list: {
         Args: { _list_id: string; _user: string }
         Returns: boolean

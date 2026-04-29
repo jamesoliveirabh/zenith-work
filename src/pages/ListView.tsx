@@ -29,6 +29,7 @@ interface Task {
   position: number;
   created_at: string;
   tags: string[] | null;
+  description_text: string | null;
   assignees: AssigneeMember[];
 }
 
@@ -63,7 +64,7 @@ export default function ListView() {
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
       supabase.from("tasks")
-        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
+        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text")
         .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
     ]);
     setListName(list?.name ?? "");
@@ -135,7 +136,7 @@ export default function ListView() {
       status_id: defaultStatusId,
       created_by: user.id,
       position: tasks.length,
-    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags").single();
+    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text").single();
     setCreating(false);
     if (error) return toast.error(error.message);
     setNewTitle("");
@@ -263,6 +264,11 @@ export default function ListView() {
                     }}
                     className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
                   />
+                  {task.description_text && (
+                    <p className="text-xs text-muted-foreground/70 px-2 mt-0.5 line-clamp-2">
+                      {task.description_text}
+                    </p>
+                  )}
                   {task.tags && task.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 px-2 mt-0.5">
                       {task.tags.map((t) => (
