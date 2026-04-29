@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { TagsInput } from "@/components/TagsInput";
+import { CustomFieldsSection } from "@/components/CustomFieldsSection";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +50,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(false);
@@ -62,7 +65,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     (async () => {
       setLoading(true);
       const [{ data: task }, { data: subs }, { data: cmts }] = await Promise.all([
-        supabase.from("tasks").select("title,description").eq("id", taskId).maybeSingle(),
+        supabase.from("tasks").select("title,description,tags").eq("id", taskId).maybeSingle(),
         supabase.from("tasks").select("id,title,completed_at,position")
           .eq("parent_task_id", taskId).order("position").order("created_at"),
         supabase.from("task_comments").select("id,body,author_id,created_at")
@@ -71,6 +74,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
       if (cancelled) return;
       setTitle(task?.title ?? "");
       setDescription(task?.description ?? "");
+      setTags((task?.tags ?? []) as string[]);
       setSubtasks((subs ?? []) as Subtask[]);
       setComments((cmts ?? []) as Comment[]);
 
@@ -131,10 +135,15 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     return () => { supabase.removeChannel(channel); };
   }, [taskId, open, profiles]);
 
-  const saveTask = async (patch: { title?: string; description?: string }) => {
+  const saveTask = async (patch: { title?: string; description?: string; tags?: string[] }) => {
     if (!taskId) return;
     const { error } = await supabase.from("tasks").update(patch).eq("id", taskId);
     if (error) toast.error(error.message);
+  };
+
+  const updateTags = (next: string[]) => {
+    setTags(next);
+    saveTask({ tags: next });
   };
 
   const addSubtask = async (e: React.FormEvent) => {
@@ -224,6 +233,15 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
               className="min-h-[80px] resize-none"
             />
           </div>
+
+          {/* Tags */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tags</label>
+            <TagsInput value={tags} onChange={updateTags} />
+          </div>
+
+          {/* Custom fields */}
+          {taskId && <CustomFieldsSection taskId={taskId} listId={listId} />}
 
           <Separator />
 

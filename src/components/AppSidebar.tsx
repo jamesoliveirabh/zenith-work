@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -198,6 +198,14 @@ export function AppSidebar() {
                   <NavLink to="/team">
                     <Users className="h-4 w-4" />
                     {!collapsed && <span>Equipe</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/settings/fields">
+                    <Settings2 className="h-4 w-4" />
+                    {!collapsed && <span>Campos</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

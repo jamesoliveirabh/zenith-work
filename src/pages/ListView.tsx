@@ -26,6 +26,7 @@ interface Task {
   due_date: string | null;
   position: number;
   created_at: string;
+  tags: string[] | null;
 }
 
 const priorityLabel: Record<Priority, string> = {
@@ -56,7 +57,7 @@ export default function ListView() {
     const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,assignee_id,due_date,position,created_at")
+      supabase.from("tasks").select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
         .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
     ]);
     setListName(list?.name ?? "");
@@ -80,7 +81,7 @@ export default function ListView() {
       status_id: defaultStatusId,
       created_by: user.id,
       position: tasks.length,
-    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at").single();
+    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags").single();
     setCreating(false);
     if (error) return toast.error(error.message);
     setNewTitle("");
@@ -160,14 +161,25 @@ export default function ListView() {
                 key={task.id}
                 className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
-                <Input
-                  defaultValue={task.title}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v && v !== task.title) updateTask(task.id, { title: v });
-                  }}
-                  className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
-                />
+                <div>
+                  <Input
+                    defaultValue={task.title}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim();
+                      if (v && v !== task.title) updateTask(task.id, { title: v });
+                    }}
+                    className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
+                  />
+                  {task.tags && task.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 px-2 mt-0.5">
+                      {task.tags.map((t) => (
+                        <Badge key={t} variant="outline" className="font-normal text-[10px] py-0 px-1.5 h-4">
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <Select
                   value={task.status_id ?? undefined}
                   onValueChange={(v) => updateTask(task.id, { status_id: v })}

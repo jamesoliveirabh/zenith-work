@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_fields: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          list_id: string | null
+          name: string
+          options: Json
+          position: number
+          type: Database["public"]["Enums"]["custom_field_type"]
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          list_id?: string | null
+          name: string
+          options?: Json
+          position?: number
+          type?: Database["public"]["Enums"]["custom_field_type"]
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          list_id?: string | null
+          name?: string
+          options?: Json
+          position?: number
+          type?: Database["public"]["Enums"]["custom_field_type"]
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       lists: {
         Row: {
           color: string | null
@@ -225,6 +264,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_field_values: {
+        Row: {
+          field_id: string
+          id: string
+          task_id: string
+          updated_at: string
+          value: Json | null
+          workspace_id: string
+        }
+        Insert: {
+          field_id: string
+          id?: string
+          task_id: string
+          updated_at?: string
+          value?: Json | null
+          workspace_id: string
+        }
+        Update: {
+          field_id?: string
+          id?: string
+          task_id?: string
+          updated_at?: string
+          value?: Json | null
+          workspace_id?: string
+        }
+        Relationships: []
       }
       task_watchers: {
         Row: {
@@ -470,6 +536,13 @@ export type Database = {
       }
     }
     Enums: {
+      custom_field_type:
+        | "text"
+        | "number"
+        | "select"
+        | "checkbox"
+        | "date"
+        | "url"
       task_priority: "low" | "medium" | "high" | "urgent"
       workspace_role: "admin" | "member" | "guest"
     }
@@ -599,6 +672,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      custom_field_type: [
+        "text",
+        "number",
+        "select",
+        "checkbox",
+        "date",
+        "url",
+      ],
       task_priority: ["low", "medium", "high", "urgent"],
       workspace_role: ["admin", "member", "guest"],
     },
