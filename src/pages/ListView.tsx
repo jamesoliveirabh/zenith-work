@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Plus,
+  CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Paperclip, Plus,
   Table as TableIcon, Trash2, Trello,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
