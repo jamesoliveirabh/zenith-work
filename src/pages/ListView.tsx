@@ -24,7 +24,7 @@ import { useListMembers } from "@/hooks/useListMembers";
 import type { Priority, Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import { cn } from "@/lib/utils";
 
 const priorityLabel: Record<Priority, string> = {
