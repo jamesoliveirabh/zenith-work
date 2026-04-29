@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["activity_action"]
+          actor_id: string
+          created_at: string
+          entity_id: string
+          entity_title: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          workspace_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["activity_action"]
+          actor_id: string
+          created_at?: string
+          entity_id: string
+          entity_title?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          workspace_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["activity_action"]
+          actor_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_title?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -166,6 +210,47 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: []
+      }
+      dashboard_widget_configs: {
+        Row: {
+          config: Json
+          id: string
+          is_visible: boolean
+          position: number
+          updated_at: string
+          user_id: string
+          widget_type: string
+          workspace_id: string
+        }
+        Insert: {
+          config?: Json
+          id?: string
+          is_visible?: boolean
+          position?: number
+          updated_at?: string
+          user_id: string
+          widget_type: string
+          workspace_id: string
+        }
+        Update: {
+          config?: Json
+          id?: string
+          is_visible?: boolean
+          position?: number
+          updated_at?: string
+          user_id?: string
+          widget_type?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_widget_configs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       list_permissions: {
         Row: {
@@ -1050,6 +1135,17 @@ export type Database = {
       }
     }
     Enums: {
+      activity_action:
+        | "task_created"
+        | "task_updated"
+        | "task_deleted"
+        | "task_completed"
+        | "task_assigned"
+        | "comment_created"
+        | "attachment_added"
+        | "list_created"
+        | "space_created"
+        | "member_joined"
       automation_action_type:
         | "set_status"
         | "set_assignee"
@@ -1205,6 +1301,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_action: [
+        "task_created",
+        "task_updated",
+        "task_deleted",
+        "task_completed",
+        "task_assigned",
+        "comment_created",
+        "attachment_added",
+        "list_created",
+        "space_created",
+        "member_joined",
+      ],
       automation_action_type: [
         "set_status",
         "set_assignee",
