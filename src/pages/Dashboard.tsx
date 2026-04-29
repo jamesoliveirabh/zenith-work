@@ -22,6 +22,7 @@ import {
 import {
   ActivityFeedWidget, MyTasksWidget, OverdueTasksWidget,
   PriorityOverviewWidget, SpaceProgressWidget, WeeklyActivityWidget,
+  GoalsOverviewWidget,
 } from "@/components/dashboard/DashboardWidgets";
 import { cn } from "@/lib/utils";
 
