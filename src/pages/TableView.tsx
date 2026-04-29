@@ -346,6 +346,9 @@ export default function TableView() {
             <Button variant="secondary" size="sm" className="h-8">
               <TableIcon className="h-4 w-4 mr-1.5" />Tabela
             </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
+            </Button>
           </div>
         </div>
       </header>
