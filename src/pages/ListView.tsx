@@ -64,7 +64,7 @@ export default function ListView() {
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
       supabase.from("tasks")
-        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
+        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text")
         .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
     ]);
     setListName(list?.name ?? "");
@@ -136,7 +136,7 @@ export default function ListView() {
       status_id: defaultStatusId,
       created_by: user.id,
       position: tasks.length,
-    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags").single();
+    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text").single();
     setCreating(false);
     if (error) return toast.error(error.message);
     setNewTitle("");
