@@ -315,7 +315,14 @@ export default function ListView() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
+                <div className="px-2">
+                  <AssigneeSelect
+                    members={members}
+                    selectedIds={task.assignees.map((a) => a.id)}
+                    onAdd={(uid) => addAssignee(task.id, uid)}
+                    onRemove={(uid) => removeAssignee(task.id, uid)}
+                  />
+                </div>
                   <CalendarIcon className="h-3.5 w-3.5" />
                   <Input
                     type="date"
