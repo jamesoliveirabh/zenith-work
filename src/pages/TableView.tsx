@@ -323,6 +323,7 @@ export default function TableView() {
                         widths={widths}
                         members={members}
                         isDone={isDone(task)}
+                        trackedSeconds={timeTotals[task.id] ?? 0}
                         editingTitle={editingTitleId === task.id}
                         onStartTitleEdit={() => setEditingTitleId(task.id)}
                         onStopTitleEdit={() => setEditingTitleId(null)}
