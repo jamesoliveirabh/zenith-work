@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ShieldCheck, AlertCircle, RotateCcw, Shield, Users, Settings2, ListTodo, Database } from "lucide-react";
+import { ShieldCheck, AlertCircle, RotateCcw, Lock } from "lucide-react";
 import { toast } from "sonner";
 
-type Role = "admin" | "member" | "guest";
+type Role = "admin" | "member" | "member_limited" | "guest";
 
 interface CatalogRow {
   key: string; category: string; label: string; description: string; position: number;
@@ -19,18 +18,13 @@ interface PermRow {
   id: string; role: Role; permission_key: string; enabled: boolean;
 }
 
-const roleMeta: Record<Role, { label: string; description: string; tone: string }> = {
-  admin:  { label: "Admin",     description: "Acesso total. Não editável.", tone: "destructive" },
-  member: { label: "Membro",    description: "Colaboradores que executam o trabalho diário.", tone: "default" },
-  guest:  { label: "Convidado", description: "Acesso restrito, normalmente clientes ou stakeholders externos.", tone: "secondary" },
-};
-
-const categoryIcon: Record<string, JSX.Element> = {
-  "Administração": <Shield className="h-4 w-4" />,
-  "Configuração": <Settings2 className="h-4 w-4" />,
-  "Tarefas": <ListTodo className="h-4 w-4" />,
-  "Dados": <Database className="h-4 w-4" />,
-};
+// Order shown in the matrix (lowest -> highest power), matches the reference UI
+const ROLES: { key: Role; label: string; description: string }[] = [
+  { key: "guest",           label: "Convidado",       description: "Acesso restrito (clientes / stakeholders externos)" },
+  { key: "member_limited",  label: "Membro limitado", description: "Colabora em tarefas, sem alterar configurações" },
+  { key: "member",          label: "Membro",          description: "Colaborador padrão da operação" },
+  { key: "admin",           label: "Administrador",   description: "Acesso total. Sempre habilitado." },
+];
 
 export default function Permissions() {
   const { current } = useWorkspace();
@@ -38,7 +32,6 @@ export default function Permissions() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [perms, setPerms] = useState<PermRow[]>([]);
-  const [activeRole, setActiveRole] = useState<Role>("member");
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,7 +67,8 @@ export default function Permissions() {
 
   const toggle = async (role: Role, key: string, value: boolean) => {
     if (!current) return;
-    setSaving(`${role}:${key}`);
+    const cellId = `${role}:${key}`;
+    setSaving(cellId);
     const existing = perms.find((p) => p.role === role && p.permission_key === key);
     if (existing) {
       const { error } = await supabase.from("role_permissions")
@@ -93,8 +87,7 @@ export default function Permissions() {
 
   const handleResetDefaults = async () => {
     if (!current) return;
-    if (!confirm("Restaurar permissões padrão para todos os papéis? Isso sobrescreverá as configurações atuais.")) return;
-    // Delete all and re-seed
+    if (!confirm("Restaurar permissões padrão para todos os papéis? As configurações atuais serão sobrescritas.")) return;
     const { error: delErr } = await supabase.from("role_permissions")
       .delete().eq("workspace_id", current.id);
     if (delErr) return toast.error(delErr.message);
@@ -121,10 +114,8 @@ export default function Permissions() {
     );
   }
 
-  const lockedRole = activeRole === "admin";
-
   return (
-    <div className="p-6 max-w-5xl space-y-6">
+    <div className="p-6 space-y-6 max-w-[1400px]">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -133,7 +124,7 @@ export default function Permissions() {
           <div>
             <h1 className="text-2xl font-bold">Permissões por papel</h1>
             <p className="text-sm text-muted-foreground">
-              Defina o que cada papel pode fazer no workspace.
+              Configure o que cada nível de usuário pode fazer no workspace.
             </p>
           </div>
         </div>
@@ -142,62 +133,73 @@ export default function Permissions() {
         </Button>
       </div>
 
-      <Tabs value={activeRole} onValueChange={(v) => setActiveRole(v as Role)}>
-        <TabsList>
-          {(["admin","member","guest"] as Role[]).map((r) => (
-            <TabsTrigger key={r} value={r} className="gap-2">
-              <Users className="h-3.5 w-3.5" />
-              {roleMeta[r].label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead className="bg-muted/40">
+              <tr className="border-b">
+                <th className="text-left p-4 text-xs font-medium uppercase tracking-wider text-muted-foreground w-1/3 min-w-[300px]">
+                  Ações
+                </th>
+                {ROLES.map((r) => (
+                  <th key={r.key} className="p-4 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground min-w-[140px]">
+                    <div className="flex flex-col items-center gap-1">
+                      <span>{r.label}</span>
+                      {r.key === "admin" && <Lock className="h-3 w-3 opacity-50" />}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(grouped).map(([category, items]) => (
+                <>
+                  <tr key={`cat-${category}`} className="bg-muted/20 border-b">
+                    <td colSpan={ROLES.length + 1} className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {category}
+                    </td>
+                  </tr>
+                  {items.map((perm) => (
+                    <tr key={perm.key} className="border-b hover:bg-muted/10 transition-colors">
+                      <td className="p-4 align-top">
+                        <div className="font-medium text-sm">{perm.label}</div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{perm.description}</p>
+                      </td>
+                      {ROLES.map((r) => {
+                        const cellId = `${r.key}:${perm.key}`;
+                        const enabled = isEnabled(r.key, perm.key);
+                        const locked = r.key === "admin";
+                        return (
+                          <td key={r.key} className="p-4 text-center align-middle">
+                            <div className="flex justify-center">
+                              <Switch
+                                checked={locked ? true : enabled}
+                                disabled={locked || saving === cellId}
+                                onCheckedChange={(v) => toggle(r.key, perm.key, v)}
+                              />
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-        {(["admin","member","guest"] as Role[]).map((r) => (
-          <TabsContent key={r} value={r} className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{roleMeta[r].label}</CardTitle>
-                    <CardDescription>{roleMeta[r].description}</CardDescription>
-                  </div>
-                  {r === "admin" && <Badge variant="destructive">Travado</Badge>}
-                </div>
-              </CardHeader>
-            </Card>
-
-            {Object.entries(grouped).map(([category, items]) => (
-              <Card key={category}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                    {categoryIcon[category]}
-                    <span>{category}</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="divide-y divide-border -mt-2">
-                  {items.map((perm) => {
-                    const enabled = isEnabled(r, perm.key);
-                    const key = `${r}:${perm.key}`;
-                    return (
-                      <div key={perm.key} className="py-4 flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{perm.label}</div>
-                          <p className="text-sm text-muted-foreground mt-1">{perm.description}</p>
-                        </div>
-                        <Switch
-                          checked={enabled}
-                          disabled={lockedRole || saving === key}
-                          onCheckedChange={(v) => toggle(r, perm.key, v)}
-                        />
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+      <div className="grid gap-3 md:grid-cols-4 text-xs text-muted-foreground">
+        {ROLES.map((r) => (
+          <div key={r.key} className="flex items-start gap-2 p-3 rounded-lg border bg-card">
+            <Badge variant={r.key === "admin" ? "destructive" : r.key === "guest" ? "outline" : "secondary"} className="shrink-0">
+              {r.label}
+            </Badge>
+            <span className="leading-relaxed">{r.description}</span>
+          </div>
         ))}
-      </Tabs>
+      </div>
     </div>
   );
 }

@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { Copy, Mail, Trash2, UserPlus } from "lucide-react";
 import { z } from "zod";
 
-type Role = "admin" | "member" | "guest";
+type Role = "admin" | "member" | "member_limited" | "guest";
 
 interface Member {
   id: string;
@@ -37,7 +37,7 @@ interface Invitation {
 
 const inviteSchema = z.object({
   email: z.string().trim().email("Email inválido").max(255),
-  role: z.enum(["admin", "member", "guest"]),
+  role: z.enum(["admin", "member", "member_limited", "guest"]),
 });
 
 export default function Team() {
@@ -173,9 +173,10 @@ export default function Team() {
             <Select value={role} onValueChange={(v) => setRole(v as Role)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="guest">Guest</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="member">Membro</SelectItem>
+                <SelectItem value="member_limited">Membro limitado</SelectItem>
+                <SelectItem value="guest">Convidado</SelectItem>
               </SelectContent>
             </Select>
             <Button type="submit" disabled={loading}>
@@ -228,9 +229,10 @@ export default function Team() {
                       <Select value={m.role} onValueChange={(v) => updateMemberRole(m.id, v as Role)}>
                         <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="guest">Guest</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="member">Membro</SelectItem>
+                          <SelectItem value="member_limited">Membro limitado</SelectItem>
+                          <SelectItem value="guest">Convidado</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (

@@ -881,7 +881,7 @@ export type Database = {
         | "task_completed"
         | "invitation_accepted"
       task_priority: "low" | "medium" | "high" | "urgent"
-      workspace_role: "admin" | "member" | "guest"
+      workspace_role: "admin" | "member_limited" | "member" | "guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1040,7 +1040,7 @@ export const Constants = {
         "invitation_accepted",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
-      workspace_role: ["admin", "member", "guest"],
+      workspace_role: ["admin", "member_limited", "member", "guest"],
     },
   },
 } as const
