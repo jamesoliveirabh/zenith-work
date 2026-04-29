@@ -68,6 +68,7 @@ const App = () => (
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
                   <Route path="/list/:listId/table" element={<TableView />} />
+                  <Route path="/list/:listId/calendar" element={<CalendarView />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />
