@@ -249,7 +249,7 @@ export default function GanttView() {
   const headerCols = useMemo(() => {
     const arr: { x: number; primary: string; secondary?: string; isToday?: boolean; date: Date }[] = [];
     for (let i = 0; i < totalUnits; i++) {
-      const d = zoom === "day" ? addDays(anchor, i) : zoom === "week" ? addWeeks(anchor, i) : addMonths(anchor, i);
+      const d = zoom === "day" ? addDays(effectiveAnchor, i) : zoom === "week" ? addWeeks(effectiveAnchor, i) : addMonths(effectiveAnchor, i);
       const x = i * colWidth(zoom);
       let primary = "", secondary: string | undefined;
       if (zoom === "day") {
