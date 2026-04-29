@@ -246,6 +246,14 @@ export function AppSidebar() {
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/security/permissions">
+                        <Lock className="h-3.5 w-3.5" />
+                        <span>Permissões</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </>
               )}
             </SidebarMenu>
