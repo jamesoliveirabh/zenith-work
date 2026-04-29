@@ -270,6 +270,12 @@ export default function ListView() {
                     className="h-8 border-0 shadow-none focus-visible:ring-1 px-1 text-xs"
                   />
                 </div>
+                <div className="px-2">
+                  <TaskTimeCell
+                    trackedSeconds={timeTotals[task.id] ?? 0}
+                    estimateSeconds={task.time_estimate_seconds ?? null}
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
