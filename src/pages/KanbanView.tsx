@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { Calendar, LayoutList, Loader2, Plus, Table as TableIcon, Trello } from "lucide-react";
+import { Calendar, CalendarDays, LayoutList, Loader2, Plus, Table as TableIcon, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -335,6 +335,9 @@ export default function KanbanView() {
           </Button>
           <Button asChild variant="ghost" size="sm" className="h-8">
             <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8">
+            <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
           </Button>
         </div>
       </header>

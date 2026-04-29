@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   ChevronDown, ChevronRight, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
-  ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check,
+  ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -345,6 +345,9 @@ export default function TableView() {
             </Button>
             <Button variant="secondary" size="sm" className="h-8">
               <TableIcon className="h-4 w-4 mr-1.5" />Tabela
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
             </Button>
           </div>
         </div>
