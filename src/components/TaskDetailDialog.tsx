@@ -220,6 +220,31 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     if (error) toast.error(error.message);
   };
 
+  const addAssignee = async (userId: string) => {
+    if (!taskId || !current) return;
+    if (assigneeIds.includes(userId)) return;
+    setAssigneeIds((p) => [...p, userId]);
+    const { error } = await supabase.from("task_assignees").insert({
+      task_id: taskId, user_id: userId, workspace_id: current.id,
+    });
+    if (error) {
+      setAssigneeIds((p) => p.filter((id) => id !== userId));
+      toast.error(error.message);
+    }
+  };
+
+  const removeAssignee = async (userId: string) => {
+    if (!taskId) return;
+    const prev = assigneeIds;
+    setAssigneeIds((p) => p.filter((id) => id !== userId));
+    const { error } = await supabase.from("task_assignees").delete()
+      .eq("task_id", taskId).eq("user_id", userId);
+    if (error) {
+      setAssigneeIds(prev);
+      toast.error(error.message);
+    }
+  };
+
   const completedCount = subtasks.filter((s) => s.completed_at).length;
 
   return (
