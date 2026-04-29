@@ -60,6 +60,7 @@ export default function ListView() {
   const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId);
   const { data: members = [] } = useListMembers(current?.id);
+  const { data: timeTotals = {} } = useTaskTimeTotals(listId);
 
   const createTask = useCreateTask(listId ?? "");
   const updateTask = useUpdateTask(listId ?? "");
