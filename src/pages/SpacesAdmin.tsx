@@ -247,7 +247,7 @@ export default function SpacesAdmin() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteSpace(s)}
+                            onClick={() => openDelete(s)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" /> Excluir space
                           </DropdownMenuItem>
