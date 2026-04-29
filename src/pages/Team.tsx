@@ -229,9 +229,10 @@ export default function Team() {
                       <Select value={m.role} onValueChange={(v) => updateMemberRole(m.id, v as Role)}>
                         <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="guest">Guest</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="member">Membro</SelectItem>
+                          <SelectItem value="member_limited">Membro limitado</SelectItem>
+                          <SelectItem value="guest">Convidado</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
