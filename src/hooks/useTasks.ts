@@ -127,12 +127,12 @@ export function useUpdateTask(listId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: TaskPatch }) => {
-      const { error } = await supabase.from("tasks").update(patch).eq("id", id);
+      const { error } = await supabase.from("tasks").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onMutate: async ({ id, patch }) => {
       await qc.cancelQueries({ queryKey: tasksKey(listId) });
-      const snapshots: { key: unknown[]; data: unknown }[] = [];
+      const snapshots: { key: readonly unknown[]; data: unknown }[] = [];
       // Patch every cached variant of ["tasks", listId, ...]
       qc.getQueriesData<Task[]>({ queryKey: tasksKey(listId) }).forEach(([key, data]) => {
         snapshots.push({ key, data });
@@ -164,7 +164,7 @@ export function useDeleteTask(listId: string) {
     },
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: tasksKey(listId) });
-      const snapshots: { key: unknown[]; data: unknown }[] = [];
+      const snapshots: { key: readonly unknown[]; data: unknown }[] = [];
       qc.getQueriesData<Task[]>({ queryKey: tasksKey(listId) }).forEach(([key, data]) => {
         snapshots.push({ key, data });
         if (!data) return;
@@ -227,7 +227,7 @@ export function useUpdateTaskAssigneesInList(listId: string) {
     },
     onMutate: async (vars) => {
       await qc.cancelQueries({ queryKey: tasksKey(listId) });
-      const snapshots: { key: unknown[]; data: unknown }[] = [];
+      const snapshots: { key: readonly unknown[]; data: unknown }[] = [];
       qc.getQueriesData<Task[]>({ queryKey: tasksKey(listId) }).forEach(([key, data]) => {
         snapshots.push({ key, data });
         if (!data) return;
