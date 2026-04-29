@@ -40,6 +40,11 @@ export default function SpacesAdmin() {
   const [renameSpace, setRenameSpace] = useState<Space | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [deleteSpace, setDeleteSpace] = useState<Space | null>(null);
+  const [deleteTaskCount, setDeleteTaskCount] = useState<number>(0);
+  const [deleteMode, setDeleteMode] = useState<"move" | "force">("move");
+  const [moveTargetSpace, setMoveTargetSpace] = useState<string>("");
+  const [confirmName, setConfirmName] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [transferSpace, setTransferSpace] = useState<Space | null>(null);
   const [transferTarget, setTransferTarget] = useState<string>("");
 
