@@ -21,6 +21,7 @@ import Security from "./pages/Security";
 import Permissions from "./pages/Permissions";
 import ListPermissions from "./pages/ListPermissions";
 import ListRolePermissions from "./pages/ListRolePermissions";
+import SpacesAdmin from "./pages/SpacesAdmin";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
                   <Route path="/security" element={<Security />} />
                   <Route path="/security/people" element={<Team />} />
                   <Route path="/security/permissions" element={<Permissions />} />
+                  <Route path="/security/spaces" element={<SpacesAdmin />} />
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                   <Route path="/security/lists/:listId/roles" element={<ListRolePermissions />} />
                 </Route>

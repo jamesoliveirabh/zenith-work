@@ -254,6 +254,14 @@ export function AppSidebar() {
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/security/spaces">
+                        <FolderKanban className="h-3.5 w-3.5" />
+                        <span>Spaces</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </>
               )}
             </SidebarMenu>
