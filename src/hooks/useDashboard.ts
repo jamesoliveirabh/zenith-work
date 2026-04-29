@@ -252,7 +252,8 @@ export function useActivityFeed(workspaceId: string | undefined) {
     queryKey: dashKeys.activity(workspaceId ?? ""),
     enabled: !!workspaceId,
     initialPageParam: 0,
-    getNextPageParam: (last, pages) => (last.length < ACTIVITY_PAGE_SIZE ? undefined : pages.length),
+    getNextPageParam: (last: ActivityLog[], pages) =>
+      last.length < ACTIVITY_PAGE_SIZE ? undefined : pages.length,
     queryFn: async ({ pageParam }): Promise<ActivityLog[]> => {
       const offset = (pageParam as number) * ACTIVITY_PAGE_SIZE;
       const { data, error } = await supabase
