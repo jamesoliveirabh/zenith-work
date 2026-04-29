@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
