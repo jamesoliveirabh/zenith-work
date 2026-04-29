@@ -90,13 +90,15 @@ export function useTasks<O extends UseTasksOptions = {}>(
       if (error) throw error;
       const baseList = (tk ?? []) as Omit<Task, "assignees">[];
       const ids = baseList.map((t) => t.id);
-      const [assigneesByTask, fvByTask] = await Promise.all([
+      const [assigneesByTask, fvByTask, attachmentCounts] = await Promise.all([
         fetchAssigneesByTask(ids),
         withFieldValues ? fetchFieldValuesByTask(ids) : Promise.resolve({}),
+        fetchAttachmentCounts(ids),
       ]);
       return baseList.map((t) => ({
         ...t,
         assignees: assigneesByTask[t.id] ?? [],
+        attachment_count: attachmentCounts[t.id] ?? 0,
         ...(withFieldValues ? { fieldValues: fvByTask[t.id] ?? {} } : {}),
       })) as O extends { withFieldValues: true } ? TaskWithFieldValues[] : Task[];
     },
