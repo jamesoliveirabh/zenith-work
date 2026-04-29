@@ -18,6 +18,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
 import Automations from "./pages/Automations";
 import Security from "./pages/Security";
+import Permissions from "./pages/Permissions";
 import ListPermissions from "./pages/ListPermissions";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -67,6 +68,7 @@ const App = () => (
                   <Route path="/automations" element={<Automations />} />
                   <Route path="/security" element={<Security />} />
                   <Route path="/security/people" element={<Team />} />
+                  <Route path="/security/permissions" element={<Permissions />} />
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
