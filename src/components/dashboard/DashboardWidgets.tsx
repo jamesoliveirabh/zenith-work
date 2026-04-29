@@ -4,7 +4,7 @@ import { ptBR } from "date-fns/locale";
 import {
   AlertTriangle, Calendar as CalendarIcon, ChevronRight, Loader2, Plus,
   CheckCircle2, MessageSquare, Paperclip, FolderPlus, Hash, UserPlus,
-  Edit3, ListChecks,
+  Edit3, ListChecks, Target,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -21,6 +21,7 @@ import {
   useActivityFeed, useMyTasks, useOverdueTasks, usePriorityOverview,
   useSpaceProgress, useWeeklyActivity,
 } from "@/hooks/useDashboard";
+import { useGoals } from "@/hooks/useGoals";
 
 interface BaseProps {
   workspaceId: string;
@@ -401,3 +402,39 @@ export function WeeklyActivityWidget({ workspaceId }: BaseProps) {
 
 void ChevronRight;
 void Link;
+
+export function GoalsOverviewWidget({ workspaceId }: BaseProps) {
+  const { data: goals = [], isLoading } = useGoals(workspaceId, "all");
+  const top = goals.slice(0, 5);
+  return (
+    <WidgetCard title="Goals" icon={Target}>
+      {isLoading ? (
+        <div className="flex justify-center py-6"><Loader2 className="h-4 w-4 animate-spin" /></div>
+      ) : top.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum goal ativo.</p>
+      ) : (
+        <div className="space-y-3">
+          {top.map((g) => {
+            const p = g.progress ?? 0;
+            const tone = p >= 70 ? "bg-emerald-500" : p >= 40 ? "bg-amber-500" : "bg-rose-500";
+            return (
+              <Link key={g.id} to={`/goals/${g.id}`} className="block hover:bg-muted/50 rounded p-2 -mx-2 transition">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
+                  <span className="text-sm font-medium truncate flex-1">{g.name}</span>
+                  <span className="text-xs text-muted-foreground">{p.toFixed(0)}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className={cn("h-full transition-all", tone)} style={{ width: `${p}%` }} />
+                </div>
+              </Link>
+            );
+          })}
+          {goals.length > 5 && (
+            <Link to="/goals" className="text-xs text-primary hover:underline block pt-1">Ver todos →</Link>
+          )}
+        </div>
+      )}
+    </WidgetCard>
+  );
+}

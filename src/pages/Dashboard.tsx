@@ -22,6 +22,7 @@ import {
 import {
   ActivityFeedWidget, MyTasksWidget, OverdueTasksWidget,
   PriorityOverviewWidget, SpaceProgressWidget, WeeklyActivityWidget,
+  GoalsOverviewWidget,
 } from "@/components/dashboard/DashboardWidgets";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const WIDGET_LABELS: Record<WidgetType, string> = {
   "space-progress": "Progresso dos Spaces",
   "priority-overview": "Tarefas por prioridade",
   "weekly-activity": "Atividade da semana",
+  "goals-overview": "Goals",
 };
 
 export default function Dashboard() {
@@ -181,6 +183,8 @@ function RenderWidget({
       return <PriorityOverviewWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
     case "weekly-activity":
       return <WeeklyActivityWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
+    case "goals-overview":
+      return <GoalsOverviewWidget workspaceId={workspaceId} onOpenTask={onOpenTask} />;
   }
 }
 
