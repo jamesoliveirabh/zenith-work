@@ -104,15 +104,60 @@ export default function GanttView() {
   const [leftWidth, setLeftWidth] = useState(LEFT_PANEL_DEFAULT);
 
   // Time anchor (visible window start) — adjustable via nav buttons
-  const [anchor, setAnchor] = useState<Date>(() => addDays(startOfDay(new Date()), -30));
+  const [anchor, setAnchor] = useState<Date>(() => addDays(startOfDay(new Date()), -7));
+
+  // Period filter (controls how many days are rendered in the day-zoom timeline).
+  // Persisted in localStorage so the user gets the same view next time.
+  type PeriodPreset = "7" | "15" | "30" | "60" | "custom";
+  const PERIOD_STORAGE_KEY = "gantt:period:v1";
+  const [period, setPeriod] = useState<PeriodPreset>("30");
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [customError, setCustomError] = useState<string | null>(null);
+
+  // Hydrate from localStorage once
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PERIOD_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { period: PeriodPreset; from?: string; to?: string };
+      if (saved.period) setPeriod(saved.period);
+      if (saved.from && saved.to) {
+        setCustomRange({ from: parseISO(saved.from), to: parseISO(saved.to) });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist
+  useEffect(() => {
+    try {
+      localStorage.setItem(PERIOD_STORAGE_KEY, JSON.stringify({
+        period,
+        from: customRange.from?.toISOString(),
+        to: customRange.to?.toISOString(),
+      }));
+    } catch { /* ignore */ }
+  }, [period, customRange]);
 
   // Container refs
   const scrollRef = useRef<HTMLDivElement>(null);
   const leftScrollRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
 
-  // Visible range = a generous window of columns around anchor (e.g. 365 days)
-  const totalUnits = zoom === "day" ? 365 : zoom === "week" ? 52 : 24;
+  // Visible range. In "day" zoom, the period selector controls the window length and anchor.
+  // In "week"/"month" zoom, keep the original generous defaults.
+  const customValid = !!(customRange.from && customRange.to && customRange.from <= customRange.to);
+  const periodDays =
+    period === "custom"
+      ? (customValid ? differenceInCalendarDays(customRange.to!, customRange.from!) + 1 : 30)
+      : parseInt(period, 10);
+
+  const effectiveAnchor = useMemo(() => {
+    if (zoom !== "day") return anchor;
+    if (period === "custom" && customValid) return startOfDay(customRange.from!);
+    return anchor;
+  }, [zoom, period, customValid, customRange.from, anchor]);
+
+  const totalUnits = zoom === "day" ? periodDays : zoom === "week" ? 52 : 24;
   const totalDays = totalUnits * unitDays(zoom);
   const totalWidth = totalUnits * colWidth(zoom);
 
@@ -204,12 +249,13 @@ export default function GanttView() {
   const headerCols = useMemo(() => {
     const arr: { x: number; primary: string; secondary?: string; isToday?: boolean; date: Date }[] = [];
     for (let i = 0; i < totalUnits; i++) {
-      const d = zoom === "day" ? addDays(anchor, i) : zoom === "week" ? addWeeks(anchor, i) : addMonths(anchor, i);
+      const d = zoom === "day" ? addDays(effectiveAnchor, i) : zoom === "week" ? addWeeks(effectiveAnchor, i) : addMonths(effectiveAnchor, i);
       const x = i * colWidth(zoom);
       let primary = "", secondary: string | undefined;
       if (zoom === "day") {
-        primary = format(d, "EEE", { locale: ptBR });
-        secondary = format(d, "d/MM");
+        // Apenas data numérica dd/MM (sem nome do dia da semana)
+        primary = format(d, "dd/MM");
+        secondary = undefined;
       } else if (zoom === "week") {
         primary = `Sem ${format(d, "ww")}`;
         secondary = format(d, "MMM yy", { locale: ptBR });
@@ -220,9 +266,9 @@ export default function GanttView() {
       arr.push({ x, primary, secondary, isToday: zoom === "day" && isSameDay(d, new Date()), date: d });
     }
     return arr;
-  }, [anchor, zoom, totalUnits]);
+  }, [effectiveAnchor, zoom, totalUnits]);
 
-  const todayX = useMemo(() => dateToX(new Date(), anchor, zoom), [anchor, zoom]);
+  const todayX = useMemo(() => dateToX(new Date(), effectiveAnchor, zoom), [effectiveAnchor, zoom]);
 
   // Sync horizontal scroll with header
   const onGridScroll = useCallback(() => {
@@ -287,12 +333,22 @@ export default function GanttView() {
   // Center on today on mount / zoom change
   useEffect(() => {
     if (!scrollRef.current) return;
-    const x = dateToX(new Date(), anchor, zoom);
+    const x = dateToX(new Date(), effectiveAnchor, zoom);
     if (x >= 0 && x <= totalWidth) {
       scrollRef.current.scrollLeft = Math.max(0, x - 200);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
+
+  // When the period preset changes (in day-zoom), recenter the anchor so "today"
+  // sits comfortably inside the chosen window.
+  useEffect(() => {
+    if (zoom !== "day" || period === "custom") return;
+    const days = parseInt(period, 10);
+    const offset = -Math.max(2, Math.floor(days / 4));
+    setAnchor(addDays(startOfDay(new Date()), offset));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, zoom]);
 
   // Drag/resize bars
   type DragState = {
@@ -382,8 +438,8 @@ export default function GanttView() {
       if (sRow.kind !== "task" || tRow.kind !== "task") continue;
       const sd = barDates(sRow.task), td = barDates(tRow.task);
       if (!sd.end || !td.start) continue;
-      const x1 = dateToX(sd.end, anchor, zoom);
-      const x2 = dateToX(td.start, anchor, zoom);
+      const x1 = dateToX(sd.end, effectiveAnchor, zoom);
+      const x2 = dateToX(td.start, effectiveAnchor, zoom);
       // y positions from virtualizer
       const sVirtual = virtualItems.find((v) => v.index === sIdx);
       const tVirtual = virtualItems.find((v) => v.index === tIdx);
@@ -395,7 +451,7 @@ export default function GanttView() {
     }
     return lines;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [relations, showRelations, taskRowIndex, rows, virtualItems, anchor, zoom, dragState]);
+  }, [relations, showRelations, taskRowIndex, rows, virtualItems, effectiveAnchor, zoom, dragState]);
 
   if (!listId) return null;
 
@@ -449,6 +505,55 @@ export default function GanttView() {
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={navNext} aria-label="Próximo">
             <ChevronRight className="h-4 w-4" />
           </Button>
+        </div>
+
+        {/* Period selector — only relevant in day-zoom; visible always for clarity */}
+        <div className="flex items-center gap-1">
+          <Select value={period} onValueChange={(v) => setPeriod(v as PeriodPreset)}>
+            <SelectTrigger className="h-8 w-36" aria-label="Período exibido">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 dias</SelectItem>
+              <SelectItem value="15">15 dias</SelectItem>
+              <SelectItem value="30">30 dias</SelectItem>
+              <SelectItem value="60">60 dias</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+          {period === "custom" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {customValid
+                    ? `${format(customRange.from!, "dd/MM/yy")} – ${format(customRange.to!, "dd/MM/yy")}`
+                    : "Selecionar datas"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={{ from: customRange.from, to: customRange.to }}
+                  onSelect={(range) => {
+                    if (!range) { setCustomRange({}); setCustomError(null); return; }
+                    if (range.from && range.to && range.from > range.to) {
+                      setCustomError("A data inicial deve ser anterior ou igual à final.");
+                      return;
+                    }
+                    setCustomError(null);
+                    setCustomRange({ from: range.from, to: range.to });
+                  }}
+                  numberOfMonths={2}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+                {customError && (
+                  <div className="px-3 pb-3 text-xs text-destructive">{customError}</div>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
         <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
@@ -557,7 +662,9 @@ export default function GanttView() {
                     )}
                     style={{ left: c.x, width: colWidth(zoom) }}
                   >
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{c.secondary}</div>
+                    {c.secondary && (
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{c.secondary}</div>
+                    )}
                     <div className={cn("text-xs font-medium", c.isToday && "text-primary")}>{c.primary}</div>
                   </div>
                 ))}
@@ -627,8 +734,8 @@ export default function GanttView() {
                         const x1 = Math.min(createDrag.startX, createDrag.endX);
                         const x2 = Math.max(createDrag.startX, createDrag.endX);
                         if (x2 - x1 < 8) { setCreateDrag(null); return; }
-                        const s = xToDate(x1, anchor, zoom);
-                        const e = xToDate(x2, anchor, zoom);
+                        const s = xToDate(x1, effectiveAnchor, zoom);
+                        const e = xToDate(x2, effectiveAnchor, zoom);
                         setPendingCreate({
                           start: s, end: e, status_id: createDrag.status_id,
                           popoverX: (x1 + x2) / 2, rowTop: createDrag.rowTop,
@@ -638,8 +745,8 @@ export default function GanttView() {
                     >
                       {start && end ? (
                         <Bar
-                          startX={dateToX(start, anchor, zoom)}
-                          endX={dateToX(end, anchor, zoom) + pxPerDay(zoom)}
+                          startX={dateToX(start, effectiveAnchor, zoom)}
+                          endX={dateToX(end, effectiveAnchor, zoom) + pxPerDay(zoom)}
                           color={color}
                           title={t.title}
                           isSub={r.isSub}
@@ -649,7 +756,7 @@ export default function GanttView() {
                         />
                       ) : end ? (
                         <Diamond
-                          x={dateToX(end, anchor, zoom) + pxPerDay(zoom) / 2}
+                          x={dateToX(end, effectiveAnchor, zoom) + pxPerDay(zoom) / 2}
                           color={color}
                           onClick={() => setOpenTaskId(t.id)}
                           title={t.title}
