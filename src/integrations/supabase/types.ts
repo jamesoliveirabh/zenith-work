@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      automation_runs: {
+        Row: {
+          applied_actions: Json
+          automation_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          status: string
+          task_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          applied_actions?: Json
+          automation_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status: string
+          task_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          applied_actions?: Json
+          automation_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          task_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      automations: {
+        Row: {
+          actions: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          list_id: string | null
+          name: string
+          trigger: Database["public"]["Enums"]["automation_trigger"]
+          trigger_config: Json
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          list_id?: string | null
+          name: string
+          trigger: Database["public"]["Enums"]["automation_trigger"]
+          trigger_config?: Json
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          list_id?: string | null
+          name?: string
+          trigger?: Database["public"]["Enums"]["automation_trigger"]
+          trigger_config?: Json
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       custom_fields: {
         Row: {
           created_at: string
@@ -536,6 +611,17 @@ export type Database = {
       }
     }
     Enums: {
+      automation_action_type:
+        | "set_status"
+        | "set_assignee"
+        | "set_priority"
+        | "add_tag"
+        | "set_due_date"
+      automation_trigger:
+        | "task_created"
+        | "status_changed"
+        | "task_completed"
+        | "assignee_changed"
       custom_field_type:
         | "text"
         | "number"
@@ -672,6 +758,19 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      automation_action_type: [
+        "set_status",
+        "set_assignee",
+        "set_priority",
+        "add_tag",
+        "set_due_date",
+      ],
+      automation_trigger: [
+        "task_created",
+        "status_changed",
+        "task_completed",
+        "assignee_changed",
+      ],
       custom_field_type: [
         "text",
         "number",

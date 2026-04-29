@@ -16,6 +16,7 @@ import KanbanView from "./pages/KanbanView";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
+import Automations from "./pages/Automations";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
+                  <Route path="/automations" element={<Automations />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
