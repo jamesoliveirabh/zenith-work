@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import ListView from "./pages/ListView";
 import KanbanView from "./pages/KanbanView";
 import TableView from "./pages/TableView";
+import CalendarView from "./pages/CalendarView";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
