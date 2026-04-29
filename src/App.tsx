@@ -20,6 +20,7 @@ import Automations from "./pages/Automations";
 import Security from "./pages/Security";
 import Permissions from "./pages/Permissions";
 import ListPermissions from "./pages/ListPermissions";
+import ListRolePermissions from "./pages/ListRolePermissions";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
                   <Route path="/security/people" element={<Team />} />
                   <Route path="/security/permissions" element={<Permissions />} />
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
+                  <Route path="/security/lists/:listId/roles" element={<ListRolePermissions />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
