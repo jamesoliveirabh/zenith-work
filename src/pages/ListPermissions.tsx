@@ -153,14 +153,6 @@ export default function ListPermissions() {
           </Link>
         </Button>
       </div>
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {restricted
-            ? "Apenas usuários abaixo (e administradores) têm acesso."
-            : "Todos os membros do workspace têm acesso. Adicione um usuário para tornar privada."}
-        </p>
-      </div>
 
       <Card>
         <CardHeader>
