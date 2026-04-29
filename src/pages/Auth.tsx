@@ -27,8 +27,11 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
 
+  const pendingInvite = sessionStorage.getItem("pendingInviteToken");
+  const postAuthTarget = pendingInvite ? `/invite/${pendingInvite}` : "/";
+
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={postAuthTarget} replace />;
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,7 +48,7 @@ export default function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    navigate("/", { replace: true });
+    navigate(postAuthTarget, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -83,7 +86,7 @@ export default function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate("/", { replace: true });
+    navigate(postAuthTarget, { replace: true });
   };
 
   return (
