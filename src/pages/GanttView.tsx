@@ -253,8 +253,9 @@ export default function GanttView() {
       const x = i * colWidth(zoom);
       let primary = "", secondary: string | undefined;
       if (zoom === "day") {
-        primary = format(d, "EEE", { locale: ptBR });
-        secondary = format(d, "d/MM");
+        // Apenas data numérica dd/MM (sem nome do dia da semana)
+        primary = format(d, "dd/MM");
+        secondary = undefined;
       } else if (zoom === "week") {
         primary = `Sem ${format(d, "ww")}`;
         secondary = format(d, "MMM yy", { locale: ptBR });
