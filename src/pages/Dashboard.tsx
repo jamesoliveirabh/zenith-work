@@ -33,6 +33,7 @@ const WIDGET_LABELS: Record<WidgetType, string> = {
   "space-progress": "Progresso dos Spaces",
   "priority-overview": "Tarefas por prioridade",
   "weekly-activity": "Atividade da semana",
+  "goals-overview": "Goals",
 };
 
 export default function Dashboard() {
