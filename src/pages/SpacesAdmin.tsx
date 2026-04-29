@@ -317,23 +317,152 @@ export default function SpacesAdmin() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete */}
-      <AlertDialog open={!!deleteSpace} onOpenChange={(v) => !v && setDeleteSpace(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir space?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação removerá o space "{deleteSpace?.name}" e pode afetar listas vinculadas. Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete with dependency check */}
+      <Dialog open={!!deleteSpace} onOpenChange={(v) => !v && !deleting && setDeleteSpace(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Excluir space "{deleteSpace?.name}"?
+            </DialogTitle>
+            <DialogDescription>
+              Verificamos as dependências antes de remover. Escolha como proceder.
+            </DialogDescription>
+          </DialogHeader>
+
+          {(() => {
+            if (!deleteSpace) return null;
+            const spaceLists = lists.filter((l) => l.space_id === deleteSpace.id);
+            const otherSpaces = spaces.filter((s) => s.id !== deleteSpace.id);
+            const hasContent = spaceLists.length > 0;
+
+            return (
+              <div className="space-y-4">
+                {/* Dependencies summary */}
+                <div className="rounded-md border p-3 space-y-1.5 bg-muted/30">
+                  <div className="text-sm font-medium">Dependências encontradas</div>
+                  <div className="text-sm text-muted-foreground flex items-center justify-between">
+                    <span>Listas vinculadas</span>
+                    <Badge variant={spaceLists.length > 0 ? "default" : "outline"}>
+                      {spaceLists.length}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-center justify-between">
+                    <span>Tarefas nessas listas</span>
+                    <Badge variant={deleteTaskCount > 0 ? "default" : "outline"}>
+                      {deleteTaskCount}
+                    </Badge>
+                  </div>
+                </div>
+
+                {!hasContent && (
+                  <p className="text-sm text-muted-foreground">
+                    Este space está vazio e pode ser excluído com segurança.
+                  </p>
+                )}
+
+                {hasContent && (
+                  <div className="space-y-3">
+                    {/* Mode picker */}
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteMode("move")}
+                        className={`text-left rounded-md border p-3 transition-colors ${
+                          deleteMode === "move" ? "border-primary bg-primary/5" : "hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 font-medium text-sm">
+                          <ArrowRightLeft className="h-4 w-4" />
+                          Mover listas para outro space (recomendado)
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          As {spaceLists.length} lista(s) e suas tarefas serão preservadas.
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDeleteMode("force")}
+                        disabled={otherSpaces.length === 0 ? false : false}
+                        className={`text-left rounded-md border p-3 transition-colors ${
+                          deleteMode === "force" ? "border-destructive bg-destructive/5" : "hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 font-medium text-sm text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                          Excluir tudo permanentemente
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Listas e tarefas vinculadas serão removidas. Esta ação não pode ser desfeita.
+                        </div>
+                      </button>
+                    </div>
+
+                    {deleteMode === "move" && (
+                      <div className="space-y-2">
+                        <Label>Space de destino</Label>
+                        {otherSpaces.length === 0 ? (
+                          <p className="text-sm text-destructive">
+                            Nenhum outro space disponível. Crie um space antes de mover, ou exclua permanentemente.
+                          </p>
+                        ) : (
+                          <Select value={moveTargetSpace} onValueChange={setMoveTargetSpace}>
+                            <SelectTrigger><SelectValue placeholder="Escolha um space" /></SelectTrigger>
+                            <SelectContent>
+                              {otherSpaces.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    )}
+
+                    {deleteMode === "force" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-name">
+                          Digite <span className="font-mono font-semibold">{deleteSpace.name}</span> para confirmar
+                        </Label>
+                        <Input
+                          id="confirm-name"
+                          value={confirmName}
+                          onChange={(e) => setConfirmName(e.target.value)}
+                          placeholder={deleteSpace.name}
+                          autoComplete="off"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteSpace(null)} disabled={deleting}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={
+                deleting ||
+                (deleteSpace
+                  ? (() => {
+                      const sl = lists.filter((l) => l.space_id === deleteSpace.id);
+                      if (sl.length === 0) return false;
+                      if (deleteMode === "move") return !moveTargetSpace;
+                      return confirmName.trim() !== deleteSpace.name;
+                    })()
+                  : true)
+              }
+            >
+              {deleting ? "Excluindo..." : "Confirmar exclusão"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
