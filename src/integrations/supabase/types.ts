@@ -133,12 +133,15 @@ export type Database = {
       automations: {
         Row: {
           actions: Json
+          conditions: Json
           created_at: string
           created_by: string | null
           id: string
           is_active: boolean
+          last_run_at: string | null
           list_id: string | null
           name: string
+          run_count: number
           trigger: Database["public"]["Enums"]["automation_trigger"]
           trigger_config: Json
           updated_at: string
@@ -146,12 +149,15 @@ export type Database = {
         }
         Insert: {
           actions?: Json
+          conditions?: Json
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           list_id?: string | null
           name: string
+          run_count?: number
           trigger: Database["public"]["Enums"]["automation_trigger"]
           trigger_config?: Json
           updated_at?: string
@@ -159,12 +165,15 @@ export type Database = {
         }
         Update: {
           actions?: Json
+          conditions?: Json
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           list_id?: string | null
           name?: string
+          run_count?: number
           trigger?: Database["public"]["Enums"]["automation_trigger"]
           trigger_config?: Json
           updated_at?: string
@@ -1152,11 +1161,19 @@ export type Database = {
         | "set_priority"
         | "add_tag"
         | "set_due_date"
+        | "unassign_user"
+        | "move_to_list"
+        | "create_subtask"
+        | "post_comment"
+        | "send_notification"
       automation_trigger:
         | "task_created"
         | "status_changed"
         | "task_completed"
         | "assignee_changed"
+        | "priority_changed"
+        | "due_date_approaching"
+        | "comment_added"
       custom_field_type:
         | "text"
         | "number"
@@ -1319,12 +1336,20 @@ export const Constants = {
         "set_priority",
         "add_tag",
         "set_due_date",
+        "unassign_user",
+        "move_to_list",
+        "create_subtask",
+        "post_comment",
+        "send_notification",
       ],
       automation_trigger: [
         "task_created",
         "status_changed",
         "task_completed",
         "assignee_changed",
+        "priority_changed",
+        "due_date_approaching",
+        "comment_added",
       ],
       custom_field_type: [
         "text",
