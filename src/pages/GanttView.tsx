@@ -554,6 +554,7 @@ export default function GanttView() {
               </PopoverContent>
             </Popover>
           )}
+        </div>
 
         <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
           <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
