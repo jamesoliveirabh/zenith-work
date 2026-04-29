@@ -340,6 +340,16 @@ export default function GanttView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
 
+  // When the period preset changes (in day-zoom), recenter the anchor so "today"
+  // sits comfortably inside the chosen window.
+  useEffect(() => {
+    if (zoom !== "day" || period === "custom") return;
+    const days = parseInt(period, 10);
+    const offset = -Math.max(2, Math.floor(days / 4));
+    setAnchor(addDays(startOfDay(new Date()), offset));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, zoom]);
+
   // Drag/resize bars
   type DragState = {
     taskId: string; mode: "move" | "resize-start" | "resize-end";
