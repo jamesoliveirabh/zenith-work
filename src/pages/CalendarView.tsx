@@ -208,6 +208,9 @@ export default function CalendarView() {
             <Button variant="secondary" size="sm" className="h-8">
               <CalendarDays className="h-4 w-4 mr-1.5" />Calendário
             </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
+            </Button>
           </div>
         </div>
       </header>
