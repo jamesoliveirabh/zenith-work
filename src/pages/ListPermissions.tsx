@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Lock, LockOpen, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Lock, LockOpen, Trash2, UserPlus, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 type Access = "view" | "edit" | "admin";
@@ -132,19 +132,26 @@ export default function ListPermissions() {
         <Link to="/security"><ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar</Link>
       </Button>
 
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          {restricted ? <Lock className="h-5 w-5 text-primary" /> : <LockOpen className="h-5 w-5 text-muted-foreground" />}
-          <h1 className="text-2xl font-bold">{listName}</h1>
-          <Badge variant={restricted ? "secondary" : "outline"}>
-            {restricted ? "Restrita" : "Workspace"}
-          </Badge>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            {restricted ? <Lock className="h-5 w-5 text-primary" /> : <LockOpen className="h-5 w-5 text-muted-foreground" />}
+            <h1 className="text-2xl font-bold">{listName}</h1>
+            <Badge variant={restricted ? "secondary" : "outline"}>
+              {restricted ? "Restrita" : "Workspace"}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {restricted
+              ? "Apenas usuários abaixo (e administradores) têm acesso."
+              : "Todos os membros do workspace têm acesso. Adicione um usuário para tornar privada."}
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {restricted
-            ? "Apenas usuários abaixo (e administradores) têm acesso."
-            : "Todos os membros do workspace têm acesso. Adicione um usuário para tornar privada."}
-        </p>
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/security/lists/${listId}/roles`}>
+            <ShieldCheck className="h-4 w-4 mr-1.5" /> Sobrepor regras por papel
+          </Link>
+        </Button>
       </div>
 
       <Card>
