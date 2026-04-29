@@ -649,6 +649,14 @@ function TableRow({
         />
       </Cell>
 
+      {/* Time */}
+      <Cell width={widths.time ?? DEFAULT_WIDTHS.time}>
+        <TaskTimeCell
+          trackedSeconds={trackedSeconds}
+          estimateSeconds={task.time_estimate_seconds ?? null}
+        />
+      </Cell>
+
       {/* Tags */}
       <Cell width={widths.tags ?? DEFAULT_WIDTHS.tags}>
         <Popover>
