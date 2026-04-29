@@ -49,7 +49,7 @@ export default function ListView() {
   const [listName, setListName] = useState<string>("");
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<{ user_id: string; name: string }[]>([]);
+  const [members, setMembers] = useState<AssigneeMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
