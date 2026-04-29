@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { Copy, Mail, Trash2, UserPlus } from "lucide-react";
 import { z } from "zod";
 
-type Role = "admin" | "member" | "guest";
+type Role = "admin" | "member" | "member_limited" | "guest";
 
 interface Member {
   id: string;
