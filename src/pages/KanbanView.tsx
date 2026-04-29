@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -10,25 +10,19 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
 import { Calendar, CalendarDays, LayoutList, Loader2, Plus, Table as TableIcon, Trello } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
-import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
-import { toast } from "sonner";
+import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { useStatuses } from "@/hooks/useStatuses";
+import { useCreateTask, useReorderTasks, useTasks } from "@/hooks/useTasks";
+import type { Priority, Status, Task } from "@/types/task";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-
-type Priority = "low" | "medium" | "high" | "urgent";
-interface Status { id: string; name: string; color: string | null; is_done: boolean; position: number; }
-interface Task {
-  id: string; title: string; status_id: string | null; priority: Priority;
-  due_date: string | null; position: number;
-  description_text: string | null;
-  assignees: AssigneeMember[];
-}
 
 const priorityClass: Record<Priority, string> = {
   low: "bg-priority-low/15 text-priority-low border-priority-low/30",
@@ -166,50 +160,26 @@ export default function KanbanView() {
   const { listId } = useParams<{ listId: string }>();
   const { user } = useAuth();
   const { current } = useWorkspace();
-  const [listName, setListName] = useState("");
-  const [statuses, setStatuses] = useState<Status[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
+  const { data: listData } = useQuery({
+    queryKey: ["list-name", listId],
+    enabled: !!listId,
+    queryFn: async () => {
+      const { data } = await supabase.from("lists").select("name").eq("id", listId!).maybeSingle();
+      return data?.name ?? "";
+    },
+  });
+  const listName = listData ?? "";
+
+  const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
+  const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId);
+
+  const createTask = useCreateTask(listId ?? "");
+  const reorderTasks = useReorderTasks(listId ?? "");
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-
-  const load = async () => {
-    if (!listId) return;
-    setLoading(true);
-    const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
-      supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
-      supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,due_date,position,description_text")
-        .eq("list_id", listId).is("parent_task_id", null).order("position"),
-    ]);
-    setListName(list?.name ?? "");
-    setStatuses(st ?? []);
-
-    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
-    let assigneesByTask: Record<string, AssigneeMember[]> = {};
-    if (taskList.length > 0) {
-      const { data: ta } = await supabase
-        .from("task_assignees").select("task_id,user_id")
-        .in("task_id", taskList.map((t) => t.id));
-      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
-      let profMap: Record<string, AssigneeMember> = {};
-      if (userIds.length > 0) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
-        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
-      }
-      (ta ?? []).forEach((r) => {
-        const prof = profMap[r.user_id];
-        if (prof) (assigneesByTask[r.task_id] ||= []).push(prof);
-      });
-    }
-    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
 
   const tasksByStatus = useMemo(() => {
     const map: Record<string, Task[]> = {};
@@ -225,12 +195,13 @@ export default function KanbanView() {
   const handleAddTask = async (statusId: string, title: string): Promise<void> => {
     if (!current || !listId || !user) return;
     const sameCol = tasksByStatus[statusId] ?? [];
-    const { data, error } = await supabase.from("tasks").insert({
-      list_id: listId, workspace_id: current.id, status_id: statusId,
-      title, created_by: user.id, position: sameCol.length,
-    }).select("id,title,status_id,priority,due_date,position,description_text").single();
-    if (error) { toast.error(error.message); return; }
-    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
+    await createTask.mutateAsync({
+      workspace_id: current.id,
+      title,
+      status_id: statusId,
+      created_by: user.id,
+      position: sameCol.length,
+    });
   };
 
   const onDragStart = (e: DragStartEvent) => {
@@ -247,20 +218,18 @@ export default function KanbanView() {
     const overId = String(over.id);
     if (activeId === overId) return;
 
-    const activeTask = tasks.find((t) => t.id === activeId);
-    if (!activeTask) return;
+    const activeT = tasks.find((t) => t.id === activeId);
+    if (!activeT) return;
 
-    // Determine destination status: if over a column, use it; if over a task, use that task's status
     const overData = over.data.current as { type?: string; statusId?: string; task?: Task } | undefined;
     const destStatusId =
       overData?.type === "column"
         ? overData.statusId!
-        : (tasks.find((t) => t.id === overId)?.status_id ?? activeTask.status_id);
+        : (tasks.find((t) => t.id === overId)?.status_id ?? activeT.status_id);
     if (!destStatusId) return;
 
-    // Build new ordered lists
-    const sourceCol = (tasksByStatus[activeTask.status_id ?? ""] ?? []).filter((t) => t.id !== activeId);
-    let destCol = (destStatusId === activeTask.status_id ? sourceCol : [...(tasksByStatus[destStatusId] ?? [])]);
+    const sourceCol = (tasksByStatus[activeT.status_id ?? ""] ?? []).filter((t) => t.id !== activeId);
+    let destCol = (destStatusId === activeT.status_id ? sourceCol : [...(tasksByStatus[destStatusId] ?? [])]);
 
     let insertIndex = destCol.length;
     if (overData?.type !== "column") {
@@ -269,47 +238,27 @@ export default function KanbanView() {
     }
     destCol = [
       ...destCol.slice(0, insertIndex),
-      { ...activeTask, status_id: destStatusId },
+      { ...activeT, status_id: destStatusId },
       ...destCol.slice(insertIndex),
     ];
 
-    // Reposition within same col uses arrayMove for clarity
-    if (destStatusId === activeTask.status_id) {
+    if (destStatusId === activeT.status_id) {
       const orig = tasksByStatus[destStatusId] ?? [];
       const from = orig.findIndex((t) => t.id === activeId);
       const to = orig.findIndex((t) => t.id === overId);
       if (from >= 0 && to >= 0) destCol = arrayMove(orig, from, to);
     }
 
-    // Optimistic update
-    const updates = destCol.map((t, i) => ({ ...t, position: i, status_id: destStatusId }));
-    setTasks((prev) => {
-      const map = new Map(prev.map((t) => [t.id, t]));
-      updates.forEach((u) => map.set(u.id, { ...map.get(u.id)!, position: u.position, status_id: u.status_id }));
-      // Reset positions in source col if changed
-      if (destStatusId !== activeTask.status_id) {
-        sourceCol.forEach((t, i) => map.set(t.id, { ...map.get(t.id)!, position: i }));
-      }
-      return Array.from(map.values());
-    });
+    const updates: { id: string; position: number; status_id?: string | null }[] =
+      destCol.map((t, i) => ({ id: t.id, position: i, status_id: destStatusId }));
+    if (destStatusId !== activeT.status_id) {
+      sourceCol.forEach((t, i) => updates.push({ id: t.id, position: i }));
+    }
 
-    // Persist (one update per affected task)
-    const writes = updates.map((u) =>
-      supabase.from("tasks").update({ status_id: u.status_id, position: u.position }).eq("id", u.id)
-    );
-    if (destStatusId !== activeTask.status_id) {
-      sourceCol.forEach((t, i) => writes.push(
-        supabase.from("tasks").update({ position: i }).eq("id", t.id)
-      ));
-    }
-    const results = await Promise.all(writes);
-    if (results.some((r) => r.error)) {
-      toast.error("Falha ao salvar ordem");
-      load();
-    }
+    reorderTasks.mutate(updates);
   };
 
-  if (loading) {
+  if (statusesLoading || tasksLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

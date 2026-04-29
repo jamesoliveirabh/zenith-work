@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -6,6 +6,7 @@ import {
   ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
@@ -25,30 +26,20 @@ import { Label } from "@/components/ui/label";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { TagsInput } from "@/components/TagsInput";
-import { toast } from "sonner";
+import { useStatuses } from "@/hooks/useStatuses";
+import {
+  useCreateTask, useDeleteTask, useTasks, useUpdateTask, useUpdateTaskAssigneesInList,
+  type TaskWithFieldValues,
+} from "@/hooks/useTasks";
+import {
+  useCreateCustomField, useCustomFields, useSetTaskFieldValue,
+  type CustomField, type CustomFieldType,
+} from "@/hooks/useCustomFields";
+import { useListMembers } from "@/hooks/useListMembers";
+import type { Priority, Status } from "@/types/task";
 import { cn } from "@/lib/utils";
 
-type Priority = "low" | "medium" | "high" | "urgent";
-type CustomFieldType = "text" | "number" | "select" | "checkbox" | "date" | "url";
-
-interface Status { id: string; name: string; color: string | null; is_done: boolean; position: number; }
-interface CustomField {
-  id: string; name: string; type: CustomFieldType;
-  options: { label: string; value: string; color?: string }[]; position: number;
-}
-interface Task {
-  id: string;
-  title: string;
-  status_id: string | null;
-  priority: Priority;
-  due_date: string | null;
-  position: number;
-  created_at: string;
-  tags: string[] | null;
-  description_text: string | null;
-  assignees: AssigneeMember[];
-  fieldValues: Record<string, any>;
-}
+type Task = TaskWithFieldValues;
 
 const priorityLabel: Record<Priority, string> = {
   low: "Baixa", medium: "Média", high: "Alta", urgent: "Urgente",
@@ -77,12 +68,6 @@ export default function TableView() {
   const { listId } = useParams<{ listId: string }>();
   const { user } = useAuth();
   const { current } = useWorkspace();
-  const [listName, setListName] = useState("");
-  const [statuses, setStatuses] = useState<Status[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<AssigneeMember[]>([]);
-  const [fields, setFields] = useState<CustomField[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [groupByStatus, setGroupByStatus] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -93,152 +78,90 @@ export default function TableView() {
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldType, setNewFieldType] = useState<CustomFieldType>("text");
 
-  const load = async () => {
-    if (!listId) return;
-    setLoading(true);
-    const [{ data: list }, { data: st }, { data: tk }, { data: cf }] = await Promise.all([
-      supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
-      supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks")
-        .select("id,title,status_id,priority,due_date,position,created_at,tags,description_text")
-        .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
-      supabase.from("custom_fields").select("id,name,type,options,position").eq("list_id", listId).order("position"),
-    ]);
-    setListName(list?.name ?? "");
-    setStatuses(st ?? []);
-    setFields((cf ?? []) as CustomField[]);
+  const { data: listData } = useQuery({
+    queryKey: ["list-name", listId],
+    enabled: !!listId,
+    queryFn: async () => {
+      const { data } = await supabase.from("lists").select("name").eq("id", listId!).maybeSingle();
+      return data?.name ?? "";
+    },
+  });
+  const listName = listData ?? "";
 
-    const taskList = (tk ?? []) as Omit<Task, "assignees" | "fieldValues">[];
-    let assigneesByTask: Record<string, AssigneeMember[]> = {};
-    let fieldValuesByTask: Record<string, Record<string, any>> = {};
-    if (taskList.length > 0) {
-      const ids = taskList.map((t) => t.id);
-      const [{ data: ta }, { data: fv }] = await Promise.all([
-        supabase.from("task_assignees").select("task_id,user_id").in("task_id", ids),
-        supabase.from("task_field_values").select("task_id,field_id,value").in("task_id", ids),
-      ]);
-      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
-      let profMap: Record<string, AssigneeMember> = {};
-      if (userIds.length > 0) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
-        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
-      }
-      (ta ?? []).forEach((r) => {
-        const p = profMap[r.user_id];
-        if (p) (assigneesByTask[r.task_id] ||= []).push(p);
-      });
-      (fv ?? []).forEach((r: any) => {
-        (fieldValuesByTask[r.task_id] ||= {})[r.field_id] = r.value;
-      });
-    }
+  const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
+  const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId, { withFieldValues: true });
+  const { data: fields = [] } = useCustomFields(listId);
+  const { data: members = [] } = useListMembers(current?.id);
 
-    setTasks(taskList.map((t) => ({
-      ...t,
-      assignees: assigneesByTask[t.id] ?? [],
-      fieldValues: fieldValuesByTask[t.id] ?? {},
-    })));
-    setLoading(false);
-  };
+  const updateTaskMut = useUpdateTask(listId ?? "");
+  const deleteTaskMut = useDeleteTask(listId ?? "");
+  const createTaskMut = useCreateTask(listId ?? "");
+  const updateAssignees = useUpdateTaskAssigneesInList(listId ?? "");
+  const setFieldValueMut = useSetTaskFieldValue(listId ?? "");
+  const createFieldMut = useCreateCustomField(listId ?? "");
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
-
-  useEffect(() => {
-    if (!current) return;
-    (async () => {
-      const { data: m } = await supabase
-        .from("workspace_members").select("user_id").eq("workspace_id", current.id);
-      const ids = (m ?? []).map((x) => x.user_id);
-      if (ids.length === 0) { setMembers([]); return; }
-      const { data: p } = await supabase
-        .from("profiles").select("id,display_name,avatar_url,email").in("id", ids);
-      setMembers((p ?? []) as AssigneeMember[]);
-    })();
-  }, [current?.id]);
+  const loading = statusesLoading || tasksLoading;
 
   const doneStatusId = useMemo(() => statuses.find((s) => s.is_done)?.id ?? null, [statuses]);
   const defaultStatusId = useMemo(() => statuses[0]?.id ?? null, [statuses]);
 
   const isDone = (t: Task) => !!t.status_id && t.status_id === doneStatusId;
 
-  const updateTask = async (id: string, patch: Partial<Omit<Task, "assignees" | "fieldValues">>) => {
-    setTasks((p) => p.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-    const { error } = await supabase.from("tasks").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); load(); }
+  const updateTask = (id: string, patch: Parameters<typeof updateTaskMut.mutate>[0]["patch"]) => {
+    updateTaskMut.mutate({ id, patch });
   };
 
   const toggleDone = async (t: Task) => {
-    if (!doneStatusId) return toast.error("Configure um status 'concluído' na lista");
+    if (!doneStatusId) {
+      const { toast } = await import("sonner");
+      toast.error("Configure um status 'concluído' na lista");
+      return;
+    }
     const next = isDone(t) ? defaultStatusId : doneStatusId;
-    await updateTask(t.id, { status_id: next });
+    updateTask(t.id, { status_id: next });
   };
 
-  const addAssignee = async (taskId: string, userId: string) => {
+  const addAssignee = (taskId: string, userId: string) => {
     if (!current) return;
-    setTasks((p) => p.map((t) => {
-      if (t.id !== taskId || t.assignees.some((a) => a.id === userId)) return t;
-      const m = members.find((x) => x.id === userId);
-      return m ? { ...t, assignees: [...t.assignees, m] } : t;
-    }));
-    const { error } = await supabase.from("task_assignees").insert({
-      task_id: taskId, user_id: userId, workspace_id: current.id,
-    });
-    if (error) { toast.error(error.message); load(); }
+    const u = members.find((m) => m.id === userId);
+    if (!u) return;
+    updateAssignees.mutate({ taskId, workspaceId: current.id, add: { user: u } });
   };
 
-  const removeAssignee = async (taskId: string, userId: string) => {
-    setTasks((p) => p.map((t) => t.id === taskId
-      ? { ...t, assignees: t.assignees.filter((a) => a.id !== userId) } : t));
-    const { error } = await supabase.from("task_assignees").delete()
-      .eq("task_id", taskId).eq("user_id", userId);
-    if (error) { toast.error(error.message); load(); }
-  };
-
-  const setFieldValue = async (taskId: string, fieldId: string, value: any) => {
+  const removeAssignee = (taskId: string, userId: string) => {
     if (!current) return;
-    setTasks((p) => p.map((t) => t.id === taskId
-      ? { ...t, fieldValues: { ...t.fieldValues, [fieldId]: value } } : t));
-    const { error } = await supabase.from("task_field_values").upsert({
-      task_id: taskId, field_id: fieldId, workspace_id: current.id, value,
-    }, { onConflict: "task_id,field_id" });
-    if (error) { toast.error(error.message); load(); }
+    updateAssignees.mutate({ taskId, workspaceId: current.id, remove: { userId } });
   };
 
-  const deleteTask = async (id: string) => {
-    setTasks((p) => p.filter((t) => t.id !== id));
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (error) { toast.error(error.message); load(); }
+  const setFieldValue = (taskId: string, fieldId: string, value: unknown) => {
+    if (!current) return;
+    setFieldValueMut.mutate({ taskId, fieldId, workspaceId: current.id, value });
+  };
+
+  const deleteTask = (id: string) => {
+    deleteTaskMut.mutate(id);
   };
 
   const createTask = async (title: string, statusId: string | null) => {
     if (!current || !listId || !user || !title.trim()) return;
-    const { data, error } = await supabase.from("tasks").insert({
-      list_id: listId,
+    await createTaskMut.mutateAsync({
       workspace_id: current.id,
       title: title.trim(),
       status_id: statusId ?? defaultStatusId,
       created_by: user.id,
       position: tasks.length,
-    }).select("id,title,status_id,priority,due_date,position,created_at,tags,description_text").single();
-    if (error) return toast.error(error.message);
-    if (data) setTasks((p) => [...p, {
-      ...(data as Omit<Task, "assignees" | "fieldValues">),
-      assignees: [], fieldValues: {},
-    }]);
+    });
   };
 
   const createField = async () => {
     if (!current || !listId || !newFieldName.trim()) return;
-    const { data, error } = await supabase.from("custom_fields").insert({
-      list_id: listId,
+    await createFieldMut.mutateAsync({
       workspace_id: current.id,
       name: newFieldName.trim(),
       type: newFieldType,
       position: fields.length,
       created_by: user?.id ?? null,
-    }).select("id,name,type,options,position").single();
-    if (error) return toast.error(error.message);
-    setFields((p) => [...p, data as CustomField]);
+    });
     setNewFieldName("");
     setNewFieldType("text");
     setNewFieldOpen(false);
