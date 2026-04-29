@@ -504,7 +504,7 @@ function ColHeader({
 
 // ============== Row ==============
 function TableRow({
-  task, statuses, fields, widths, members, isDone, editingTitle,
+  task, statuses, fields, widths, members, isDone, trackedSeconds, editingTitle,
   onStartTitleEdit, onStopTitleEdit, onOpen, onToggleDone, onUpdate,
   onAddAssignee, onRemoveAssignee, onSetFieldValue, onDelete,
 }: {
@@ -514,6 +514,7 @@ function TableRow({
   widths: Record<string, number>;
   members: AssigneeMember[];
   isDone: boolean;
+  trackedSeconds: number;
   editingTitle: boolean;
   onStartTitleEdit: () => void;
   onStopTitleEdit: () => void;
