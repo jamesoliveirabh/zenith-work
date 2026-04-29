@@ -62,12 +62,36 @@ export default function ListView() {
     const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
+      supabase.from("tasks")
+        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
         .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
     ]);
     setListName(list?.name ?? "");
     setStatuses(st ?? []);
-    setTasks((tk ?? []) as Task[]);
+
+    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
+    let assigneesByTask: Record<string, AssigneeMember[]> = {};
+    if (taskList.length > 0) {
+      const taskIds = taskList.map((t) => t.id);
+      const { data: ta } = await supabase
+        .from("task_assignees")
+        .select("task_id,user_id")
+        .in("task_id", taskIds);
+      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
+      let profMap: Record<string, AssigneeMember> = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
+        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
+      }
+      (ta ?? []).forEach((r) => {
+        const prof = profMap[r.user_id];
+        if (!prof) return;
+        (assigneesByTask[r.task_id] ||= []).push(prof);
+      });
+    }
+
+    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
     setLoading(false);
   };
 
