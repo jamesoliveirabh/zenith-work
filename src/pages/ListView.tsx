@@ -141,11 +141,13 @@ export default function ListView() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
+            {visibleTasks.length === tasks.length
+              ? `${tasks.length} ${tasks.length === 1 ? "tarefa" : "tarefas"}`
+              : `${visibleTasks.length} de ${tasks.length} tarefas`}
           </p>
         </div>
         <div className="flex gap-1 rounded-md border p-0.5">
