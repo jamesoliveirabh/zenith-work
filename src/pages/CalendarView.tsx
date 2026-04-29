@@ -14,6 +14,7 @@ import {
   DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable,
   useSensor, useSensors, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -24,19 +25,15 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { useStatuses } from "@/hooks/useStatuses";
+import { useCreateTask, useTasks, useUpdateTask } from "@/hooks/useTasks";
+import type { Priority, Status, Task as FullTask } from "@/types/task";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type Priority = "low" | "medium" | "high" | "urgent";
 type ViewMode = "month" | "week" | "day";
-interface Status { id: string; name: string; color: string | null; is_done: boolean; position: number; }
-interface Task {
-  id: string;
-  title: string;
-  status_id: string | null;
-  priority: Priority;
-  due_date: string | null;
-}
+// Calendar only needs a subset of task fields
+type Task = Pick<FullTask, "id" | "title" | "status_id" | "priority" | "due_date">;
 
 const priorityColor: Record<Priority, string> = {
   low: "hsl(var(--priority-low))",
@@ -49,10 +46,6 @@ export default function CalendarView() {
   const { listId } = useParams<{ listId: string }>();
   const { user } = useAuth();
   const { current } = useWorkspace();
-  const [listName, setListName] = useState("");
-  const [statuses, setStatuses] = useState<Status[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("month");
   const [cursor, setCursor] = useState<Date>(startOfDay(new Date()));
@@ -72,22 +65,29 @@ export default function CalendarView() {
     // eslint-disable-next-line
   }, []);
 
-  const load = async () => {
-    if (!listId) return;
-    setLoading(true);
-    const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
-      supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
-      supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,due_date")
-        .eq("list_id", listId).is("parent_task_id", null),
-    ]);
-    setListName(list?.name ?? "");
-    setStatuses(st ?? []);
-    setTasks((tk ?? []) as Task[]);
-    setLoading(false);
-  };
+  const { data: listData } = useQuery({
+    queryKey: ["list-name", listId],
+    enabled: !!listId,
+    queryFn: async () => {
+      const { data } = await supabase.from("lists").select("name").eq("id", listId!).maybeSingle();
+      return data?.name ?? "";
+    },
+  });
+  const listName = listData ?? "";
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
+  const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
+  const { data: allTasks = [], isLoading: tasksLoading } = useTasks(listId);
+
+  const tasks = useMemo<Task[]>(
+    () => allTasks.map((t) => ({
+      id: t.id, title: t.title, status_id: t.status_id, priority: t.priority, due_date: t.due_date,
+    })),
+    [allTasks],
+  );
+  const loading = statusesLoading || tasksLoading;
+
+  const updateTaskMut = useUpdateTask(listId ?? "");
+  const createTaskMut = useCreateTask(listId ?? "");
 
   const defaultStatusId = useMemo(() => statuses[0]?.id ?? null, [statuses]);
 
@@ -127,7 +127,7 @@ export default function CalendarView() {
   }, [view, cursor]);
 
   // Mutations
-  const updateDueDate = async (taskId: string, dayISO: string | null, keepTime = true) => {
+  const updateDueDate = (taskId: string, dayISO: string | null, keepTime = true) => {
     const t = tasks.find((x) => x.id === taskId);
     if (!t) return;
     let newDate: string | null = null;
@@ -141,27 +141,24 @@ export default function CalendarView() {
       }
       newDate = day.toISOString();
     }
-    setTasks((p) => p.map((x) => (x.id === taskId ? { ...x, due_date: newDate } : x)));
-    const { error } = await supabase.from("tasks").update({ due_date: newDate }).eq("id", taskId);
-    if (error) { toast.error(error.message); load(); }
-    else toast.success("Data atualizada");
+    updateTaskMut.mutate(
+      { id: taskId, patch: { due_date: newDate } },
+      { onSuccess: () => toast.success("Data atualizada") },
+    );
   };
 
   const createTaskOnDay = async (day: Date, title: string): Promise<void> => {
     if (!current || !listId || !user || !title.trim()) return;
     const due = new Date(day);
     due.setHours(9, 0, 0, 0);
-    const { data, error } = await supabase.from("tasks").insert({
-      list_id: listId,
+    await createTaskMut.mutateAsync({
       workspace_id: current.id,
       title: title.trim(),
       status_id: defaultStatusId,
       created_by: user.id,
       position: tasks.length,
       due_date: due.toISOString(),
-    }).select("id,title,status_id,priority,due_date").single();
-    if (error) { toast.error(error.message); return; }
-    if (data) setTasks((p) => [...p, data as Task]);
+    });
   };
 
   const onDragStart = (e: DragStartEvent) => {
