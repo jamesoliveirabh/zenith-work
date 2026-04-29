@@ -299,14 +299,20 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
         <div className="space-y-5">
           {/* Description */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={() => saveTask({ description })}
-              placeholder="Adicione uma descrição..."
-              className="min-h-[80px] resize-none"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+              {saveStatus === "saving" && (
+                <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Salvando...
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="text-[11px] text-priority-low inline-flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Salvo
+                </span>
+              )}
+            </div>
+            <RichTextEditor content={description} onChange={handleDescriptionChange} />
           </div>
 
           {/* Tags */}
