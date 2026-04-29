@@ -233,7 +233,7 @@ export default function Dashboard() {
           <CardHeader><CardTitle className="text-base">Por prioridade</CardTitle></CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-[240px] w-full" /> : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer config={{}} className="h-[240px] w-full">
                 <BarChart data={priorityBreakdown} margin={{ left: 0, right: 12, top: 8, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={11} />
@@ -243,7 +243,7 @@ export default function Dashboard() {
                     {priorityBreakdown.map((d) => <Cell key={d.key} fill={PRIORITY_COLORS[d.key]} />)}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>
