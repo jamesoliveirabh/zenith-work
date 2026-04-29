@@ -17,6 +17,8 @@ import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
 import Automations from "./pages/Automations";
+import Security from "./pages/Security";
+import ListPermissions from "./pages/ListPermissions";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
