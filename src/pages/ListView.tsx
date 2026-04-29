@@ -108,12 +108,9 @@ export default function ListView() {
       if (ids.length === 0) { setMembers([]); return; }
       const { data: p } = await supabase
         .from("profiles")
-        .select("id,display_name,email")
+        .select("id,display_name,avatar_url,email")
         .in("id", ids);
-      setMembers((p ?? []).map((u) => ({
-        user_id: u.id,
-        name: u.display_name || u.email?.split("@")[0] || "—",
-      })));
+      setMembers((p ?? []) as AssigneeMember[]);
     })();
   }, [current?.id]);
 
