@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ interface Status { id: string; name: string; color: string | null; is_done: bool
 interface Task {
   id: string; title: string; status_id: string | null; priority: Priority;
   due_date: string | null; position: number;
+  assignees: AssigneeMember[];
 }
 
 const priorityClass: Record<Priority, string> = {
