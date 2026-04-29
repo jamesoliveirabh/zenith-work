@@ -7,7 +7,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, LayoutList, Loader2, Plus,
+  CalendarDays, ChevronLeft, ChevronRight, GanttChart, LayoutList, Loader2, Plus,
   Table as TableIcon, Trello,
 } from "lucide-react";
 import {
@@ -207,6 +207,9 @@ export default function CalendarView() {
             </Button>
             <Button variant="secondary" size="sm" className="h-8">
               <CalendarDays className="h-4 w-4 mr-1.5" />Calendário
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
             </Button>
           </div>
         </div>

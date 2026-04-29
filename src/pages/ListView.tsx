@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Paperclip, Plus,
+  CalendarDays, CalendarIcon, GanttChart, LayoutList, Loader2, MessageSquare, Paperclip, Plus,
   Table as TableIcon, Trash2, Trello,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -120,6 +120,9 @@ export default function ListView() {
           </Button>
           <Button asChild variant="ghost" size="sm" className="h-8">
             <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8">
+            <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
           </Button>
         </div>
       </header>

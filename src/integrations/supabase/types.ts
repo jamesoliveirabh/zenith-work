@@ -802,6 +802,58 @@ export type Database = {
         }
         Relationships: []
       }
+      task_relations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          relation_type: Database["public"]["Enums"]["task_relation_type"]
+          source_task_id: string
+          target_task_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          relation_type?: Database["public"]["Enums"]["task_relation_type"]
+          source_task_id: string
+          target_task_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          relation_type?: Database["public"]["Enums"]["task_relation_type"]
+          source_task_id?: string
+          target_task_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_relations_source_task_id_fkey"
+            columns: ["source_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_relations_target_task_id_fkey"
+            columns: ["target_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_relations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_watchers: {
         Row: {
           task_id: string
@@ -1190,6 +1242,7 @@ export type Database = {
         | "task_completed"
         | "invitation_accepted"
       task_priority: "low" | "medium" | "high" | "urgent"
+      task_relation_type: "blocks" | "relates_to" | "duplicates"
       workspace_role: "admin" | "member_limited" | "member" | "guest"
     }
     CompositeTypes: {
@@ -1369,6 +1422,7 @@ export const Constants = {
         "invitation_accepted",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
+      task_relation_type: ["blocks", "relates_to", "duplicates"],
       workspace_role: ["admin", "member_limited", "member", "guest"],
     },
   },

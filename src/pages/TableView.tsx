@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  ChevronDown, ChevronRight, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
+  ChevronDown, ChevronRight, GanttChart, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
   ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays, Paperclip,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -276,6 +276,9 @@ export default function TableView() {
             </Button>
             <Button asChild variant="ghost" size="sm" className="h-8">
               <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
             </Button>
           </div>
         </div>
