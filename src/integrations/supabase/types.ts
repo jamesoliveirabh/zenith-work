@@ -335,6 +335,30 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_catalog: {
+        Row: {
+          category: string
+          description: string
+          key: string
+          label: string
+          position: number
+        }
+        Insert: {
+          category: string
+          description: string
+          key: string
+          label: string
+          position?: number
+        }
+        Update: {
+          category?: string
+          description?: string
+          key?: string
+          label?: string
+          position?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -361,6 +385,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          enabled: boolean
+          id: string
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: string
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: string
+          permission_key?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_catalog"
+            referencedColumns: ["key"]
+          },
+        ]
       }
       spaces: {
         Row: {
@@ -753,6 +815,10 @@ export type Database = {
         Args: { _user: string; _ws: string }
         Returns: boolean
       }
+      has_permission: {
+        Args: { _key: string; _user: string; _ws: string }
+        Returns: boolean
+      }
       is_workspace_admin: {
         Args: { _user: string; _ws: string }
         Returns: boolean
@@ -776,6 +842,7 @@ export type Database = {
         Args: { _workspace_id: string }
         Returns: number
       }
+      seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
       task_link_path: { Args: { _task_id: string }; Returns: string }
       user_can_access_list: {
         Args: { _list_id: string; _user: string }
