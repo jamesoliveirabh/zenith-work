@@ -129,7 +129,8 @@ export function useUpdateGoal() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...patch }: Partial<Goal> & { id: string }) => {
-      const { error } = await supabase.from("goals").update(patch).eq("id", id);
+      const { progress, targets, members, owner, ...rest } = patch as any;
+      const { error } = await supabase.from("goals").update(rest).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_, v) => {
