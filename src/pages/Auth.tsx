@@ -48,7 +48,7 @@ export default function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    navigate("/", { replace: true });
+    navigate(postAuthTarget, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
