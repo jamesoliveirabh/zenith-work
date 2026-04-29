@@ -21,7 +21,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Filter, ChevronDown, Plus, Save, Trash2, X, Globe2, User2 } from "lucide-react";
+import { Filter, ChevronDown, Plus, Save, Trash2, X, Globe2, User2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export type Priority = "low" | "medium" | "high" | "urgent";
@@ -79,6 +79,7 @@ export function ListFilterBar({ listId, filters, onChange, statuses, members, av
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveShared, setSaveShared] = useState(false);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
 
   const loadViews = async () => {
     if (!listId) return;
