@@ -65,6 +65,9 @@ const App = () => (
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />
+                  <Route path="/security" element={<Security />} />
+                  <Route path="/security/people" element={<Team />} />
+                  <Route path="/security/lists/:listId" element={<ListPermissions />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
