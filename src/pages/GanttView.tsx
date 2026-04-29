@@ -143,8 +143,21 @@ export default function GanttView() {
   const leftScrollRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
 
-  // Visible range = a generous window of columns around anchor (e.g. 365 days)
-  const totalUnits = zoom === "day" ? 365 : zoom === "week" ? 52 : 24;
+  // Visible range. In "day" zoom, the period selector controls the window length and anchor.
+  // In "week"/"month" zoom, keep the original generous defaults.
+  const customValid = !!(customRange.from && customRange.to && customRange.from <= customRange.to);
+  const periodDays =
+    period === "custom"
+      ? (customValid ? differenceInCalendarDays(customRange.to!, customRange.from!) + 1 : 30)
+      : parseInt(period, 10);
+
+  const effectiveAnchor = useMemo(() => {
+    if (zoom !== "day") return anchor;
+    if (period === "custom" && customValid) return startOfDay(customRange.from!);
+    return anchor;
+  }, [zoom, period, customValid, customRange.from, anchor]);
+
+  const totalUnits = zoom === "day" ? periodDays : zoom === "week" ? 52 : 24;
   const totalDays = totalUnits * unitDays(zoom);
   const totalWidth = totalUnits * colWidth(zoom);
 
