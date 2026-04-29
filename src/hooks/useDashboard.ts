@@ -440,6 +440,7 @@ export const ALL_WIDGETS = [
   "space-progress",
   "priority-overview",
   "weekly-activity",
+  "goals-overview",
 ] as const;
 
 export type WidgetType = (typeof ALL_WIDGETS)[number];
