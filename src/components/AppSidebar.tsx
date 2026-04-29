@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2, Zap, LayoutDashboard } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
