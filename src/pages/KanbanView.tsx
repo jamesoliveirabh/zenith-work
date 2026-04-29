@@ -182,7 +182,26 @@ export default function KanbanView() {
     ]);
     setListName(list?.name ?? "");
     setStatuses(st ?? []);
-    setTasks((tk ?? []) as Task[]);
+
+    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
+    let assigneesByTask: Record<string, AssigneeMember[]> = {};
+    if (taskList.length > 0) {
+      const { data: ta } = await supabase
+        .from("task_assignees").select("task_id,user_id")
+        .in("task_id", taskList.map((t) => t.id));
+      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
+      let profMap: Record<string, AssigneeMember> = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
+        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
+      }
+      (ta ?? []).forEach((r) => {
+        const prof = profMap[r.user_id];
+        if (prof) (assigneesByTask[r.task_id] ||= []).push(prof);
+      });
+    }
+    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
     setLoading(false);
   };
 
