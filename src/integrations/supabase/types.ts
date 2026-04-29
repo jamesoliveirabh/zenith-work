@@ -261,6 +261,152 @@ export type Database = {
           },
         ]
       }
+      goal_members: {
+        Row: {
+          goal_id: string
+          user_id: string
+        }
+        Insert: {
+          goal_id: string
+          user_id: string
+        }
+        Update: {
+          goal_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_members_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goal_targets: {
+        Row: {
+          created_at: string
+          current_value: number
+          goal_id: string
+          id: string
+          initial_value: number
+          list_id: string | null
+          name: string
+          position: number
+          target_type: Database["public"]["Enums"]["goal_target_type"]
+          target_value: number
+          task_filter: Json | null
+          unit: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          goal_id: string
+          id?: string
+          initial_value?: number
+          list_id?: string | null
+          name: string
+          position?: number
+          target_type: Database["public"]["Enums"]["goal_target_type"]
+          target_value?: number
+          task_filter?: Json | null
+          unit?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          goal_id?: string
+          id?: string
+          initial_value?: number
+          list_id?: string | null
+          name?: string
+          position?: number
+          target_type?: Database["public"]["Enums"]["goal_target_type"]
+          target_value?: number
+          task_filter?: Json | null
+          unit?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_targets_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_targets_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_targets_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          is_archived: boolean
+          name: string
+          owner_id: string
+          start_date: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+          owner_id: string
+          start_date?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+          owner_id?: string
+          start_date?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       list_permissions: {
         Row: {
           access_level: Database["public"]["Enums"]["list_access_level"]
@@ -1137,6 +1283,7 @@ export type Database = {
     }
     Functions: {
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
+      calculate_goal_progress: { Args: { _goal_id: string }; Returns: number }
       can_write_workspace: {
         Args: { _user: string; _ws: string }
         Returns: boolean
@@ -1207,6 +1354,8 @@ export type Database = {
         | "list_created"
         | "space_created"
         | "member_joined"
+        | "goal_created"
+        | "goal_target_updated"
       automation_action_type:
         | "set_status"
         | "set_assignee"
@@ -1233,6 +1382,12 @@ export type Database = {
         | "checkbox"
         | "date"
         | "url"
+      goal_target_type:
+        | "number"
+        | "percentage"
+        | "currency"
+        | "true_false"
+        | "task_count"
       list_access_level: "view" | "edit" | "admin"
       notification_type:
         | "task_assigned"
@@ -1382,6 +1537,8 @@ export const Constants = {
         "list_created",
         "space_created",
         "member_joined",
+        "goal_created",
+        "goal_target_updated",
       ],
       automation_action_type: [
         "set_status",
@@ -1411,6 +1568,13 @@ export const Constants = {
         "checkbox",
         "date",
         "url",
+      ],
+      goal_target_type: [
+        "number",
+        "percentage",
+        "currency",
+        "true_false",
+        "task_count",
       ],
       list_access_level: ["view", "edit", "admin"],
       notification_type: [
