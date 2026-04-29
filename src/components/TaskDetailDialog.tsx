@@ -81,7 +81,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
       ]);
       if (cancelled) return;
       setTitle(task?.title ?? "");
-      setDescription(task?.description ?? "");
+      setDescription((task?.description ?? null) as JSONContent | null);
       setTags((task?.tags ?? []) as string[]);
       setSubtasks((subs ?? []) as Subtask[]);
       setComments((cmts ?? []) as Comment[]);
