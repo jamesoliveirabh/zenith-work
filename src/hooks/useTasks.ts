@@ -15,6 +15,20 @@ export type TaskWithFieldValues = Task & {
   fieldValues: Record<string, unknown>;
 };
 
+async function fetchAttachmentCounts(taskIds: string[]): Promise<Record<string, number>> {
+  if (taskIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from("task_attachments")
+    .select("task_id")
+    .in("task_id", taskIds);
+  if (error) throw error;
+  const out: Record<string, number> = {};
+  (data ?? []).forEach((r: { task_id: string }) => {
+    out[r.task_id] = (out[r.task_id] ?? 0) + 1;
+  });
+  return out;
+}
+
 const TASK_COLUMNS =
   "id,title,description,description_text,status_id,priority,due_date,start_date,position,created_at,tags,time_estimate_seconds";
 
@@ -76,13 +90,15 @@ export function useTasks<O extends UseTasksOptions = {}>(
       if (error) throw error;
       const baseList = (tk ?? []) as Omit<Task, "assignees">[];
       const ids = baseList.map((t) => t.id);
-      const [assigneesByTask, fvByTask] = await Promise.all([
+      const [assigneesByTask, fvByTask, attachmentCounts] = await Promise.all([
         fetchAssigneesByTask(ids),
         withFieldValues ? fetchFieldValuesByTask(ids) : Promise.resolve({}),
+        fetchAttachmentCounts(ids),
       ]);
       return baseList.map((t) => ({
         ...t,
         assignees: assigneesByTask[t.id] ?? [],
+        attachment_count: attachmentCounts[t.id] ?? 0,
         ...(withFieldValues ? { fieldValues: fvByTask[t.id] ?? {} } : {}),
       })) as O extends { withFieldValues: true } ? TaskWithFieldValues[] : Task[];
     },

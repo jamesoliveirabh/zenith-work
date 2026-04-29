@@ -32,6 +32,7 @@ export interface Task {
   created_at: string;
   tags: string[] | null;
   time_estimate_seconds?: number | null;
+  attachment_count?: number;
 }
 
 export type TaskPatch = Partial<
