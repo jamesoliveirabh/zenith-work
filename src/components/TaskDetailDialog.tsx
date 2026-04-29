@@ -158,9 +158,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     return () => { supabase.removeChannel(channel); };
   }, [taskId, open, profiles]);
 
-  const saveTask = async (patch: { title?: string; description?: string; tags?: string[] }) => {
+  const saveTask = async (patch: { title?: string; description?: JSONContent | null; tags?: string[] }) => {
     if (!taskId) return;
-    const { error } = await supabase.from("tasks").update(patch).eq("id", taskId);
+    const { error } = await supabase.from("tasks").update(patch as never).eq("id", taskId);
     if (error) toast.error(error.message);
   };
 
@@ -168,6 +168,33 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     setTags(next);
     saveTask({ tags: next });
   };
+
+  const handleDescriptionChange = (next: JSONContent) => {
+    setDescription(next);
+    setSaveStatus("saving");
+    if (descTimer.current) clearTimeout(descTimer.current);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    descTimer.current = setTimeout(async () => {
+      if (!taskId) return;
+      const { error } = await supabase.from("tasks")
+        .update({ description: next as never }).eq("id", taskId);
+      if (error) {
+        setSaveStatus("idle");
+        toast.error(error.message);
+        return;
+      }
+      setSaveStatus("saved");
+      savedTimer.current = setTimeout(() => setSaveStatus("idle"), 1500);
+    }, 1000);
+  };
+
+  // Cleanup timers when task changes / dialog closes
+  useEffect(() => {
+    return () => {
+      if (descTimer.current) clearTimeout(descTimer.current);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    };
+  }, [taskId]);
 
   const addSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
