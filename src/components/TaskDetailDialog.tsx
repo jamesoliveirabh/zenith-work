@@ -242,6 +242,11 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
 
           <Separator />
 
+          {/* Attachments */}
+          {taskId && <TaskAttachments taskId={taskId} listId={listId} />}
+
+          <Separator />
+
           {/* Subtasks */}
           <section>
             <div className="flex items-center justify-between mb-2">
