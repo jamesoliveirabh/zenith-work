@@ -265,9 +265,9 @@ export default function GanttView() {
       arr.push({ x, primary, secondary, isToday: zoom === "day" && isSameDay(d, new Date()), date: d });
     }
     return arr;
-  }, [anchor, zoom, totalUnits]);
+  }, [effectiveAnchor, zoom, totalUnits]);
 
-  const todayX = useMemo(() => dateToX(new Date(), anchor, zoom), [anchor, zoom]);
+  const todayX = useMemo(() => dateToX(new Date(), effectiveAnchor, zoom), [effectiveAnchor, zoom]);
 
   // Sync horizontal scroll with header
   const onGridScroll = useCallback(() => {
