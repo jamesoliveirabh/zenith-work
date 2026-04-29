@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -6,6 +6,7 @@ import {
   ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
@@ -25,30 +26,20 @@ import { Label } from "@/components/ui/label";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { TagsInput } from "@/components/TagsInput";
-import { toast } from "sonner";
+import { useStatuses } from "@/hooks/useStatuses";
+import {
+  useCreateTask, useDeleteTask, useTasks, useUpdateTask, useUpdateTaskAssigneesInList,
+  type TaskWithFieldValues,
+} from "@/hooks/useTasks";
+import {
+  useCreateCustomField, useCustomFields, useSetTaskFieldValue,
+  type CustomField, type CustomFieldType,
+} from "@/hooks/useCustomFields";
+import { useListMembers } from "@/hooks/useListMembers";
+import type { Priority, Status } from "@/types/task";
 import { cn } from "@/lib/utils";
 
-type Priority = "low" | "medium" | "high" | "urgent";
-type CustomFieldType = "text" | "number" | "select" | "checkbox" | "date" | "url";
-
-interface Status { id: string; name: string; color: string | null; is_done: boolean; position: number; }
-interface CustomField {
-  id: string; name: string; type: CustomFieldType;
-  options: { label: string; value: string; color?: string }[]; position: number;
-}
-interface Task {
-  id: string;
-  title: string;
-  status_id: string | null;
-  priority: Priority;
-  due_date: string | null;
-  position: number;
-  created_at: string;
-  tags: string[] | null;
-  description_text: string | null;
-  assignees: AssigneeMember[];
-  fieldValues: Record<string, any>;
-}
+type Task = TaskWithFieldValues;
 
 const priorityLabel: Record<Priority, string> = {
   low: "Baixa", medium: "Média", high: "Alta", urgent: "Urgente",
