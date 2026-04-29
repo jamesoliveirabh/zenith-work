@@ -15,6 +15,20 @@ export type TaskWithFieldValues = Task & {
   fieldValues: Record<string, unknown>;
 };
 
+async function fetchAttachmentCounts(taskIds: string[]): Promise<Record<string, number>> {
+  if (taskIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from("task_attachments")
+    .select("task_id")
+    .in("task_id", taskIds);
+  if (error) throw error;
+  const out: Record<string, number> = {};
+  (data ?? []).forEach((r: { task_id: string }) => {
+    out[r.task_id] = (out[r.task_id] ?? 0) + 1;
+  });
+  return out;
+}
+
 const TASK_COLUMNS =
   "id,title,description,description_text,status_id,priority,due_date,start_date,position,created_at,tags,time_estimate_seconds";
 
