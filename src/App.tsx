@@ -68,6 +68,7 @@ const App = () => (
                   <Route path="/automations" element={<Automations />} />
                   <Route path="/security" element={<Security />} />
                   <Route path="/security/people" element={<Team />} />
+                  <Route path="/security/permissions" element={<Permissions />} />
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
