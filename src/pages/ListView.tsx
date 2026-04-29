@@ -178,14 +178,25 @@ export default function ListView() {
                 className="grid grid-cols-[1fr_140px_120px_140px_140px_120px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
                 <div>
-                  <Input
-                    defaultValue={task.title}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (v && v !== task.title) updateTask.mutate({ id: task.id, patch: { title: v } });
-                    }}
-                    className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      defaultValue={task.title}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v && v !== task.title) updateTask.mutate({ id: task.id, patch: { title: v } });
+                      }}
+                      className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
+                    />
+                    {(task.attachment_count ?? 0) > 0 && (
+                      <span
+                        className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground shrink-0 pr-1"
+                        title={`${task.attachment_count} anexo(s)`}
+                      >
+                        <Paperclip className="h-3 w-3" />
+                        {task.attachment_count}
+                      </span>
+                    )}
+                  </div>
                   {task.description_text && (
                     <p className="text-xs text-muted-foreground/70 px-2 mt-0.5 line-clamp-2">
                       {task.description_text}
