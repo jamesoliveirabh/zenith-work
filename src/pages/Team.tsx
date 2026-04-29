@@ -37,7 +37,7 @@ interface Invitation {
 
 const inviteSchema = z.object({
   email: z.string().trim().email("Email inválido").max(255),
-  role: z.enum(["admin", "member", "guest"]),
+  role: z.enum(["admin", "member", "member_limited", "guest"]),
 });
 
 export default function Team() {
