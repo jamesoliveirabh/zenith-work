@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
 import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { TimeTracker } from "@/components/TimeTracker";
 import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import {
   taskDetailKey, useCreateComment, useCreateSubtask, useDeleteComment,
@@ -223,6 +224,20 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
 
           {/* Custom fields */}
           {taskId && <CustomFieldsSection taskId={taskId} listId={listId} />}
+
+          {/* Time tracking */}
+          {taskId && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Tempo
+              </label>
+              <TimeTracker
+                taskId={taskId}
+                estimateSeconds={detail?.time_estimate_seconds ?? null}
+                onEstimateChange={(s) => updateMeta.mutate({ time_estimate_seconds: s })}
+              />
+            </div>
+          )}
 
           <Separator />
 

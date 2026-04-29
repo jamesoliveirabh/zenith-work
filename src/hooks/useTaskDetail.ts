@@ -24,6 +24,7 @@ export interface TaskDetail {
   title: string;
   description: unknown | null;
   tags: string[];
+  time_estimate_seconds: number | null;
   subtasks: Subtask[];
   comments: TaskComment[];
   assignees: Assignee[];
@@ -39,7 +40,7 @@ export function useTaskDetail(taskId: string | null) {
       const id = taskId!;
       const [{ data: task, error: te }, { data: subs, error: se }, { data: cmts, error: ce }, { data: ta, error: ae }] =
         await Promise.all([
-          supabase.from("tasks").select("id,title,description,tags").eq("id", id).maybeSingle(),
+          supabase.from("tasks").select("id,title,description,tags,time_estimate_seconds").eq("id", id).maybeSingle(),
           supabase.from("tasks").select("id,title,completed_at,position")
             .eq("parent_task_id", id).order("position").order("created_at"),
           supabase.from("task_comments").select("id,body,author_id,created_at")
@@ -64,6 +65,7 @@ export function useTaskDetail(taskId: string | null) {
         title: task?.title ?? "",
         description: task?.description ?? null,
         tags: (task?.tags ?? []) as string[],
+        time_estimate_seconds: (task?.time_estimate_seconds ?? null) as number | null,
         subtasks: (subs ?? []) as Subtask[],
         comments: (cmts ?? []) as TaskComment[],
         assignees: assigneeIds.map((uid) => profiles[uid]).filter(Boolean),
@@ -258,6 +260,7 @@ export interface TaskMetaPatch {
   title?: string;
   description?: unknown | null;
   tags?: string[];
+  time_estimate_seconds?: number | null;
 }
 
 export function useUpdateTaskMeta(taskId: string) {
@@ -276,6 +279,7 @@ export function useUpdateTaskMeta(taskId: string) {
           ...(patch.title !== undefined ? { title: patch.title } : {}),
           ...(patch.description !== undefined ? { description: patch.description } : {}),
           ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
+          ...(patch.time_estimate_seconds !== undefined ? { time_estimate_seconds: patch.time_estimate_seconds } : {}),
         });
       }
       return { prev };

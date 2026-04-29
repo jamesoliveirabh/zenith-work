@@ -707,6 +707,7 @@ export type Database = {
           start_date: string | null
           status_id: string | null
           tags: string[] | null
+          time_estimate_seconds: number | null
           title: string
           updated_at: string
           workspace_id: string
@@ -727,6 +728,7 @@ export type Database = {
           start_date?: string | null
           status_id?: string | null
           tags?: string[] | null
+          time_estimate_seconds?: number | null
           title: string
           updated_at?: string
           workspace_id: string
@@ -747,6 +749,7 @@ export type Database = {
           start_date?: string | null
           status_id?: string | null
           tags?: string[] | null
+          time_estimate_seconds?: number | null
           title?: string
           updated_at?: string
           workspace_id?: string
@@ -775,6 +778,57 @@ export type Database = {
           },
           {
             foreignKeyName: "tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          note: string | null
+          started_at: string
+          task_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          note?: string | null
+          started_at: string
+          task_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          note?: string | null
+          started_at?: string
+          task_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

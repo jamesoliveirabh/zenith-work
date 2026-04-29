@@ -36,6 +36,8 @@ import {
   type CustomField, type CustomFieldType,
 } from "@/hooks/useCustomFields";
 import { useListMembers } from "@/hooks/useListMembers";
+import { useTaskTimeTotals } from "@/hooks/useTimeTracking";
+import { TaskTimeCell } from "@/components/TaskTimeCell";
 import type { Priority, Status } from "@/types/task";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +63,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   priority: 140,
   assignees: 180,
   due_date: 150,
+  time: 140,
   tags: 220,
 };
 
@@ -92,6 +95,7 @@ export default function TableView() {
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId, { withFieldValues: true });
   const { data: fields = [] } = useCustomFields(listId);
   const { data: members = [] } = useListMembers(current?.id);
+  const { data: timeTotals = {} } = useTaskTimeTotals(listId);
 
   const updateTaskMut = useUpdateTask(listId ?? "");
   const deleteTaskMut = useDeleteTask(listId ?? "");
@@ -229,6 +233,7 @@ export default function TableView() {
       (widths.priority ?? DEFAULT_WIDTHS.priority) +
       (widths.assignees ?? DEFAULT_WIDTHS.assignees) +
       (widths.due_date ?? DEFAULT_WIDTHS.due_date) +
+      (widths.time ?? DEFAULT_WIDTHS.time) +
       (widths.tags ?? DEFAULT_WIDTHS.tags);
     const fieldsW = fields.reduce((s, f) => s + (widths[f.id] ?? 160), 0);
     return base + fieldsW + 56 /* + button */ + 44 /* delete */;
@@ -319,6 +324,7 @@ export default function TableView() {
                         widths={widths}
                         members={members}
                         isDone={isDone(task)}
+                        trackedSeconds={timeTotals[task.id] ?? 0}
                         editingTitle={editingTitleId === task.id}
                         onStartTitleEdit={() => setEditingTitleId(task.id)}
                         onStopTitleEdit={() => setEditingTitleId(null)}
@@ -404,6 +410,7 @@ function TableHeaderRow({
     { key: "priority", label: "Prioridade", sortable: true, w: widths.priority ?? DEFAULT_WIDTHS.priority },
     { key: "assignees", label: "Responsáveis", w: widths.assignees ?? DEFAULT_WIDTHS.assignees },
     { key: "due_date", label: "Vencimento", sortable: true, w: widths.due_date ?? DEFAULT_WIDTHS.due_date },
+    { key: "time", label: "Tempo", w: widths.time ?? DEFAULT_WIDTHS.time },
     { key: "tags", label: "Tags", w: widths.tags ?? DEFAULT_WIDTHS.tags },
     ...fields.map((f) => ({
       key: f.id, label: f.name, sortable: true, w: widths[f.id] ?? 160,
@@ -499,7 +506,7 @@ function ColHeader({
 
 // ============== Row ==============
 function TableRow({
-  task, statuses, fields, widths, members, isDone, editingTitle,
+  task, statuses, fields, widths, members, isDone, trackedSeconds, editingTitle,
   onStartTitleEdit, onStopTitleEdit, onOpen, onToggleDone, onUpdate,
   onAddAssignee, onRemoveAssignee, onSetFieldValue, onDelete,
 }: {
@@ -509,6 +516,7 @@ function TableRow({
   widths: Record<string, number>;
   members: AssigneeMember[];
   isDone: boolean;
+  trackedSeconds: number;
   editingTitle: boolean;
   onStartTitleEdit: () => void;
   onStopTitleEdit: () => void;
@@ -638,6 +646,14 @@ function TableRow({
             onUpdate({ due_date: v });
           }}
           className="h-7 border-0 shadow-none focus-visible:ring-1 px-1 text-xs"
+        />
+      </Cell>
+
+      {/* Time */}
+      <Cell width={widths.time ?? DEFAULT_WIDTHS.time}>
+        <TaskTimeCell
+          trackedSeconds={trackedSeconds}
+          estimateSeconds={task.time_estimate_seconds ?? null}
         />
       </Cell>
 

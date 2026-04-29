@@ -21,6 +21,8 @@ import {
   useCreateTask, useDeleteTask, useTasks, useUpdateTask, useUpdateTaskAssigneesInList,
 } from "@/hooks/useTasks";
 import { useListMembers } from "@/hooks/useListMembers";
+import { useTaskTimeTotals } from "@/hooks/useTimeTracking";
+import { TaskTimeCell } from "@/components/TaskTimeCell";
 import type { Priority, Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -58,6 +60,7 @@ export default function ListView() {
   const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId);
   const { data: members = [] } = useListMembers(current?.id);
+  const { data: timeTotals = {} } = useTaskTimeTotals(listId);
 
   const createTask = useCreateTask(listId ?? "");
   const updateTask = useUpdateTask(listId ?? "");
@@ -147,12 +150,13 @@ export default function ListView() {
       </form>
 
       <div className="rounded-lg border bg-card overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_120px_140px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+        <div className="grid grid-cols-[1fr_140px_120px_140px_140px_120px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
           <div>Tarefa</div>
           <div>Status</div>
           <div>Prioridade</div>
           <div>Responsáveis</div>
           <div>Vencimento</div>
+          <div>Tempo</div>
           <div />
           <div />
         </div>
@@ -171,7 +175,7 @@ export default function ListView() {
             return (
               <div
                 key={task.id}
-                className="grid grid-cols-[1fr_140px_120px_140px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+                className="grid grid-cols-[1fr_140px_120px_140px_140px_120px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
                 <div>
                   <Input
@@ -264,6 +268,12 @@ export default function ListView() {
                       updateTask.mutate({ id: task.id, patch: { due_date: v } });
                     }}
                     className="h-8 border-0 shadow-none focus-visible:ring-1 px-1 text-xs"
+                  />
+                </div>
+                <div className="px-2">
+                  <TaskTimeCell
+                    trackedSeconds={timeTotals[task.id] ?? 0}
+                    estimateSeconds={task.time_estimate_seconds ?? null}
                   />
                 </div>
                 <Button
