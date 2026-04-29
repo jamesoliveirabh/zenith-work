@@ -13,6 +13,8 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import ListView from "./pages/ListView";
 import KanbanView from "./pages/KanbanView";
+import Team from "./pages/Team";
+import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,7 @@ const App = () => (
             <WorkspaceProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/invite/:token" element={<AcceptInvite />} />
                 <Route
                   path="/onboarding"
                   element={
@@ -55,6 +58,7 @@ const App = () => (
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
+                  <Route path="/team" element={<Team />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
