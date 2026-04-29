@@ -87,13 +87,61 @@ export default function SpacesAdmin() {
     load();
   };
 
+  const openDelete = async (s: Space) => {
+    setDeleteSpace(s);
+    setDeleteMode("move");
+    setMoveTargetSpace("");
+    setConfirmName("");
+    setDeleteTaskCount(0);
+    // Count tasks in lists belonging to this space
+    const spaceListIds = lists.filter((l) => l.space_id === s.id).map((l) => l.id);
+    if (spaceListIds.length > 0) {
+      const { count } = await supabase
+        .from("tasks")
+        .select("id", { count: "exact", head: true })
+        .in("list_id", spaceListIds);
+      setDeleteTaskCount(count ?? 0);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteSpace) return;
-    const { error } = await supabase.from("spaces").delete().eq("id", deleteSpace.id);
-    if (error) return toast.error(error.message);
-    toast.success("Space excluído");
-    setDeleteSpace(null);
-    load();
+    const spaceLists = lists.filter((l) => l.space_id === deleteSpace.id);
+
+    // Block when forcing delete with content but name not confirmed
+    if (spaceLists.length > 0 && deleteMode === "force" && confirmName.trim() !== deleteSpace.name) {
+      return toast.error("Digite o nome exato do space para confirmar.");
+    }
+    if (spaceLists.length > 0 && deleteMode === "move" && !moveTargetSpace) {
+      return toast.error("Selecione um space de destino para mover as listas.");
+    }
+
+    setDeleting(true);
+    try {
+      // Move lists if requested
+      if (spaceLists.length > 0 && deleteMode === "move") {
+        const { error: mvErr } = await supabase
+          .from("lists")
+          .update({ space_id: moveTargetSpace })
+          .in("id", spaceLists.map((l) => l.id));
+        if (mvErr) throw mvErr;
+      }
+
+      const { error } = await supabase.from("spaces").delete().eq("id", deleteSpace.id);
+      if (error) throw error;
+
+      toast.success(
+        spaceLists.length > 0 && deleteMode === "move"
+          ? `Space excluído. ${spaceLists.length} lista(s) movida(s).`
+          : "Space excluído"
+      );
+      setDeleteSpace(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao excluir");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleTransferOwner = async () => {
