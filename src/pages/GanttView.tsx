@@ -776,6 +776,8 @@ export default function GanttView() {
       {openTaskId && (
         <TaskDetailDialog
           taskId={openTaskId}
+          listId={listId ?? ""}
+          doneStatusId={statuses.find((s) => s.is_done)?.id ?? null}
           open={!!openTaskId}
           onOpenChange={(o) => !o && setOpenTaskId(null)}
         />
