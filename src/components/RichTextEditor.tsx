@@ -41,6 +41,10 @@ const buildExtensions = (placeholder: string) => [
     autolink: true,
     HTMLAttributes: { class: "text-primary underline underline-offset-2" },
   }),
+  Image.configure({
+    HTMLAttributes: { class: "rounded-md max-w-full h-auto" },
+    allowBase64: false,
+  }),
 ];
 
 function ToolbarBtn({
