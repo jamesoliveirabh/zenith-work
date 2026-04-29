@@ -13,6 +13,7 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import ListView from "./pages/ListView";
 import KanbanView from "./pages/KanbanView";
+import TableView from "./pages/TableView";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
@@ -65,6 +66,7 @@ const App = () => (
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
+                  <Route path="/list/:listId/table" element={<TableView />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />

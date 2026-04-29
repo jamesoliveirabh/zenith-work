@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Trash2, Trello } from "lucide-react";
+import { CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Table as TableIcon, Trash2, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -201,6 +201,9 @@ export default function ListView() {
           </Button>
           <Button asChild variant="ghost" size="sm" className="h-8">
             <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 mr-1.5" />Kanban</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8">
+            <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
           </Button>
         </div>
       </header>
