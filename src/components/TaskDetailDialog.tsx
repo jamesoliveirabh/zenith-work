@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { Check, CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
 import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
+import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
