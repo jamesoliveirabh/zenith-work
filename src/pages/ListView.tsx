@@ -323,6 +323,7 @@ export default function ListView() {
                     onRemove={(uid) => removeAssignee(task.id, uid)}
                   />
                 </div>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
                   <CalendarIcon className="h-3.5 w-3.5" />
                   <Input
                     type="date"
