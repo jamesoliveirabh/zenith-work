@@ -662,7 +662,9 @@ export default function GanttView() {
                     )}
                     style={{ left: c.x, width: colWidth(zoom) }}
                   >
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{c.secondary}</div>
+                    {c.secondary && (
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{c.secondary}</div>
+                    )}
                     <div className={cn("text-xs font-medium", c.isToday && "text-primary")}>{c.primary}</div>
                   </div>
                 ))}
