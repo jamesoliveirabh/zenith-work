@@ -28,6 +28,9 @@ import ListRolePermissions from "./pages/ListRolePermissions";
 import SpacesAdmin from "./pages/SpacesAdmin";
 import Goals from "./pages/Goals";
 import GoalDetail from "./pages/GoalDetail";
+import DocsHome from "./pages/DocsHome";
+import DocEditor from "./pages/DocEditor";
+import PublishedDoc from "./pages/PublishedDoc";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -59,6 +62,7 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/invite/:token" element={<AcceptInvite />} />
+                <Route path="/p/:token" element={<PublishedDoc />} />
                 <Route
                   path="/onboarding"
                   element={

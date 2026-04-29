@@ -261,6 +261,151 @@ export type Database = {
           },
         ]
       }
+      doc_members: {
+        Row: {
+          doc_id: string
+          permission: string
+          user_id: string
+        }
+        Insert: {
+          doc_id: string
+          permission: string
+          user_id: string
+        }
+        Update: {
+          doc_id?: string
+          permission?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_members_doc_id_fkey"
+            columns: ["doc_id"]
+            isOneToOne: false
+            referencedRelation: "docs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doc_task_links: {
+        Row: {
+          doc_id: string
+          task_id: string
+          workspace_id: string
+        }
+        Insert: {
+          doc_id: string
+          task_id: string
+          workspace_id: string
+        }
+        Update: {
+          doc_id?: string
+          task_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_task_links_doc_id_fkey"
+            columns: ["doc_id"]
+            isOneToOne: false
+            referencedRelation: "docs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doc_task_links_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doc_task_links_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      docs: {
+        Row: {
+          content: Json | null
+          content_text: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          icon: string | null
+          id: string
+          is_published: boolean
+          last_edited_by: string | null
+          parent_doc_id: string | null
+          position: number
+          published_token: string
+          space_id: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          content_text?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by: string
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          last_edited_by?: string | null
+          parent_doc_id?: string | null
+          position?: number
+          published_token?: string
+          space_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          content_text?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          last_edited_by?: string | null
+          parent_doc_id?: string | null
+          position?: number
+          published_token?: string
+          space_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "docs_parent_doc_id_fkey"
+            columns: ["parent_doc_id"]
+            isOneToOne: false
+            referencedRelation: "docs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "docs_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "docs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_members: {
         Row: {
           goal_id: string
