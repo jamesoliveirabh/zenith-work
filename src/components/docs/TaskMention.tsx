@@ -112,7 +112,7 @@ export function createTaskMention(workspaceId: string, onLink: (taskId: string) 
           },
           onKeyDown(props: any) {
             if (props.event.key === "Escape") { popup[0].hide(); return true; }
-            return component.ref?.onKeyDown?.(props);
+            return (component.ref as any)?.onKeyDown?.(props);
           },
           onExit() { popup[0].destroy(); component.destroy(); },
         };

@@ -45,7 +45,7 @@ const ITEMS: SlashItem[] = [
   },
   { title: "Tabela", description: "Tabela 3x3", icon: TableIcon, keywords: ["table"],
     command: (e) => e.chain().focus().deleteRange({ from: e.state.selection.from - 1, to: e.state.selection.from })
-      .insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+      (.insertTable as any)({ rows: 3, cols: 3, withHeaderRow: true }).run() },
   { title: "Mencionar tarefa", description: "Vincular uma tarefa", icon: AtSign, keywords: ["task", "mention"],
     command: (e) => e.chain().focus().deleteRange({ from: e.state.selection.from - 1, to: e.state.selection.from }).insertContent("@").run() },
 ];
@@ -133,7 +133,7 @@ export const SlashCommand = Extension.create({
             },
             onKeyDown(props: any) {
               if (props.event.key === "Escape") { popup[0].hide(); return true; }
-              return component.ref?.onKeyDown?.(props);
+              return (component.ref as any)?.onKeyDown?.(props);
             },
             onExit() { popup[0].destroy(); component.destroy(); },
           };
