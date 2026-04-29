@@ -26,6 +26,7 @@ interface Status { id: string; name: string; color: string | null; is_done: bool
 interface Task {
   id: string; title: string; status_id: string | null; priority: Priority;
   due_date: string | null; position: number;
+  description_text: string | null;
   assignees: AssigneeMember[];
 }
 
