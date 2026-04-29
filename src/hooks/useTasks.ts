@@ -16,7 +16,7 @@ export type TaskWithFieldValues = Task & {
 };
 
 const TASK_COLUMNS =
-  "id,title,description,description_text,status_id,priority,due_date,start_date,position,created_at,tags";
+  "id,title,description,description_text,status_id,priority,due_date,start_date,position,created_at,tags,time_estimate_seconds";
 
 async function fetchAssigneesByTask(taskIds: string[]): Promise<Record<string, Assignee[]>> {
   if (taskIds.length === 0) return {};
