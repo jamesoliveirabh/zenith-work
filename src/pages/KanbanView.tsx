@@ -226,7 +226,7 @@ export default function KanbanView() {
       title, created_by: user.id, position: sameCol.length,
     }).select("id,title,status_id,priority,due_date,position").single();
     if (error) { toast.error(error.message); return; }
-    if (data) setTasks((p) => [...p, data as Task]);
+    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
   };
 
   const onDragStart = (e: DragStartEvent) => {
