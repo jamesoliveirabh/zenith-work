@@ -29,6 +29,7 @@ interface Task {
   position: number;
   created_at: string;
   tags: string[] | null;
+  assignees: AssigneeMember[];
 }
 
 const priorityLabel: Record<Priority, string> = {
