@@ -173,9 +173,10 @@ export default function Team() {
             <Select value={role} onValueChange={(v) => setRole(v as Role)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="guest">Guest</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="member">Membro</SelectItem>
+                <SelectItem value="member_limited">Membro limitado</SelectItem>
+                <SelectItem value="guest">Convidado</SelectItem>
               </SelectContent>
             </Select>
             <Button type="submit" disabled={loading}>
