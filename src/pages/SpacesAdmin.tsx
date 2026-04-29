@@ -19,7 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { FolderKanban, Hash, MoreVertical, Pencil, Trash2, UserCog, Crown, Shield } from "lucide-react";
+import { FolderKanban, Hash, MoreVertical, Pencil, Trash2, UserCog, Crown, Shield, AlertTriangle, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 
