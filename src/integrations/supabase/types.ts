@@ -197,6 +197,42 @@ export type Database = {
         }
         Relationships: []
       }
+      list_role_permissions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          list_id: string
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled: boolean
+          id?: string
+          list_id: string
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          list_id?: string
+          permission_key?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       list_views: {
         Row: {
           created_at: string
@@ -817,6 +853,10 @@ export type Database = {
       }
       has_permission: {
         Args: { _key: string; _user: string; _ws: string }
+        Returns: boolean
+      }
+      has_permission_for_list: {
+        Args: { _key: string; _list: string; _user: string }
         Returns: boolean
       }
       is_workspace_admin: {
