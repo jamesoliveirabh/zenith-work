@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   ChevronDown, ChevronRight, LayoutList, Loader2, Plus, Table as TableIcon, Trello,
-  ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays,
+  ArrowUp, ArrowDown, ArrowUpDown, Trash2, Check, CalendarDays, Paperclip,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
