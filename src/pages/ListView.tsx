@@ -210,7 +210,7 @@ export default function ListView() {
           filters={filters}
           onChange={setFilters}
           statuses={statuses}
-          members={members}
+          members={members.map((m) => ({ user_id: m.id, name: m.display_name || m.email?.split("@")[0] || "—" }))}
           availableTags={availableTags}
         />
       )}
