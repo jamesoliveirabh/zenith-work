@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
+import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ interface Task {
   position: number;
   created_at: string;
   tags: string[] | null;
+  assignees: AssigneeMember[];
 }
 
 const priorityLabel: Record<Priority, string> = {
@@ -47,7 +49,7 @@ export default function ListView() {
   const [listName, setListName] = useState<string>("");
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<{ user_id: string; name: string }[]>([]);
+  const [members, setMembers] = useState<AssigneeMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
@@ -60,12 +62,36 @@ export default function ListView() {
     const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
       supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
       supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks").select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
+      supabase.from("tasks")
+        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags")
         .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
     ]);
     setListName(list?.name ?? "");
     setStatuses(st ?? []);
-    setTasks((tk ?? []) as Task[]);
+
+    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
+    let assigneesByTask: Record<string, AssigneeMember[]> = {};
+    if (taskList.length > 0) {
+      const taskIds = taskList.map((t) => t.id);
+      const { data: ta } = await supabase
+        .from("task_assignees")
+        .select("task_id,user_id")
+        .in("task_id", taskIds);
+      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
+      let profMap: Record<string, AssigneeMember> = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
+        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
+      }
+      (ta ?? []).forEach((r) => {
+        const prof = profMap[r.user_id];
+        if (!prof) return;
+        (assigneesByTask[r.task_id] ||= []).push(prof);
+      });
+    }
+
+    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
     setLoading(false);
   };
 
@@ -82,12 +108,9 @@ export default function ListView() {
       if (ids.length === 0) { setMembers([]); return; }
       const { data: p } = await supabase
         .from("profiles")
-        .select("id,display_name,email")
+        .select("id,display_name,avatar_url,email")
         .in("id", ids);
-      setMembers((p ?? []).map((u) => ({
-        user_id: u.id,
-        name: u.display_name || u.email?.split("@")[0] || "—",
-      })));
+      setMembers((p ?? []) as AssigneeMember[]);
     })();
   }, [current?.id]);
 
@@ -116,12 +139,33 @@ export default function ListView() {
     setCreating(false);
     if (error) return toast.error(error.message);
     setNewTitle("");
-    if (data) setTasks((p) => [...p, data as Task]);
+    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
   };
 
-  const updateTask = async (id: string, patch: Partial<Task>) => {
+  const updateTask = async (id: string, patch: Partial<Omit<Task, "assignees">>) => {
     setTasks((p) => p.map((t) => (t.id === id ? { ...t, ...patch } : t)));
     const { error } = await supabase.from("tasks").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); load(); }
+  };
+
+  const addAssignee = async (taskId: string, userId: string) => {
+    if (!current) return;
+    setTasks((p) => p.map((t) => {
+      if (t.id !== taskId || t.assignees.some((a) => a.id === userId)) return t;
+      const m = members.find((x) => x.id === userId);
+      return m ? { ...t, assignees: [...t.assignees, m] } : t;
+    }));
+    const { error } = await supabase.from("task_assignees").insert({
+      task_id: taskId, user_id: userId, workspace_id: current.id,
+    });
+    if (error) { toast.error(error.message); load(); }
+  };
+
+  const removeAssignee = async (taskId: string, userId: string) => {
+    setTasks((p) => p.map((t) => t.id === taskId
+      ? { ...t, assignees: t.assignees.filter((a) => a.id !== userId) } : t));
+    const { error } = await supabase.from("task_assignees").delete()
+      .eq("task_id", taskId).eq("user_id", userId);
     if (error) { toast.error(error.message); load(); }
   };
 
@@ -166,7 +210,7 @@ export default function ListView() {
           filters={filters}
           onChange={setFilters}
           statuses={statuses}
-          members={members}
+          members={members.map((m) => ({ user_id: m.id, name: m.display_name || m.email?.split("@")[0] || "—" }))}
           availableTags={availableTags}
         />
       )}
@@ -184,10 +228,11 @@ export default function ListView() {
       </form>
 
       <div className="rounded-lg border bg-card overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+        <div className="grid grid-cols-[1fr_140px_120px_140px_140px_40px_40px] gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
           <div>Tarefa</div>
           <div>Status</div>
           <div>Prioridade</div>
+          <div>Responsáveis</div>
           <div>Vencimento</div>
           <div />
           <div />
@@ -207,7 +252,7 @@ export default function ListView() {
             return (
               <div
                 key={task.id}
-                className="grid grid-cols-[1fr_140px_120px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+                className="grid grid-cols-[1fr_140px_120px_140px_140px_40px_40px] gap-2 px-4 py-2 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
               >
                 <div>
                   <Input
@@ -270,6 +315,14 @@ export default function ListView() {
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="px-2">
+                  <AssigneeSelect
+                    members={members}
+                    selectedIds={task.assignees.map((a) => a.id)}
+                    onAdd={(uid) => addAssignee(task.id, uid)}
+                    onRemove={(uid) => removeAssignee(task.id, uid)}
+                  />
+                </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
                   <CalendarIcon className="h-3.5 w-3.5" />
                   <Input

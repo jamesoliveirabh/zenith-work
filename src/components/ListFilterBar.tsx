@@ -454,7 +454,8 @@ export function applyFilters<T extends {
   title: string;
   status_id: string | null;
   priority: Priority;
-  assignee_id: string | null;
+  assignee_id?: string | null;
+  assignees?: { id: string }[];
   due_date: string | null;
   tags: string[] | null;
 }>(items: T[], f: ListFilters): T[] {
@@ -470,8 +471,10 @@ export function applyFilters<T extends {
     if (f.priorities?.length && !f.priorities.includes(t.priority)) return false;
     if (f.assigneeIds?.length) {
       const wantUnassigned = f.assigneeIds.includes("unassigned");
-      const matchUser = t.assignee_id && f.assigneeIds.includes(t.assignee_id);
-      if (!((wantUnassigned && !t.assignee_id) || matchUser)) return false;
+      const ids = t.assignees?.map((a) => a.id) ?? (t.assignee_id ? [t.assignee_id] : []);
+      const matchUser = ids.some((id) => f.assigneeIds!.includes(id));
+      const isUnassigned = ids.length === 0;
+      if (!((wantUnassigned && isUnassigned) || matchUser)) return false;
     }
     if (f.tags?.length) {
       const tags = t.tags ?? [];

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ interface Status { id: string; name: string; color: string | null; is_done: bool
 interface Task {
   id: string; title: string; status_id: string | null; priority: Priority;
   due_date: string | null; position: number;
+  assignees: AssigneeMember[];
 }
 
 const priorityClass: Record<Priority, string> = {
@@ -65,6 +67,18 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
             <Calendar className="h-3 w-3" />
             {format(new Date(task.due_date), "dd MMM")}
           </span>
+        )}
+        {task.assignees.length > 0 && (
+          <div className="ml-auto flex items-center" onClick={(e) => e.stopPropagation()}>
+            <AssigneeSelect
+              members={task.assignees}
+              selectedIds={task.assignees.map((a) => a.id)}
+              onAdd={() => {}}
+              onRemove={() => {}}
+              disabled
+              maxVisible={3}
+            />
+          </div>
         )}
       </div>
     </div>
@@ -168,7 +182,26 @@ export default function KanbanView() {
     ]);
     setListName(list?.name ?? "");
     setStatuses(st ?? []);
-    setTasks((tk ?? []) as Task[]);
+
+    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
+    let assigneesByTask: Record<string, AssigneeMember[]> = {};
+    if (taskList.length > 0) {
+      const { data: ta } = await supabase
+        .from("task_assignees").select("task_id,user_id")
+        .in("task_id", taskList.map((t) => t.id));
+      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
+      let profMap: Record<string, AssigneeMember> = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
+        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
+      }
+      (ta ?? []).forEach((r) => {
+        const prof = profMap[r.user_id];
+        if (prof) (assigneesByTask[r.task_id] ||= []).push(prof);
+      });
+    }
+    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
     setLoading(false);
   };
 
@@ -193,7 +226,7 @@ export default function KanbanView() {
       title, created_by: user.id, position: sameCol.length,
     }).select("id,title,status_id,priority,due_date,position").single();
     if (error) { toast.error(error.message); return; }
-    if (data) setTasks((p) => [...p, data as Task]);
+    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
   };
 
   const onDragStart = (e: DragStartEvent) => {

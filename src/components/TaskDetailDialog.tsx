@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TagsInput } from "@/components/TagsInput";
 import { CustomFieldsSection } from "@/components/CustomFieldsSection";
+import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,8 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
+  const [members, setMembers] = useState<AssigneeMember[]>([]);
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
 
   // Load task data
   useEffect(() => {
@@ -64,12 +67,13 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: task }, { data: subs }, { data: cmts }] = await Promise.all([
+      const [{ data: task }, { data: subs }, { data: cmts }, { data: ta }] = await Promise.all([
         supabase.from("tasks").select("title,description,tags").eq("id", taskId).maybeSingle(),
         supabase.from("tasks").select("id,title,completed_at,position")
           .eq("parent_task_id", taskId).order("position").order("created_at"),
         supabase.from("task_comments").select("id,body,author_id,created_at")
           .eq("task_id", taskId).order("created_at"),
+        supabase.from("task_assignees").select("user_id").eq("task_id", taskId),
       ]);
       if (cancelled) return;
       setTitle(task?.title ?? "");
@@ -77,6 +81,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
       setTags((task?.tags ?? []) as string[]);
       setSubtasks((subs ?? []) as Subtask[]);
       setComments((cmts ?? []) as Comment[]);
+      setAssigneeIds((ta ?? []).map((r) => r.user_id));
 
       const ids = Array.from(new Set((cmts ?? []).map((c) => c.author_id)));
       if (ids.length) {
@@ -90,6 +95,20 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     })();
     return () => { cancelled = true; };
   }, [taskId, open]);
+
+  // Load workspace members for AssigneeSelect
+  useEffect(() => {
+    if (!current || !open) return;
+    (async () => {
+      const { data: m } = await supabase
+        .from("workspace_members").select("user_id").eq("workspace_id", current.id);
+      const ids = (m ?? []).map((x) => x.user_id);
+      if (ids.length === 0) { setMembers([]); return; }
+      const { data: p } = await supabase
+        .from("profiles").select("id,display_name,avatar_url,email").in("id", ids);
+      setMembers((p ?? []) as AssigneeMember[]);
+    })();
+  }, [current?.id, open]);
 
   // Realtime: comments + subtasks for this task
   useEffect(() => {
@@ -201,6 +220,31 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
     if (error) toast.error(error.message);
   };
 
+  const addAssignee = async (userId: string) => {
+    if (!taskId || !current) return;
+    if (assigneeIds.includes(userId)) return;
+    setAssigneeIds((p) => [...p, userId]);
+    const { error } = await supabase.from("task_assignees").insert({
+      task_id: taskId, user_id: userId, workspace_id: current.id,
+    });
+    if (error) {
+      setAssigneeIds((p) => p.filter((id) => id !== userId));
+      toast.error(error.message);
+    }
+  };
+
+  const removeAssignee = async (userId: string) => {
+    if (!taskId) return;
+    const prev = assigneeIds;
+    setAssigneeIds((p) => p.filter((id) => id !== userId));
+    const { error } = await supabase.from("task_assignees").delete()
+      .eq("task_id", taskId).eq("user_id", userId);
+    if (error) {
+      setAssigneeIds(prev);
+      toast.error(error.message);
+    }
+  };
+
   const completedCount = subtasks.filter((s) => s.completed_at).length;
 
   return (
@@ -238,6 +282,19 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tags</label>
             <TagsInput value={tags} onChange={updateTags} />
+          </div>
+
+          {/* Assignees */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Responsáveis</label>
+            <AssigneeSelect
+              members={members}
+              selectedIds={assigneeIds}
+              onAdd={addAssignee}
+              onRemove={removeAssignee}
+              size="md"
+              maxVisible={5}
+            />
           </div>
 
           {/* Custom fields */}
