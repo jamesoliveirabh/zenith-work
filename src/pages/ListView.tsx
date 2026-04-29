@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
+import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
