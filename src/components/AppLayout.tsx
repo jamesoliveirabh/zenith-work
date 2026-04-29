@@ -13,6 +13,7 @@ export function AppLayout() {
           <header className="h-14 flex items-center gap-2 border-b px-3 sticky top-0 bg-background/80 backdrop-blur z-10">
             <SidebarTrigger />
             <div className="flex-1" />
+            <NotificationBell />
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-auto">
