@@ -494,7 +494,7 @@ export function useDashboardConfig(userId: string | undefined, workspaceId: stri
         widget_type: w.widget_type,
         position: i,
         is_visible: w.is_visible,
-        config: w.config,
+        config: w.config as never,
       }));
       const { error } = await supabase
         .from("dashboard_widget_configs")
