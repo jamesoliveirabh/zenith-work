@@ -234,6 +234,15 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
             />
           </div>
 
+          {/* Tags */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tags</label>
+            <TagsInput value={tags} onChange={updateTags} />
+          </div>
+
+          {/* Custom fields */}
+          {taskId && <CustomFieldsSection taskId={taskId} listId={listId} />}
+
           <Separator />
 
           {/* Subtasks */}
