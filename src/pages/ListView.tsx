@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Table as TableIcon, Trash2, Trello } from "lucide-react";
+import { CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Table as TableIcon, Trash2, Trello } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
