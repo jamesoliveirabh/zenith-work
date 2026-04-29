@@ -510,3 +510,17 @@ function MemberAdder({ workspaceId, excludeIds, onAdd }: { workspaceId?: string;
     </Popover>
   );
 }
+
+function TaskDialogLoader({ taskId, onClose }: { taskId: string; onClose: () => void }) {
+  const [meta, setMeta] = useState<{ listId: string; doneStatusId: string | null } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data: t } = await supabase.from("tasks").select("list_id").eq("id", taskId).maybeSingle();
+      if (!t) { onClose(); return; }
+      const { data: sc } = await supabase.from("status_columns").select("id").eq("list_id", t.list_id).eq("is_done", true).maybeSingle();
+      setMeta({ listId: t.list_id, doneStatusId: sc?.id ?? null });
+    })();
+  }, [taskId]);
+  if (!meta) return null;
+  return <TaskDetailDialog taskId={taskId} listId={meta.listId} doneStatusId={meta.doneStatusId} open={true} onOpenChange={(o) => !o && onClose()} />;
+}
