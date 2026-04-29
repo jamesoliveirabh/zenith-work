@@ -36,6 +36,8 @@ import {
   type CustomField, type CustomFieldType,
 } from "@/hooks/useCustomFields";
 import { useListMembers } from "@/hooks/useListMembers";
+import { useTaskTimeTotals } from "@/hooks/useTimeTracking";
+import { TaskTimeCell } from "@/components/TaskTimeCell";
 import type { Priority, Status } from "@/types/task";
 import { cn } from "@/lib/utils";
 
