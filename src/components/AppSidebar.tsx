@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2, Zap, LayoutDashboard } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -203,14 +203,6 @@ export function AppSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to="/team">
-                    <Users className="h-4 w-4" />
-                    {!collapsed && <span>Equipe</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
                   <NavLink to="/automations">
                     <Zap className="h-4 w-4" />
                     {!collapsed && <span>Automações</span>}
@@ -225,6 +217,37 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setOpenSpaces((p) => ({ ...p, __security: !(p.__security ?? true) }))}
+                >
+                  {(openSpaces.__security ?? true)
+                    ? <ChevronDown className="h-3.5 w-3.5" />
+                    : <ChevronRight className="h-3.5 w-3.5" />}
+                  <Shield className="h-4 w-4" />
+                  {!collapsed && <span>Segurança</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {(openSpaces.__security ?? true) && !collapsed && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/security" end>
+                        <Activity className="h-3.5 w-3.5" />
+                        <span>Visão geral</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/security/people">
+                        <Users className="h-3.5 w-3.5" />
+                        <span>Gestão de pessoas</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

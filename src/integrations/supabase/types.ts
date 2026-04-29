@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       automation_runs: {
         Row: {
           applied_actions: Json
@@ -124,6 +163,36 @@ export type Database = {
           position?: number
           type?: Database["public"]["Enums"]["custom_field_type"]
           updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      list_permissions: {
+        Row: {
+          access_level: Database["public"]["Enums"]["list_access_level"]
+          created_at: string
+          created_by: string | null
+          id: string
+          list_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["list_access_level"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          list_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["list_access_level"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          list_id?: string
+          user_id?: string
           workspace_id?: string
         }
         Relationships: []
@@ -692,11 +761,26 @@ export type Database = {
         Args: { _user: string; _ws: string }
         Returns: boolean
       }
+      list_is_restricted: { Args: { _list_id: string }; Returns: boolean }
+      log_audit: {
+        Args: {
+          _action: string
+          _entity_id: string
+          _entity_type: string
+          _metadata?: Json
+          _ws: string
+        }
+        Returns: undefined
+      }
       mark_all_notifications_read: {
         Args: { _workspace_id: string }
         Returns: number
       }
       task_link_path: { Args: { _task_id: string }; Returns: string }
+      user_can_access_list: {
+        Args: { _list_id: string; _user: string }
+        Returns: boolean
+      }
       workspace_role_of: {
         Args: { _user: string; _ws: string }
         Returns: Database["public"]["Enums"]["workspace_role"]
@@ -721,6 +805,7 @@ export type Database = {
         | "checkbox"
         | "date"
         | "url"
+      list_access_level: "view" | "edit" | "admin"
       notification_type:
         | "task_assigned"
         | "task_mentioned"
@@ -878,6 +963,7 @@ export const Constants = {
         "date",
         "url",
       ],
+      list_access_level: ["view", "edit", "admin"],
       notification_type: [
         "task_assigned",
         "task_mentioned",
