@@ -95,6 +95,7 @@ export default function TableView() {
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId, { withFieldValues: true });
   const { data: fields = [] } = useCustomFields(listId);
   const { data: members = [] } = useListMembers(current?.id);
+  const { data: timeTotals = {} } = useTaskTimeTotals(listId);
 
   const updateTaskMut = useUpdateTask(listId ?? "");
   const deleteTaskMut = useDeleteTask(listId ?? "");
