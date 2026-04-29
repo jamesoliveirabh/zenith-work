@@ -31,6 +31,7 @@ export interface Task {
   position: number;
   created_at: string;
   tags: string[] | null;
+  time_estimate_seconds?: number | null;
 }
 
 export type TaskPatch = Partial<
