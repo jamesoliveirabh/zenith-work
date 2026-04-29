@@ -409,7 +409,7 @@ export default function TableView() {
                     {!isCollapsed && (
                       <AddTaskRow
                         statusId={group.status?.id ?? null}
-                        onCreate={(title) => createTask(title, group.status?.id ?? null)}
+                        onCreate={async (title) => { await createTask(title, group.status?.id ?? null); }}
                       />
                     )}
                   </div>
