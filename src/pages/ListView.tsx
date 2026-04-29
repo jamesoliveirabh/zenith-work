@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -46,10 +47,12 @@ export default function ListView() {
   const [listName, setListName] = useState<string>("");
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [members, setMembers] = useState<{ user_id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ListFilters>(EMPTY_FILTERS);
 
   const load = async () => {
     if (!listId) return;
@@ -68,7 +71,35 @@ export default function ListView() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
 
+  useEffect(() => {
+    if (!current) return;
+    (async () => {
+      const { data: m } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", current.id);
+      const ids = (m ?? []).map((x) => x.user_id);
+      if (ids.length === 0) { setMembers([]); return; }
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("id,display_name,email")
+        .in("id", ids);
+      setMembers((p ?? []).map((u) => ({
+        user_id: u.id,
+        name: u.display_name || u.email?.split("@")[0] || "—",
+      })));
+    })();
+  }, [current?.id]);
+
   const defaultStatusId = useMemo(() => statuses[0]?.id ?? null, [statuses]);
+
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    tasks.forEach((t) => (t.tags ?? []).forEach((tag) => set.add(tag)));
+    return Array.from(set).sort();
+  }, [tasks]);
+
+  const visibleTasks = useMemo(() => applyFilters(tasks, filters), [tasks, filters]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,11 +141,13 @@ export default function ListView() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
+            {visibleTasks.length === tasks.length
+              ? `${tasks.length} ${tasks.length === 1 ? "tarefa" : "tarefas"}`
+              : `${visibleTasks.length} de ${tasks.length} tarefas`}
           </p>
         </div>
         <div className="flex gap-1 rounded-md border p-0.5">
@@ -126,6 +159,17 @@ export default function ListView() {
           </Button>
         </div>
       </header>
+
+      {listId && (
+        <ListFilterBar
+          listId={listId}
+          filters={filters}
+          onChange={setFilters}
+          statuses={statuses}
+          members={members}
+          availableTags={availableTags}
+        />
+      )}
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-4">
         <Input
@@ -153,8 +197,12 @@ export default function ListView() {
           <div className="px-4 py-12 text-center text-sm text-muted-foreground">
             Nenhuma tarefa ainda. Adicione a primeira acima.
           </div>
+        ) : visibleTasks.length === 0 ? (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            Nenhuma tarefa corresponde aos filtros.
+          </div>
         ) : (
-          tasks.map((task) => {
+          visibleTasks.map((task) => {
             const status = statuses.find((s) => s.id === task.status_id);
             return (
               <div

@@ -128,6 +128,48 @@ export type Database = {
         }
         Relationships: []
       }
+      list_views: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          is_default: boolean
+          is_shared: boolean
+          list_id: string
+          name: string
+          owner_id: string
+          position: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          is_default?: boolean
+          is_shared?: boolean
+          list_id: string
+          name: string
+          owner_id: string
+          position?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          is_default?: boolean
+          is_shared?: boolean
+          list_id?: string
+          name?: string
+          owner_id?: string
+          position?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       lists: {
         Row: {
           color: string | null
