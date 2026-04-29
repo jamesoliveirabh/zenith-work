@@ -7,6 +7,7 @@ import Underline from "@tiptap/extension-underline";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Link as LinkIcon, List, ListOrdered, ListChecks,
@@ -22,6 +23,8 @@ interface Props {
   editable?: boolean;
   placeholder?: string;
   className?: string;
+  /** When provided, pasted/dropped images are uploaded and inserted as an <img> via the returned URL. */
+  onImageUpload?: (file: File) => Promise<string | null>;
 }
 
 const buildExtensions = (placeholder: string) => [
