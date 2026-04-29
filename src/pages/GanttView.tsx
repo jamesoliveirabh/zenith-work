@@ -427,8 +427,8 @@ export default function GanttView() {
       if (sRow.kind !== "task" || tRow.kind !== "task") continue;
       const sd = barDates(sRow.task), td = barDates(tRow.task);
       if (!sd.end || !td.start) continue;
-      const x1 = dateToX(sd.end, anchor, zoom);
-      const x2 = dateToX(td.start, anchor, zoom);
+      const x1 = dateToX(sd.end, effectiveAnchor, zoom);
+      const x2 = dateToX(td.start, effectiveAnchor, zoom);
       // y positions from virtualizer
       const sVirtual = virtualItems.find((v) => v.index === sIdx);
       const tVirtual = virtualItems.find((v) => v.index === tIdx);
@@ -440,7 +440,7 @@ export default function GanttView() {
     }
     return lines;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [relations, showRelations, taskRowIndex, rows, virtualItems, anchor, zoom, dragState]);
+  }, [relations, showRelations, taskRowIndex, rows, virtualItems, effectiveAnchor, zoom, dragState]);
 
   if (!listId) return null;
 
