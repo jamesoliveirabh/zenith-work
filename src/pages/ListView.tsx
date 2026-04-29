@@ -71,7 +71,35 @@ export default function ListView() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
 
+  useEffect(() => {
+    if (!current) return;
+    (async () => {
+      const { data: m } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", current.id);
+      const ids = (m ?? []).map((x) => x.user_id);
+      if (ids.length === 0) { setMembers([]); return; }
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("id,display_name,email")
+        .in("id", ids);
+      setMembers((p ?? []).map((u) => ({
+        user_id: u.id,
+        name: u.display_name || u.email?.split("@")[0] || "—",
+      })));
+    })();
+  }, [current?.id]);
+
   const defaultStatusId = useMemo(() => statuses[0]?.id ?? null, [statuses]);
+
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    tasks.forEach((t) => (t.tags ?? []).forEach((tag) => set.add(tag)));
+    return Array.from(set).sort();
+  }, [tasks]);
+
+  const visibleTasks = useMemo(() => applyFilters(tasks, filters), [tasks, filters]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
