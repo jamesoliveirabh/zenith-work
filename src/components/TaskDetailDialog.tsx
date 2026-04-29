@@ -58,6 +58,8 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
+  const [members, setMembers] = useState<AssigneeMember[]>([]);
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
 
   // Load task data
   useEffect(() => {
