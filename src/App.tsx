@@ -15,6 +15,7 @@ import ListView from "./pages/ListView";
 import KanbanView from "./pages/KanbanView";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
+import FieldsSettings from "./pages/FieldsSettings";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
