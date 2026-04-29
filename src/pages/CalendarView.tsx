@@ -147,7 +147,7 @@ export default function CalendarView() {
     else toast.success("Data atualizada");
   };
 
-  const createTaskOnDay = async (day: Date, title: string) => {
+  const createTaskOnDay = async (day: Date, title: string): Promise<void> => {
     if (!current || !listId || !user || !title.trim()) return;
     const due = new Date(day);
     due.setHours(9, 0, 0, 0);
@@ -160,7 +160,7 @@ export default function CalendarView() {
       position: tasks.length,
       due_date: due.toISOString(),
     }).select("id,title,status_id,priority,due_date").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (data) setTasks((p) => [...p, data as Task]);
   };
 
