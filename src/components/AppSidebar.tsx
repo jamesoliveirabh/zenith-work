@@ -195,6 +195,14 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
+                  <NavLink to="/" end>
+                    <LayoutDashboard className="h-4 w-4" />
+                    {!collapsed && <span>Dashboard</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
                   <NavLink to="/team">
                     <Users className="h-4 w-4" />
                     {!collapsed && <span>Equipe</span>}
