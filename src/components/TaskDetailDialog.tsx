@@ -24,8 +24,7 @@ import {
   useUpdateTaskMeta,
 } from "@/hooks/useTaskDetail";
 import { useListMembers } from "@/hooks/useListMembers";
-import { uploadAttachment, createSignedUrl, isImageMime } from "@/hooks/useTaskAttachments";
-import { useQueryClient as _useQc } from "@tanstack/react-query";
+import { uploadAttachment, createSignedUrl, isImageMime, attachmentsKey } from "@/hooks/useTaskAttachments";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
