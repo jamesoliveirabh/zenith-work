@@ -26,6 +26,8 @@ import Permissions from "./pages/Permissions";
 import ListPermissions from "./pages/ListPermissions";
 import ListRolePermissions from "./pages/ListRolePermissions";
 import SpacesAdmin from "./pages/SpacesAdmin";
+import Goals from "./pages/Goals";
+import GoalDetail from "./pages/GoalDetail";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -83,6 +85,8 @@ const App = () => (
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />
+                  <Route path="/goals" element={<Goals />} />
+                  <Route path="/goals/:goalId" element={<GoalDetail />} />
                   <Route path="/security" element={<Security />} />
                   <Route path="/security/people" element={<Team />} />
                   <Route path="/security/permissions" element={<Permissions />} />
