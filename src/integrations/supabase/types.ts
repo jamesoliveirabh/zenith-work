@@ -890,6 +890,17 @@ export type Database = {
         Args: { _user: string; _ws: string }
         Returns: boolean
       }
+      global_search: {
+        Args: { p_limit?: number; p_query: string; p_workspace_id: string }
+        Returns: {
+          id: string
+          result_type: string
+          subtitle: string
+          title: string
+          updated_at: string
+          url_path: string
+        }[]
+      }
       has_permission: {
         Args: { _key: string; _user: string; _ws: string }
         Returns: boolean
