@@ -179,6 +179,51 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          link_path: string | null
+          task_id: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_path?: string | null
+          task_id?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_path?: string | null
+          task_id?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -605,6 +650,11 @@ export type Database = {
         Args: { _user: string; _ws: string }
         Returns: boolean
       }
+      mark_all_notifications_read: {
+        Args: { _workspace_id: string }
+        Returns: number
+      }
+      task_link_path: { Args: { _task_id: string }; Returns: string }
       workspace_role_of: {
         Args: { _user: string; _ws: string }
         Returns: Database["public"]["Enums"]["workspace_role"]
@@ -629,6 +679,13 @@ export type Database = {
         | "checkbox"
         | "date"
         | "url"
+      notification_type:
+        | "task_assigned"
+        | "task_mentioned"
+        | "task_commented"
+        | "task_status_changed"
+        | "task_completed"
+        | "invitation_accepted"
       task_priority: "low" | "medium" | "high" | "urgent"
       workspace_role: "admin" | "member" | "guest"
     }
@@ -778,6 +835,14 @@ export const Constants = {
         "checkbox",
         "date",
         "url",
+      ],
+      notification_type: [
+        "task_assigned",
+        "task_mentioned",
+        "task_commented",
+        "task_status_changed",
+        "task_completed",
+        "invitation_accepted",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       workspace_role: ["admin", "member", "guest"],

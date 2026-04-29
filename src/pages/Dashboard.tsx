@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import {
-  Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis,
+  Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis, YAxis,
 } from "recharts";
 import { CheckCircle2, Clock, ListChecks, AlertTriangle } from "lucide-react";
 
@@ -206,14 +206,14 @@ export default function Dashboard() {
             {loading ? <Skeleton className="h-[240px] w-full" /> : statusBreakdown.length === 0 ? (
               <EmptyState text="Nenhuma tarefa ainda" />
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer config={{}} className="h-[240px] w-full">
                 <PieChart>
                   <Pie data={statusBreakdown} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={2}>
                     {statusBreakdown.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
             {!loading && statusBreakdown.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3 text-xs">
@@ -233,7 +233,7 @@ export default function Dashboard() {
           <CardHeader><CardTitle className="text-base">Por prioridade</CardTitle></CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-[240px] w-full" /> : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer config={{}} className="h-[240px] w-full">
                 <BarChart data={priorityBreakdown} margin={{ left: 0, right: 12, top: 8, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={11} />
@@ -243,7 +243,7 @@ export default function Dashboard() {
                     {priorityBreakdown.map((d) => <Cell key={d.key} fill={PRIORITY_COLORS[d.key]} />)}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>
