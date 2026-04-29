@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Plus, Table as TableIcon, Trash2, Trello } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  CalendarDays, CalendarIcon, LayoutList, Loader2, MessageSquare, Plus,
+  Table as TableIcon, Trash2, Trello,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
@@ -13,25 +15,17 @@ import {
 } from "@/components/ui/select";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
-import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
+import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { useStatuses } from "@/hooks/useStatuses";
+import {
+  useCreateTask, useDeleteTask, useTasks, useUpdateTask, useUpdateTaskAssigneesInList,
+} from "@/hooks/useTasks";
+import { useListMembers } from "@/hooks/useListMembers";
+import type { Priority, Task } from "@/types/task";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-type Priority = "low" | "medium" | "high" | "urgent";
-interface Status { id: string; name: string; color: string | null; is_done: boolean; position: number; }
-interface Task {
-  id: string;
-  title: string;
-  status_id: string | null;
-  priority: Priority;
-  assignee_id: string | null;
-  due_date: string | null;
-  position: number;
-  created_at: string;
-  tags: string[] | null;
-  description_text: string | null;
-  assignees: AssigneeMember[];
-}
 
 const priorityLabel: Record<Priority, string> = {
   low: "Baixa", medium: "Média", high: "Alta", urgent: "Urgente",
@@ -47,76 +41,30 @@ export default function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const { user } = useAuth();
   const { current } = useWorkspace();
-  const [listName, setListName] = useState<string>("");
-  const [statuses, setStatuses] = useState<Status[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<AssigneeMember[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState("");
-  const [creating, setCreating] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [filters, setFilters] = useState<ListFilters>(EMPTY_FILTERS);
 
-  const load = async () => {
-    if (!listId) return;
-    setLoading(true);
-    const [{ data: list }, { data: st }, { data: tk }] = await Promise.all([
-      supabase.from("lists").select("name").eq("id", listId).maybeSingle(),
-      supabase.from("status_columns").select("id,name,color,is_done,position").eq("list_id", listId).order("position"),
-      supabase.from("tasks")
-        .select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text")
-        .eq("list_id", listId).is("parent_task_id", null).order("position").order("created_at"),
-    ]);
-    setListName(list?.name ?? "");
-    setStatuses(st ?? []);
+  const { data: listData } = useQuery({
+    queryKey: ["list-name", listId],
+    enabled: !!listId,
+    queryFn: async () => {
+      const { data } = await supabase.from("lists").select("name").eq("id", listId!).maybeSingle();
+      return data?.name ?? "";
+    },
+  });
+  const listName = listData ?? "";
 
-    const taskList = (tk ?? []) as Omit<Task, "assignees">[];
-    let assigneesByTask: Record<string, AssigneeMember[]> = {};
-    if (taskList.length > 0) {
-      const taskIds = taskList.map((t) => t.id);
-      const { data: ta } = await supabase
-        .from("task_assignees")
-        .select("task_id,user_id")
-        .in("task_id", taskIds);
-      const userIds = Array.from(new Set((ta ?? []).map((r) => r.user_id)));
-      let profMap: Record<string, AssigneeMember> = {};
-      if (userIds.length > 0) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,avatar_url,email").in("id", userIds);
-        profMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p as AssigneeMember]));
-      }
-      (ta ?? []).forEach((r) => {
-        const prof = profMap[r.user_id];
-        if (!prof) return;
-        (assigneesByTask[r.task_id] ||= []).push(prof);
-      });
-    }
+  const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
+  const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId);
+  const { data: members = [] } = useListMembers(current?.id);
 
-    setTasks(taskList.map((t) => ({ ...t, assignees: assigneesByTask[t.id] ?? [] })));
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [listId]);
-
-  useEffect(() => {
-    if (!current) return;
-    (async () => {
-      const { data: m } = await supabase
-        .from("workspace_members")
-        .select("user_id")
-        .eq("workspace_id", current.id);
-      const ids = (m ?? []).map((x) => x.user_id);
-      if (ids.length === 0) { setMembers([]); return; }
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("id,display_name,avatar_url,email")
-        .in("id", ids);
-      setMembers((p ?? []) as AssigneeMember[]);
-    })();
-  }, [current?.id]);
+  const createTask = useCreateTask(listId ?? "");
+  const updateTask = useUpdateTask(listId ?? "");
+  const deleteTask = useDeleteTask(listId ?? "");
+  const updateAssignees = useUpdateTaskAssigneesInList(listId ?? "");
 
   const defaultStatusId = useMemo(() => statuses[0]?.id ?? null, [statuses]);
-
   const availableTags = useMemo(() => {
     const set = new Set<string>();
     tasks.forEach((t) => (t.tags ?? []).forEach((tag) => set.add(tag)));
@@ -128,55 +76,17 @@ export default function ListView() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !listId || !current || !user) return;
-    setCreating(true);
-    const { data, error } = await supabase.from("tasks").insert({
-      list_id: listId,
+    await createTask.mutateAsync({
       workspace_id: current.id,
       title: newTitle.trim(),
       status_id: defaultStatusId,
       created_by: user.id,
       position: tasks.length,
-    }).select("id,title,status_id,priority,assignee_id,due_date,position,created_at,tags,description_text").single();
-    setCreating(false);
-    if (error) return toast.error(error.message);
-    setNewTitle("");
-    if (data) setTasks((p) => [...p, { ...(data as Omit<Task, "assignees">), assignees: [] }]);
-  };
-
-  const updateTask = async (id: string, patch: Partial<Omit<Task, "assignees">>) => {
-    setTasks((p) => p.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-    const { error } = await supabase.from("tasks").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); load(); }
-  };
-
-  const addAssignee = async (taskId: string, userId: string) => {
-    if (!current) return;
-    setTasks((p) => p.map((t) => {
-      if (t.id !== taskId || t.assignees.some((a) => a.id === userId)) return t;
-      const m = members.find((x) => x.id === userId);
-      return m ? { ...t, assignees: [...t.assignees, m] } : t;
-    }));
-    const { error } = await supabase.from("task_assignees").insert({
-      task_id: taskId, user_id: userId, workspace_id: current.id,
     });
-    if (error) { toast.error(error.message); load(); }
+    setNewTitle("");
   };
 
-  const removeAssignee = async (taskId: string, userId: string) => {
-    setTasks((p) => p.map((t) => t.id === taskId
-      ? { ...t, assignees: t.assignees.filter((a) => a.id !== userId) } : t));
-    const { error } = await supabase.from("task_assignees").delete()
-      .eq("task_id", taskId).eq("user_id", userId);
-    if (error) { toast.error(error.message); load(); }
-  };
-
-  const deleteTask = async (id: string) => {
-    setTasks((p) => p.filter((t) => t.id !== id));
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (error) { toast.error(error.message); load(); }
-  };
-
-  if (loading) {
+  if (statusesLoading || tasksLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -229,8 +139,10 @@ export default function ListView() {
           placeholder="+ Adicionar tarefa..."
           className="flex-1"
         />
-        <Button type="submit" disabled={creating || !newTitle.trim()}>
-          {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-1" />Adicionar</>}
+        <Button type="submit" disabled={createTask.isPending || !newTitle.trim()}>
+          {createTask.isPending
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <><Plus className="h-4 w-4 mr-1" />Adicionar</>}
         </Button>
       </form>
 
@@ -254,7 +166,7 @@ export default function ListView() {
             Nenhuma tarefa corresponde aos filtros.
           </div>
         ) : (
-          visibleTasks.map((task) => {
+          visibleTasks.map((task: Task) => {
             const status = statuses.find((s) => s.id === task.status_id);
             return (
               <div
@@ -266,7 +178,7 @@ export default function ListView() {
                     defaultValue={task.title}
                     onBlur={(e) => {
                       const v = e.target.value.trim();
-                      if (v && v !== task.title) updateTask(task.id, { title: v });
+                      if (v && v !== task.title) updateTask.mutate({ id: task.id, patch: { title: v } });
                     }}
                     className="border-0 shadow-none focus-visible:ring-1 h-8 px-2"
                   />
@@ -287,7 +199,7 @@ export default function ListView() {
                 </div>
                 <Select
                   value={task.status_id ?? undefined}
-                  onValueChange={(v) => updateTask(task.id, { status_id: v })}
+                  onValueChange={(v) => updateTask.mutate({ id: task.id, patch: { status_id: v } })}
                 >
                   <SelectTrigger className="h-8 border-0 shadow-none focus:ring-1">
                     <SelectValue placeholder="—">
@@ -312,7 +224,7 @@ export default function ListView() {
                 </Select>
                 <Select
                   value={task.priority}
-                  onValueChange={(v) => updateTask(task.id, { priority: v as Priority })}
+                  onValueChange={(v) => updateTask.mutate({ id: task.id, patch: { priority: v as Priority } })}
                 >
                   <SelectTrigger className="h-8 border-0 shadow-none focus:ring-1">
                     <SelectValue>
@@ -331,8 +243,15 @@ export default function ListView() {
                   <AssigneeSelect
                     members={members}
                     selectedIds={task.assignees.map((a) => a.id)}
-                    onAdd={(uid) => addAssignee(task.id, uid)}
-                    onRemove={(uid) => removeAssignee(task.id, uid)}
+                    onAdd={(uid) => {
+                      const u = members.find((m) => m.id === uid);
+                      if (!u || !current) return;
+                      updateAssignees.mutate({ taskId: task.id, workspaceId: current.id, add: { user: u } });
+                    }}
+                    onRemove={(uid) => {
+                      if (!current) return;
+                      updateAssignees.mutate({ taskId: task.id, workspaceId: current.id, remove: { userId: uid } });
+                    }}
                   />
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
@@ -342,7 +261,7 @@ export default function ListView() {
                     defaultValue={task.due_date ? format(new Date(task.due_date), "yyyy-MM-dd") : ""}
                     onChange={(e) => {
                       const v = e.target.value ? new Date(e.target.value).toISOString() : null;
-                      updateTask(task.id, { due_date: v });
+                      updateTask.mutate({ id: task.id, patch: { due_date: v } });
                     }}
                     className="h-8 border-0 shadow-none focus-visible:ring-1 px-1 text-xs"
                   />
@@ -359,7 +278,7 @@ export default function ListView() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteTask(task.id)}
+                  onClick={() => deleteTask.mutate(task.id)}
                   className="h-7 w-7 opacity-0 group-hover:opacity-100"
                   aria-label="Excluir"
                 >
