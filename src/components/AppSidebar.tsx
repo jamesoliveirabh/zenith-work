@@ -127,15 +127,10 @@ export function AppSidebar() {
             className="group rounded-lg"
           >
             {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-            <span
-              className="flex h-5 w-5 items-center justify-center rounded-md shrink-0"
-              style={{
-                background: `linear-gradient(135deg, ${spaceColor}, ${spaceColor}cc)`,
-                boxShadow: `0 2px 6px -1px ${spaceColor}66`,
-              }}
-            >
-              <FolderKanban className="h-3 w-3 text-white" />
-            </span>
+            <Menu
+              className="h-3.5 w-3.5 shrink-0"
+              style={{ color: spaceColor }}
+            />
             {!collapsed && <span className="truncate">{s.name}</span>}
             {!collapsed && (
               <button
