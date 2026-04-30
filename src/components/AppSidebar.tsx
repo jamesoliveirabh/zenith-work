@@ -118,7 +118,7 @@ export function AppSidebar() {
     const spaceLists = lists.filter((l) => l.space_id === s.id);
     const open = openSpaces[s.id] ?? true;
     return (
-      <div key={s.id} className="mb-2 last:mb-0">
+      <div key={s.id}>
         <SidebarMenuItem>
           <SidebarMenuButton
             onClick={() => setOpenSpaces((p) => ({ ...p, [s.id]: !open }))}
