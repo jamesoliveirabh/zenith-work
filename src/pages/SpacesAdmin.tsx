@@ -1,464 +1,452 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { FolderKanban, Hash, MoreVertical, Pencil, Trash2, UserCog, Crown, Shield, AlertTriangle, ArrowRightLeft } from "lucide-react";
-import { toast } from "sonner";
-import { usePermission } from "@/hooks/usePermission";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X, Users2 } from "lucide-react";
+import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
+import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
+import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import type { Team } from "@/types/org";
 
-interface Space { id: string; name: string; color: string | null; created_at: string; created_by: string | null; }
-interface Member { user_id: string; role: string; profile?: { display_name: string | null; email: string | null } }
-interface ListRow { id: string; name: string; space_id: string; }
+type EditTarget = { kind: "team" | "space"; id: string } | null;
+type DeleteTarget =
+  | { kind: "team"; team: Team }
+  | { kind: "space"; space: Space }
+  | null;
 
 export default function SpacesAdmin() {
-  const { current } = useWorkspace();
-  const { user } = useAuth();
-  const isAdmin = usePermission("manage_users"); // admins have all perms
-  const [spaces, setSpaces] = useState<Space[]>([]);
-  const [lists, setLists] = useState<ListRow[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [workspaceOwner, setWorkspaceOwner] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const { data: teams = [] } = useTeams();
+  const { data: spaces = [] } = useSpacesAdmin();
+  const { data: orgAccess } = useMyOrgAccess();
 
-  const [renameSpace, setRenameSpace] = useState<Space | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [deleteSpace, setDeleteSpace] = useState<Space | null>(null);
-  const [deleteTaskCount, setDeleteTaskCount] = useState<number>(0);
-  const [deleteMode, setDeleteMode] = useState<"move" | "force">("move");
-  const [moveTargetSpace, setMoveTargetSpace] = useState<string>("");
-  const [confirmName, setConfirmName] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [transferSpace, setTransferSpace] = useState<Space | null>(null);
-  const [transferTarget, setTransferTarget] = useState<string>("");
+  const isOrgAdmin = !!orgAccess?.isOrgAdmin;
+  const isGestor = !!orgAccess?.isGestor;
+  const teamRoles = orgAccess?.teamRoles ?? {};
 
-  const load = async () => {
-    if (!current) return;
-    const [sp, ls, mb, ws] = await Promise.all([
-      supabase.from("spaces").select("id,name,color,created_at,created_by").eq("workspace_id", current.id).order("position"),
-      supabase.from("lists").select("id,name,space_id").eq("workspace_id", current.id),
-      supabase.from("workspace_members").select("user_id, role").eq("workspace_id", current.id),
-      supabase.from("workspaces").select("owner_id").eq("id", current.id).single(),
-    ]);
-    setSpaces(sp.data ?? []);
-    setLists(ls.data ?? []);
-    setWorkspaceOwner(ws.data?.owner_id ?? null);
+  const createTeam = useCreateTeam();
+  const updateTeam = useUpdateTeam();
+  const deleteTeam = useDeleteTeam();
+  const createSpace = useCreateSpace();
+  const updateSpace = useUpdateSpace();
+  const deleteSpace = useDeleteSpace();
 
-    const ids = (mb.data ?? []).map((m) => m.user_id);
-    if (ids.length > 0) {
-      const { data: profs } = await supabase.from("profiles").select("id, display_name, email").in("id", ids);
-      setMembers((mb.data ?? []).map((m) => ({
-        ...m,
-        profile: profs?.find((p) => p.id === m.user_id) ?? undefined,
-      })));
-    } else setMembers([]);
+  const [newTeamOpen, setNewTeamOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+
+  const [newSpaceTeamId, setNewSpaceTeamId] = useState<string | null | undefined>(undefined);
+  const [newSpaceName, setNewSpaceName] = useState("");
+
+  const [editTarget, setEditTarget] = useState<EditTarget>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+
+  const spacesByTeam = useMemo(() => {
+    const map: Record<string, Space[]> = {};
+    spaces.forEach((s) => {
+      const key = s.team_id ?? "__none__";
+      (map[key] ||= []).push(s);
+    });
+    return map;
+  }, [spaces]);
+
+  const orphanSpaces = spacesByTeam["__none__"] ?? [];
+
+  // Permission gate
+  if (orgAccess && !isOrgAdmin && !isGestor) {
+    return (
+      <div className="container max-w-4xl py-12">
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            Apenas administradores e gestores podem gerenciar equipes e spaces.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const canManageTeam = (teamId: string) =>
+    isOrgAdmin || teamRoles[teamId] === "gestor";
+
+  const startEdit = (kind: "team" | "space", id: string, currentName: string) => {
+    setEditTarget({ kind, id });
+    setEditValue(currentName);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [current?.id]);
-
-  const memberLabel = (uid: string | null) => {
-    if (!uid) return "—";
-    const m = members.find((x) => x.user_id === uid);
-    return m?.profile?.display_name ?? m?.profile?.email ?? uid.slice(0, 8);
-  };
-
-  const handleRename = async () => {
-    if (!renameSpace || !renameValue.trim()) return;
-    const { error } = await supabase.from("spaces").update({ name: renameValue.trim() }).eq("id", renameSpace.id);
-    if (error) return toast.error(error.message);
-    toast.success("Space renomeado");
-    setRenameSpace(null);
-    load();
-  };
-
-  const openDelete = async (s: Space) => {
-    setDeleteSpace(s);
-    setDeleteMode("move");
-    setMoveTargetSpace("");
-    setConfirmName("");
-    setDeleteTaskCount(0);
-    // Count tasks in lists belonging to this space
-    const spaceListIds = lists.filter((l) => l.space_id === s.id).map((l) => l.id);
-    if (spaceListIds.length > 0) {
-      const { count } = await supabase
-        .from("tasks")
-        .select("id", { count: "exact", head: true })
-        .in("list_id", spaceListIds);
-      setDeleteTaskCount(count ?? 0);
+  const saveEdit = async () => {
+    if (!editTarget || !editValue.trim()) return;
+    if (editTarget.kind === "team") {
+      await updateTeam.mutateAsync({ id: editTarget.id, patch: { name: editValue.trim() } });
+    } else {
+      await updateSpace.mutateAsync({ id: editTarget.id, patch: { name: editValue.trim() } });
     }
+    setEditTarget(null);
+    setEditValue("");
   };
 
-  const handleDelete = async () => {
-    if (!deleteSpace) return;
-    const spaceLists = lists.filter((l) => l.space_id === deleteSpace.id);
-
-    // Block when forcing delete with content but name not confirmed
-    if (spaceLists.length > 0 && deleteMode === "force" && confirmName.trim() !== deleteSpace.name) {
-      return toast.error("Digite o nome exato do space para confirmar.");
-    }
-    if (spaceLists.length > 0 && deleteMode === "move" && !moveTargetSpace) {
-      return toast.error("Selecione um space de destino para mover as listas.");
-    }
-
-    setDeleting(true);
-    try {
-      // Move lists if requested
-      if (spaceLists.length > 0 && deleteMode === "move") {
-        const { error: mvErr } = await supabase
-          .from("lists")
-          .update({ space_id: moveTargetSpace })
-          .in("id", spaceLists.map((l) => l.id));
-        if (mvErr) throw mvErr;
-      }
-
-      const { error } = await supabase.from("spaces").delete().eq("id", deleteSpace.id);
-      if (error) throw error;
-
-      toast.success(
-        spaceLists.length > 0 && deleteMode === "move"
-          ? `Space excluído. ${spaceLists.length} lista(s) movida(s).`
-          : "Space excluído"
-      );
-      setDeleteSpace(null);
-      load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Falha ao excluir");
-    } finally {
-      setDeleting(false);
-    }
+  const cancelEdit = () => {
+    setEditTarget(null);
+    setEditValue("");
   };
 
-  const handleTransferOwner = async () => {
-    if (!transferSpace || !transferTarget) return;
-    const { error } = await supabase.from("spaces").update({ created_by: transferTarget }).eq("id", transferSpace.id);
-    if (error) return toast.error(error.message);
-    toast.success("Proprietário do space atualizado");
-    setTransferSpace(null);
-    setTransferTarget("");
-    load();
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.kind === "team") {
+      await deleteTeam.mutateAsync(deleteTarget.team.id);
+    } else {
+      await deleteSpace.mutateAsync(deleteTarget.space.id);
+    }
+    setDeleteTarget(null);
   };
 
-  const filtered = spaces.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
+  const submitNewTeam = async () => {
+    if (!newTeamName.trim()) return;
+    await createTeam.mutateAsync({ name: newTeamName.trim() });
+    setNewTeamOpen(false);
+    setNewTeamName("");
+  };
 
-  if (!current) return null;
+  const submitNewSpace = async () => {
+    if (!newSpaceName.trim() || newSpaceTeamId === undefined) return;
+    await createSpace.mutateAsync({ name: newSpaceName.trim(), team_id: newSpaceTeamId });
+    setNewSpaceTeamId(undefined);
+    setNewSpaceName("");
+  };
+
+  const renderSpaceRow = (s: Space, canManage: boolean) => {
+    const isEditing = editTarget?.kind === "space" && editTarget.id === s.id;
+    return (
+      <div
+        key={s.id}
+        className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 hover:bg-accent/30 transition-colors"
+      >
+        <FolderKanban className="h-4 w-4 shrink-0" style={{ color: s.color ?? undefined }} />
+        {isEditing ? (
+          <>
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              autoFocus
+              className="h-8 flex-1"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveEdit();
+                if (e.key === "Escape") cancelEdit();
+              }}
+            />
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
+              <X className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <span className="flex-1 truncate text-sm">{s.name}</span>
+            {canManage && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 opacity-60 hover:opacity-100"
+                  onClick={() => startEdit("space", s.id, s.name)}
+                  aria-label="Editar nome"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 opacity-60 hover:opacity-100 text-destructive"
+                  onClick={() => setDeleteTarget({ kind: "space", space: s })}
+                  aria-label="Excluir space"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="container max-w-6xl py-8 space-y-6">
+    <div className="container max-w-5xl py-8 space-y-6">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            <FolderKanban className="h-6 w-6" /> Gestão de Spaces
+            <LayoutGrid className="h-6 w-6" /> Equipes & Spaces
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Visualize todos os spaces do workspace, transfira propriedade ou exclua.
+            Organize equipes e seus spaces em uma única visão.
           </p>
         </div>
-        {isAdmin === false && (
-          <Badge variant="outline" className="gap-1"><Shield className="h-3 w-3" /> Somente leitura</Badge>
+        {isOrgAdmin && (
+          <Button onClick={() => setNewTeamOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Nova Equipe
+          </Button>
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Spaces ({spaces.length})</CardTitle>
-          <CardDescription>Cada space agrupa listas de tarefas.</CardDescription>
-          <Input
-            placeholder="Buscar space..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mt-3 max-w-sm"
-          />
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Listas</TableHead>
-                <TableHead>Proprietário</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((s) => {
-                const spaceLists = lists.filter((l) => l.space_id === s.id);
-                const isWsOwner = s.created_by === workspaceOwner;
-                return (
-                  <TableRow key={s.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded" style={{ background: s.color ?? "hsl(var(--muted))" }} />
-                        <span className="font-medium">{s.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {spaceLists.length === 0 && <span className="text-xs text-muted-foreground">Nenhuma</span>}
-                        {spaceLists.slice(0, 3).map((l) => (
-                          <Badge key={l.id} variant="secondary" className="gap-1">
-                            <Hash className="h-3 w-3" />{l.name}
-                          </Badge>
-                        ))}
-                        {spaceLists.length > 3 && (
-                          <Badge variant="outline">+{spaceLists.length - 3}</Badge>
+      {/* Teams */}
+      <div className="space-y-4">
+        {teams.length === 0 && (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Nenhuma equipe criada ainda.
+            </CardContent>
+          </Card>
+        )}
+
+        {teams.map((team) => {
+          const teamSpaces = spacesByTeam[team.id] ?? [];
+          const canManage = canManageTeam(team.id);
+          const isEditingTeam = editTarget?.kind === "team" && editTarget.id === team.id;
+          return (
+            <Card key={team.id}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-3 w-3 rounded-full shrink-0"
+                    style={{ backgroundColor: team.color }}
+                    aria-hidden
+                  />
+                  {isEditingTeam ? (
+                    <>
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        autoFocus
+                        className="h-8 max-w-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveEdit();
+                          if (e.key === "Escape") cancelEdit();
+                        }}
+                      />
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <CardTitle className="text-base">{team.name}</CardTitle>
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({teamSpaces.length} space{teamSpaces.length !== 1 ? "s" : ""})
+                      </span>
+                      <div className="ml-auto flex items-center gap-1">
+                        {canManage && (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={() => startEdit("team", team.id, team.name)}
+                              aria-label="Editar nome"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            {isOrgAdmin && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => setDeleteTarget({ kind: "team", team })}
+                                aria-label="Excluir equipe"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5">
-                        {isWsOwner && <Crown className="h-3.5 w-3.5 text-amber-500" />}
-                        <span className="text-sm">{memberLabel(s.created_by)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(s.created_at).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" disabled={!isAdmin}>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setRenameSpace(s); setRenameValue(s.name); }}>
-                            <Pencil className="h-4 w-4 mr-2" /> Renomear
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setTransferSpace(s); setTransferTarget(s.created_by ?? ""); }}>
-                            <UserCog className="h-4 w-4 mr-2" /> Transferir proprietário
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => openDelete(s)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" /> Excluir space
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    Nenhum space encontrado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Rename */}
-      <Dialog open={!!renameSpace} onOpenChange={(v) => !v && setRenameSpace(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Renomear space</DialogTitle>
-            <DialogDescription>Atualize o nome de "{renameSpace?.name}".</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="rename">Novo nome</Label>
-            <Input id="rename" value={renameValue} onChange={(e) => setRenameValue(e.target.value)} autoFocus />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameSpace(null)}>Cancelar</Button>
-            <Button onClick={handleRename}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Transfer owner */}
-      <Dialog open={!!transferSpace} onOpenChange={(v) => !v && setTransferSpace(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Transferir proprietário</DialogTitle>
-            <DialogDescription>
-              Escolha o novo proprietário do space "{transferSpace?.name}".
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label>Novo proprietário</Label>
-            <Select value={transferTarget} onValueChange={setTransferTarget}>
-              <SelectTrigger><SelectValue placeholder="Selecione um membro" /></SelectTrigger>
-              <SelectContent>
-                {members.map((m) => (
-                  <SelectItem key={m.user_id} value={m.user_id}>
-                    {m.profile?.display_name ?? m.profile?.email ?? m.user_id.slice(0, 8)}
-                    <span className="text-muted-foreground ml-2">({m.role})</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTransferSpace(null)}>Cancelar</Button>
-            <Button onClick={handleTransferOwner} disabled={!transferTarget}>Transferir</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete with dependency check */}
-      <Dialog open={!!deleteSpace} onOpenChange={(v) => !v && !deleting && setDeleteSpace(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Excluir space "{deleteSpace?.name}"?
-            </DialogTitle>
-            <DialogDescription>
-              Verificamos as dependências antes de remover. Escolha como proceder.
-            </DialogDescription>
-          </DialogHeader>
-
-          {(() => {
-            if (!deleteSpace) return null;
-            const spaceLists = lists.filter((l) => l.space_id === deleteSpace.id);
-            const otherSpaces = spaces.filter((s) => s.id !== deleteSpace.id);
-            const hasContent = spaceLists.length > 0;
-
-            return (
-              <div className="space-y-4">
-                {/* Dependencies summary */}
-                <div className="rounded-md border p-3 space-y-1.5 bg-muted/30">
-                  <div className="text-sm font-medium">Dependências encontradas</div>
-                  <div className="text-sm text-muted-foreground flex items-center justify-between">
-                    <span>Listas vinculadas</span>
-                    <Badge variant={spaceLists.length > 0 ? "default" : "outline"}>
-                      {spaceLists.length}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground flex items-center justify-between">
-                    <span>Tarefas nessas listas</span>
-                    <Badge variant={deleteTaskCount > 0 ? "default" : "outline"}>
-                      {deleteTaskCount}
-                    </Badge>
-                  </div>
+                    </>
+                  )}
                 </div>
-
-                {!hasContent && (
-                  <p className="text-sm text-muted-foreground">
-                    Este space está vazio e pode ser excluído com segurança.
+                {team.description && (
+                  <CardDescription className="ml-5">{team.description}</CardDescription>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {teamSpaces.map((s) => renderSpaceRow(s, canManage))}
+                {teamSpaces.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-1">
+                    Nenhum space nesta equipe ainda.
                   </p>
                 )}
-
-                {hasContent && (
-                  <div className="space-y-3">
-                    {/* Mode picker */}
-                    <div className="grid grid-cols-1 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteMode("move")}
-                        className={`text-left rounded-md border p-3 transition-colors ${
-                          deleteMode === "move" ? "border-primary bg-primary/5" : "hover:bg-muted/40"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 font-medium text-sm">
-                          <ArrowRightLeft className="h-4 w-4" />
-                          Mover listas para outro space (recomendado)
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          As {spaceLists.length} lista(s) e suas tarefas serão preservadas.
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setDeleteMode("force")}
-                        disabled={otherSpaces.length === 0 ? false : false}
-                        className={`text-left rounded-md border p-3 transition-colors ${
-                          deleteMode === "force" ? "border-destructive bg-destructive/5" : "hover:bg-muted/40"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 font-medium text-sm text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                          Excluir tudo permanentemente
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Listas e tarefas vinculadas serão removidas. Esta ação não pode ser desfeita.
-                        </div>
-                      </button>
-                    </div>
-
-                    {deleteMode === "move" && (
-                      <div className="space-y-2">
-                        <Label>Space de destino</Label>
-                        {otherSpaces.length === 0 ? (
-                          <p className="text-sm text-destructive">
-                            Nenhum outro space disponível. Crie um space antes de mover, ou exclua permanentemente.
-                          </p>
-                        ) : (
-                          <Select value={moveTargetSpace} onValueChange={setMoveTargetSpace}>
-                            <SelectTrigger><SelectValue placeholder="Escolha um space" /></SelectTrigger>
-                            <SelectContent>
-                              {otherSpaces.map((s) => (
-                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    )}
-
-                    {deleteMode === "force" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="confirm-name">
-                          Digite <span className="font-mono font-semibold">{deleteSpace.name}</span> para confirmar
-                        </Label>
-                        <Input
-                          id="confirm-name"
-                          value={confirmName}
-                          onChange={(e) => setConfirmName(e.target.value)}
-                          placeholder={deleteSpace.name}
-                          autoComplete="off"
-                        />
-                      </div>
-                    )}
-                  </div>
+                {canManage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setNewSpaceTeamId(team.id);
+                      setNewSpaceName("");
+                    }}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Novo Space nesta equipe
+                  </Button>
                 )}
-              </div>
-            );
-          })()}
+              </CardContent>
+            </Card>
+          );
+        })}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteSpace(null)} disabled={deleting}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={
-                deleting ||
-                (deleteSpace
-                  ? (() => {
-                      const sl = lists.filter((l) => l.space_id === deleteSpace.id);
-                      if (sl.length === 0) return false;
-                      if (deleteMode === "move") return !moveTargetSpace;
-                      return confirmName.trim() !== deleteSpace.name;
-                    })()
-                  : true)
-              }
-            >
-              {deleting ? "Excluindo..." : "Confirmar exclusão"}
-            </Button>
-          </DialogFooter>
+        {/* Orphan spaces */}
+        {(orphanSpaces.length > 0 || isOrgAdmin) && (
+          <>
+            <Separator />
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Users2 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-base">Spaces sem equipe</CardTitle>
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({orphanSpaces.length})
+                  </span>
+                </div>
+                <CardDescription>
+                  Spaces que não estão vinculados a nenhuma equipe.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {orphanSpaces.map((s) => renderSpaceRow(s, isOrgAdmin))}
+                {orphanSpaces.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-1">Nenhum space sem equipe.</p>
+                )}
+                {isOrgAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setNewSpaceTeamId(null);
+                      setNewSpaceName("");
+                    }}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Novo Space
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* New team dialog */}
+      <Dialog open={newTeamOpen} onOpenChange={setNewTeamOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova equipe</DialogTitle>
+            <DialogDescription>Equipes agrupam spaces por área ou departamento.</DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitNewTeam();
+            }}
+            className="space-y-3"
+          >
+            <Label htmlFor="team-name">Nome</Label>
+            <Input
+              id="team-name"
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              autoFocus
+              required
+            />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setNewTeamOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={createTeam.isPending}>
+                Criar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
+
+      {/* New space dialog */}
+      <Dialog
+        open={newSpaceTeamId !== undefined}
+        onOpenChange={(v) => !v && setNewSpaceTeamId(undefined)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo space</DialogTitle>
+            <DialogDescription>
+              {newSpaceTeamId
+                ? "O space será criado dentro da equipe selecionada."
+                : "Este space ficará sem equipe vinculada."}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitNewSpace();
+            }}
+            className="space-y-3"
+          >
+            <Label htmlFor="space-name">Nome</Label>
+            <Input
+              id="space-name"
+              value={newSpaceName}
+              onChange={(e) => setNewSpaceName(e.target.value)}
+              autoFocus
+              required
+            />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setNewSpaceTeamId(undefined)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={createSpace.isPending}>
+                Criar
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteTarget?.kind === "team"
+                ? `Excluir equipe "${deleteTarget.team.name}"?`
+                : `Excluir space "${deleteTarget?.kind === "space" ? deleteTarget.space.name : ""}"?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.kind === "team"
+                ? "Os spaces vinculados a esta equipe terão sua associação removida e ficarão como “Spaces sem equipe”. Esta ação não pode ser desfeita."
+                : "Todas as listas e tarefas dentro deste space também serão removidas permanentemente. Esta ação não pode ser desfeita."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
