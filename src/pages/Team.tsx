@@ -247,6 +247,23 @@ export default function Team() {
                   </TableCell>
                   <TableCell>
                     {isAdmin && m.user_id !== user?.id ? (
+                      <Select value={m.org_role ?? "member"} onValueChange={(v) => updateMemberOrgRole(m.id, v as OrgRole)}>
+                        <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="gestor">Gestor</SelectItem>
+                          <SelectItem value="member">Member</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      (() => {
+                        const props = orgBadgeProps(m.org_role ?? "member");
+                        return <Badge variant={props.variant} className={props.className}>{m.org_role ?? "member"}</Badge>;
+                      })()
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isAdmin && m.user_id !== user?.id ? (
                       <Select value={m.role} onValueChange={(v) => updateMemberRole(m.id, v as Role)}>
                         <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                         <SelectContent>
