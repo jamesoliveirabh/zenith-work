@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeams } from "@/hooks/useTeams";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import { getTeamIcon } from "@/lib/teamIcon";
 
 interface Space { id: string; name: string; color: string | null; team_id: string | null; }
 interface List { id: string; name: string; space_id: string; }
