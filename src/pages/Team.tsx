@@ -18,11 +18,13 @@ import { Copy, Mail, Trash2, UserPlus } from "lucide-react";
 import { z } from "zod";
 
 type Role = "admin" | "member" | "member_limited" | "guest";
+type OrgRole = "admin" | "gestor" | "member";
 
 interface Member {
   id: string;
   user_id: string;
   role: Role;
+  org_role: OrgRole;
   profile?: { display_name: string | null; email: string | null; avatar_url: string | null };
 }
 interface Invitation {
@@ -56,7 +58,7 @@ export default function Team() {
     if (!current) return;
     const [{ data: mems }, { data: invs }] = await Promise.all([
       supabase.from("workspace_members")
-        .select("id, user_id, role")
+        .select("id, user_id, role, org_role")
         .eq("workspace_id", current.id),
       supabase.from("workspace_invitations")
         .select("id, email, role, token, status, expires_at, created_at")
