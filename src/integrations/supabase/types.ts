@@ -845,6 +845,55 @@ export type Database = {
           },
         ]
       }
+      space_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          space_id: string
+          team_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          space_id: string
+          team_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          space_id?: string
+          team_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_memberships_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_memberships_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_memberships_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spaces: {
         Row: {
           color: string | null
@@ -854,6 +903,7 @@ export type Database = {
           id: string
           name: string
           position: number
+          team_id: string | null
           updated_at: string
           workspace_id: string
         }
@@ -865,6 +915,7 @@ export type Database = {
           id?: string
           name: string
           position?: number
+          team_id?: string | null
           updated_at?: string
           workspace_id: string
         }
@@ -876,10 +927,18 @@ export type Database = {
           id?: string
           name?: string
           position?: number
+          team_id?: string | null
           updated_at?: string
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "spaces_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "spaces_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -1273,6 +1332,89 @@ export type Database = {
           },
         ]
       }
+      team_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_memberships_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           created_at: string
@@ -1367,6 +1509,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          org_role: Database["public"]["Enums"]["org_role"]
           role: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
@@ -1374,6 +1517,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          org_role?: Database["public"]["Enums"]["org_role"]
           role?: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
@@ -1381,6 +1525,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          org_role?: Database["public"]["Enums"]["org_role"]
           role?: Database["public"]["Enums"]["workspace_role"]
           user_id?: string
           workspace_id?: string
@@ -1429,6 +1574,14 @@ export type Database = {
     Functions: {
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
       calculate_goal_progress: { Args: { _goal_id: string }; Returns: number }
+      can_access_space: {
+        Args: { _space: string; _user: string }
+        Returns: boolean
+      }
+      can_create_team: {
+        Args: { _user: string; _ws: string }
+        Returns: boolean
+      }
       can_write_workspace: {
         Args: { _user: string; _ws: string }
         Returns: boolean
@@ -1450,6 +1603,19 @@ export type Database = {
       }
       has_permission_for_list: {
         Args: { _key: string; _list: string; _user: string }
+        Returns: boolean
+      }
+      is_gestor_of_space: {
+        Args: { _space: string; _user: string }
+        Returns: boolean
+      }
+      is_org_admin: { Args: { _user: string; _ws: string }; Returns: boolean }
+      is_team_gestor: {
+        Args: { _team: string; _user: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team: string; _user: string }
         Returns: boolean
       }
       is_workspace_admin: {
@@ -1541,8 +1707,10 @@ export type Database = {
         | "task_status_changed"
         | "task_completed"
         | "invitation_accepted"
+      org_role: "admin" | "gestor" | "member"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_relation_type: "blocks" | "relates_to" | "duplicates"
+      team_role: "gestor" | "member"
       workspace_role: "admin" | "member_limited" | "member" | "guest"
     }
     CompositeTypes: {
@@ -1730,8 +1898,10 @@ export const Constants = {
         "task_completed",
         "invitation_accepted",
       ],
+      org_role: ["admin", "gestor", "member"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_relation_type: ["blocks", "relates_to", "duplicates"],
+      team_role: ["gestor", "member"],
       workspace_role: ["admin", "member_limited", "member", "guest"],
     },
   },
