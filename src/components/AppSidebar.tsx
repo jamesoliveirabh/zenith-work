@@ -233,6 +233,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => setOpenTeams((p) => ({ ...p, [team.id]: !open }))}
+                        className="group"
                       >
                         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                         <span
@@ -241,24 +242,22 @@ export function AppSidebar() {
                           aria-hidden
                         />
                         {!collapsed && <span className="truncate font-medium">{team.name}</span>}
+                        {!collapsed && canCreate && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setNewSpaceTeamId(team.id); }}
+                            className="ml-auto opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                            aria-label="Criar novo espaço"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     {open && (
                       <>
                         {teamSpaces.map(renderSpaceItem)}
-                        {!collapsed && canCreate && (
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              onClick={() => setNewSpaceTeamId(team.id)}
-                              className="pl-9 text-muted-foreground hover:text-foreground"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                              <span>Novo space</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )}
-                        {!collapsed && teamSpaces.length === 0 && !canCreate && (
-                          <p className="px-9 py-2 text-xs text-muted-foreground">Nenhum space</p>
+                        {!collapsed && teamSpaces.length === 0 && (
+                          <p className="px-9 py-2 text-xs text-muted-foreground">Nenhum espaço</p>
                         )}
                       </>
                     )}
