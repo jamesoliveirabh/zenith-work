@@ -240,7 +240,7 @@ export function AppSidebar() {
                 const open = openTeams[team.id] ?? true;
                 const canCreate = canCreateSpaceForTeam(team.id);
                 return (
-                  <div key={team.id}>
+                  <div key={team.id} className="mb-3 last:mb-0">
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => setOpenTeams((p) => ({ ...p, [team.id]: !open }))}
