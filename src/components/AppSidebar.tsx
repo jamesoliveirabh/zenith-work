@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Folder, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -127,7 +127,7 @@ export function AppSidebar() {
             className="group rounded-lg"
           >
             {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-            <Menu
+            <Folder
               className="h-3.5 w-3.5 shrink-0"
               style={{ color: spaceColor }}
             />
