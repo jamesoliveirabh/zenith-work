@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, AlertCircle, RotateCcw, Lock } from "lucide-react";
+import { ShieldCheck, AlertCircle, RotateCcw, Lock, Info } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type Role = "admin" | "member" | "member_limited" | "guest";
+type Role = "admin" | "gestor" | "member" | "member_limited" | "guest";
 
 interface CatalogRow {
   key: string; category: string; label: string; description: string; position: number;
@@ -22,8 +23,9 @@ interface PermRow {
 const ROLES: { key: Role; label: string; description: string }[] = [
   { key: "guest",           label: "Convidado",       description: "Acesso restrito (clientes / stakeholders externos)" },
   { key: "member_limited",  label: "Membro limitado", description: "Colabora em tarefas, sem alterar configurações" },
-  { key: "member",          label: "Membro",          description: "Colaborador padrão da operação" },
-  { key: "admin",           label: "Administrador",   description: "Acesso total. Sempre habilitado." },
+  { key: "member",          label: "Membro",          description: "Acessa apenas os spaces e listas aos quais foi adicionado" },
+  { key: "gestor",          label: "Gestor",          description: "Cria e gerencia equipes e spaces, adiciona membros às suas equipes" },
+  { key: "admin",           label: "Administrador",   description: "Controle total da organização, configurações globais. Sempre habilitado." },
 ];
 
 export default function Permissions() {
