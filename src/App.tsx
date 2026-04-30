@@ -31,6 +31,7 @@ import GoalDetail from "./pages/GoalDetail";
 import DocsHome from "./pages/DocsHome";
 import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
+import TeamsAdmin from "./pages/TeamsAdmin";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -89,6 +90,7 @@ const App = () => (
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />
+                  <Route path="/teams" element={<TeamsAdmin />} />
                   <Route path="/goals" element={<Goals />} />
                   <Route path="/goals/:goalId" element={<GoalDetail />} />
                   <Route path="/security" element={<Security />} />
