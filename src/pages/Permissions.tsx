@@ -144,11 +144,21 @@ export default function Permissions() {
                   Ações
                 </th>
                 {ROLES.map((r) => (
-                  <th key={r.key} className="p-4 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground min-w-[140px]">
-                    <div className="flex flex-col items-center gap-1">
-                      <span>{r.label}</span>
-                      {r.key === "admin" && <Lock className="h-3 w-3 opacity-50" />}
-                    </div>
+                  <th key={r.key} className={`p-4 text-center text-xs font-medium uppercase tracking-wider min-w-[140px] ${r.key === "gestor" ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"}`}>
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex flex-col items-center gap-1 cursor-help">
+                            <span className="flex items-center gap-1">
+                              {r.label}
+                              <Info className="h-3 w-3 opacity-50" />
+                            </span>
+                            {r.key === "admin" && <Lock className="h-3 w-3 opacity-50" />}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">{r.description}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </th>
                 ))}
               </tr>
@@ -192,12 +202,19 @@ export default function Permissions() {
         </div>
       </Card>
 
-      <div className="grid gap-3 md:grid-cols-4 text-xs text-muted-foreground">
-        {ROLES.map((r) => (
-          <div key={r.key} className="flex items-start gap-2 p-3 rounded-lg border bg-card">
-            <Badge variant={r.key === "admin" ? "destructive" : r.key === "guest" ? "outline" : "secondary"} className="shrink-0">
-              {r.label}
-            </Badge>
+      <div className="grid gap-3 md:grid-cols-5 text-xs text-muted-foreground">
+        {ROLES.map((r) => {
+          const variant =
+            r.key === "admin" ? "destructive" : r.key === "guest" ? "outline" : "secondary";
+          const extraClass =
+            r.key === "gestor"
+              ? "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-300"
+              : "";
+          return (
+            <div key={r.key} className="flex items-start gap-2 p-3 rounded-lg border bg-card">
+              <Badge variant={variant} className={`shrink-0 ${extraClass}`}>
+                {r.label}
+              </Badge>
             <span className="leading-relaxed">{r.description}</span>
           </div>
         ))}
