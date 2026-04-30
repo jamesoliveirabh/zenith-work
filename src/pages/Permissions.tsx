@@ -215,9 +215,10 @@ export default function Permissions() {
               <Badge variant={variant} className={`shrink-0 ${extraClass}`}>
                 {r.label}
               </Badge>
-            <span className="leading-relaxed">{r.description}</span>
-          </div>
-        ))}
+              <span className="leading-relaxed">{r.description}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
