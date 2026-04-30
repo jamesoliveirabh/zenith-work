@@ -136,6 +136,24 @@ export default function Team() {
     load();
   };
 
+  const updateMemberOrgRole = async (memberId: string, newOrgRole: OrgRole) => {
+    const { error } = await supabase.from("workspace_members")
+      .update({ org_role: newOrgRole }).eq("id", memberId);
+    if (error) return toast.error(error.message);
+    toast.success("Papel organizacional atualizado");
+    load();
+  };
+
+  const orgBadgeProps = (r: OrgRole): { variant: "destructive" | "secondary" | "outline"; className: string } => {
+    if (r === "admin") return { variant: "destructive", className: "" };
+    if (r === "gestor")
+      return {
+        variant: "secondary",
+        className: "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-300",
+      };
+    return { variant: "outline", className: "" };
+  };
+
   const removeMember = async (memberId: string) => {
     if (!confirm("Remover este membro do workspace?")) return;
     const { error } = await supabase.from("workspace_members").delete().eq("id", memberId);
@@ -200,7 +218,8 @@ export default function Team() {
             <TableHeader>
               <TableRow>
                 <TableHead>Pessoa</TableHead>
-                <TableHead>Papel</TableHead>
+                <TableHead>Papel organizacional</TableHead>
+                <TableHead>Papel de workspace</TableHead>
                 <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
