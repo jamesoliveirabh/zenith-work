@@ -246,13 +246,16 @@ export function AppSidebar() {
                         onClick={() => setOpenTeams((p) => ({ ...p, [team.id]: !open }))}
                         className="group"
                       >
-                        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                        {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
                         <span
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: team.color }}
+                          className="h-3 w-3 rounded-full shrink-0 ring-2 ring-white/40"
+                          style={{
+                            backgroundColor: team.color,
+                            boxShadow: `0 0 8px ${team.color}88`,
+                          }}
                           aria-hidden
                         />
-                        {!collapsed && <span className="truncate font-medium">{team.name}</span>}
+                        {!collapsed && <span className="truncate font-semibold text-[13px]">{team.name}</span>}
                         {!collapsed && canCreate && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setNewSpaceTeamId(team.id); }}
