@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -191,7 +191,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/" end>
-                    <LayoutDashboard className="h-4 w-4" />
+                    <Boxes className="h-4 w-4" />
                     {!collapsed && <span>Dashboard</span>}
                   </NavLink>
                 </SidebarMenuButton>
