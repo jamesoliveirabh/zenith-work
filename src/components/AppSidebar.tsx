@@ -202,7 +202,26 @@ export function AppSidebar() {
 
         {/* Teams → Spaces hierarchy */}
         <SidebarGroup>
-          <SidebarGroupLabel>Equipes & Spaces</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setOpenTeams((p) => ({ ...p, __root: !(p.__root ?? true) }))}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  {!collapsed && <span>Equipes & Spaces</span>}
+                  {!collapsed && (
+                    (openTeams.__root ?? true)
+                      ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
+                      : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {(openTeams.__root ?? true) && (
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleTeams.map((team) => {
@@ -255,6 +274,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        )}
 
         {/* Other features */}
         <SidebarGroup>
