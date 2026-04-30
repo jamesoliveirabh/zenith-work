@@ -17,8 +17,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { useStatuses } from "@/hooks/useStatuses";
 import { useCreateTask, useReorderTasks, useTasks } from "@/hooks/useTasks";
+import { useListMembers } from "@/hooks/useListMembers";
 import type { Priority, Status, Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -104,6 +106,13 @@ function Column({
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: status.color ?? "#94a3b8" }} />
         <h3 className="text-sm font-medium flex-1 truncate">{status.name}</h3>
         <span className="text-xs text-muted-foreground">{tasks.length}</span>
+        <button
+          onClick={() => setAdding(true)}
+          className="text-muted-foreground hover:text-foreground"
+          aria-label="Adicionar tarefa"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       <div
@@ -162,35 +171,67 @@ export default function KanbanView() {
   const { current } = useWorkspace();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ListFilters>(EMPTY_FILTERS);
 
   const { data: listData } = useQuery({
-    queryKey: ["list-name", listId],
+    queryKey: ["list-breadcrumb", listId],
     enabled: !!listId,
     queryFn: async () => {
-      const { data } = await supabase.from("lists").select("name").eq("id", listId!).maybeSingle();
-      return data?.name ?? "";
+      const { data } = await supabase
+        .from("lists")
+        .select("name, spaces(name, teams(name))")
+        .eq("id", listId!)
+        .maybeSingle();
+      const space = (data as { spaces?: { name?: string; teams?: { name?: string } | null } | null } | null)?.spaces;
+      return {
+        listName: data?.name ?? "",
+        spaceName: space?.name ?? "",
+        teamName: space?.teams?.name ?? "",
+      };
     },
   });
-  const listName = listData ?? "";
+  const listName = listData?.listName ?? "";
+  const spaceName = listData?.spaceName ?? "";
+  const teamName = listData?.teamName ?? "";
 
   const { data: statuses = [], isLoading: statusesLoading } = useStatuses(listId);
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(listId);
+  const { data: members = [] } = useListMembers(current?.id);
 
   const createTask = useCreateTask(listId ?? "");
   const reorderTasks = useReorderTasks(listId ?? "");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    tasks.forEach((t) => (t.tags ?? []).forEach((tag) => set.add(tag)));
+    return Array.from(set).sort();
+  }, [tasks]);
+
+  const visibleTasks = useMemo(() => applyFilters(tasks, filters), [tasks, filters]);
+
+  const doneCount = useMemo(() => {
+    const doneIds = new Set(statuses.filter((s) => s.is_done).map((s) => s.id));
+    return tasks.filter((t) => t.status_id && doneIds.has(t.status_id)).length;
+  }, [tasks, statuses]);
+
   const tasksByStatus = useMemo(() => {
     const map: Record<string, Task[]> = {};
     statuses.forEach((s) => { map[s.id] = []; });
-    tasks.forEach((t) => {
+    visibleTasks.forEach((t) => {
       const sid = t.status_id ?? statuses[0]?.id;
       if (sid && map[sid]) map[sid].push(t);
     });
     Object.values(map).forEach((arr) => arr.sort((a, b) => a.position - b.position));
     return map;
-  }, [tasks, statuses]);
+  }, [visibleTasks, statuses]);
+
+  const uniqueAssignees = useMemo(() => {
+    const map = new Map<string, Task["assignees"][number]>();
+    tasks.forEach((t) => t.assignees.forEach((a) => map.set(a.id, a)));
+    return Array.from(map.values());
+  }, [tasks]);
 
   const handleAddTask = async (statusId: string, title: string): Promise<void> => {
     if (!current || !listId || !user) return;
@@ -201,6 +242,17 @@ export default function KanbanView() {
       status_id: statusId,
       created_by: user.id,
       position: sameCol.length,
+    });
+  };
+
+  const handleQuickAdd = async () => {
+    if (!current || !listId || !user || statuses.length === 0) return;
+    await createTask.mutateAsync({
+      workspace_id: current.id,
+      title: "Nova tarefa",
+      status_id: statuses[0].id,
+      created_by: user.id,
+      position: tasksByStatus[statuses[0].id]?.length ?? 0,
     });
   };
 
@@ -266,31 +318,72 @@ export default function KanbanView() {
     );
   }
 
+  const breadcrumb = [teamName, spaceName].filter(Boolean).join(" / ").toUpperCase();
+
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between px-6 lg:px-8 pt-6 pb-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
-          </p>
+      <header className="px-6 lg:px-8 pt-6 pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            {breadcrumb && (
+              <p className="text-[11px] font-medium tracking-wider text-muted-foreground mb-1">
+                {breadcrumb}
+              </p>
+            )}
+            <h1 className="text-2xl font-semibold tracking-tight">{listName || "Lista"}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
+              {doneCount > 0 && <> · {doneCount} concluída{doneCount === 1 ? "" : "s"}</>}
+            </p>
+          </div>
+          <div className="flex gap-1 rounded-md border p-0.5">
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 mr-1.5" />Lista</Link>
+            </Button>
+            <Button variant="secondary" size="sm" className="h-8">
+              <Trello className="h-4 w-4 mr-1.5" />Kanban
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8">
+              <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-1 rounded-md border p-0.5">
-          <Button asChild variant="ghost" size="sm" className="h-8">
-            <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 mr-1.5" />Lista</Link>
-          </Button>
-          <Button variant="secondary" size="sm" className="h-8">
-            <Trello className="h-4 w-4 mr-1.5" />Kanban
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
-            <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
-            <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
-            <Link to={`/list/${listId}/gantt`}><GanttChart className="h-4 w-4 mr-1.5" />Gantt</Link>
-          </Button>
+
+        <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            {listId && (
+              <ListFilterBar
+                listId={listId}
+                filters={filters}
+                onChange={setFilters}
+                statuses={statuses}
+                members={members.map((m) => ({ user_id: m.id, name: m.display_name || m.email?.split("@")[0] || "—" }))}
+                availableTags={availableTags}
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {uniqueAssignees.length > 0 && (
+              <AssigneeSelect
+                members={uniqueAssignees}
+                selectedIds={uniqueAssignees.map((a) => a.id)}
+                onAdd={() => {}}
+                onRemove={() => {}}
+                disabled
+                maxVisible={3}
+              />
+            )}
+            <Button size="sm" onClick={handleQuickAdd} disabled={createTask.isPending || statuses.length === 0}>
+              <Plus className="h-4 w-4 mr-1.5" />
+              Adicionar tarefa
+            </Button>
+          </div>
         </div>
       </header>
 
