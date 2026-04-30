@@ -316,11 +316,13 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   onClick={() => setOpenSpaces((p) => ({ ...p, __security: !(p.__security ?? true) }))}
                 >
-                  {(openSpaces.__security ?? true)
-                    ? <ChevronDown className="h-3.5 w-3.5" />
-                    : <ChevronRight className="h-3.5 w-3.5" />}
                   <Shield className="h-4 w-4" />
                   {!collapsed && <span>Configurações</span>}
+                  {!collapsed && (
+                    (openSpaces.__security ?? true)
+                      ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
+                      : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {(openSpaces.__security ?? true) && !collapsed && (
