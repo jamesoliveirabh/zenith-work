@@ -247,27 +247,9 @@ export function AppSidebar() {
                 );
               })}
 
-              {/* "Geral" group: spaces with no team_id */}
-              {generalSpaces.length > 0 && (
-                <div>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setOpenTeams((p) => ({ ...p, [GENERAL_KEY]: !(p[GENERAL_KEY] ?? true) }))}
-                    >
-                      {(openTeams[GENERAL_KEY] ?? true)
-                        ? <ChevronDown className="h-3.5 w-3.5" />
-                        : <ChevronRight className="h-3.5 w-3.5" />}
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
-                      {!collapsed && <span className="truncate font-medium">Geral</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  {(openTeams[GENERAL_KEY] ?? true) && generalSpaces.map(renderSpaceItem)}
-                </div>
-              )}
-
-              {visibleTeams.length === 0 && generalSpaces.length === 0 && !collapsed && (
+              {visibleTeams.length === 0 && !collapsed && (
                 <p className="px-2 py-3 text-xs text-muted-foreground">
-                  Nenhuma equipe ou space disponível.
+                  Nenhuma equipe disponível.
                 </p>
               )}
             </SidebarMenu>
