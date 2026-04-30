@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -142,7 +142,7 @@ export function AppSidebar() {
           <SidebarMenuItem key={l.id}>
             <SidebarMenuButton asChild isActive={listId === l.id} className="pl-9">
               <NavLink to={`/list/${l.id}`}>
-                <Hash className="h-3.5 w-3.5" />
+                <Menu className="h-3.5 w-3.5" />
                 <span className="truncate">{l.name}</span>
               </NavLink>
             </SidebarMenuButton>
