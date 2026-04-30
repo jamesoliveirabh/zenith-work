@@ -127,7 +127,7 @@ export function AppSidebar() {
             className="group rounded-lg"
           >
             {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-            <Menu
+            <Folder
               className="h-3.5 w-3.5 shrink-0"
               style={{ color: spaceColor }}
             />
