@@ -11,7 +11,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X, Users2 } from "lucide-react";
+import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X } from "lucide-react";
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
@@ -53,13 +53,11 @@ export default function SpacesAdmin() {
   const spacesByTeam = useMemo(() => {
     const map: Record<string, Space[]> = {};
     spaces.forEach((s) => {
-      const key = s.team_id ?? "__none__";
-      (map[key] ||= []).push(s);
+      if (!s.team_id) return;
+      (map[s.team_id] ||= []).push(s);
     });
     return map;
   }, [spaces]);
-
-  const orphanSpaces = spacesByTeam["__none__"] ?? [];
 
   // Permission gate
   if (orgAccess && !isOrgAdmin && !isGestor) {
@@ -116,7 +114,7 @@ export default function SpacesAdmin() {
   };
 
   const submitNewSpace = async () => {
-    if (!newSpaceName.trim() || newSpaceTeamId === undefined) return;
+    if (!newSpaceName.trim() || !newSpaceTeamId) return;
     await createSpace.mutateAsync({ name: newSpaceName.trim(), team_id: newSpaceTeamId });
     setNewSpaceTeamId(undefined);
     setNewSpaceName("");
@@ -305,45 +303,6 @@ export default function SpacesAdmin() {
           );
         })}
 
-        {/* Orphan spaces */}
-        {(orphanSpaces.length > 0 || isOrgAdmin) && (
-          <>
-            <Separator />
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Users2 className="h-4 w-4 text-muted-foreground" />
-                  <CardTitle className="text-base">Spaces sem equipe</CardTitle>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({orphanSpaces.length})
-                  </span>
-                </div>
-                <CardDescription>
-                  Spaces que não estão vinculados a nenhuma equipe.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {orphanSpaces.map((s) => renderSpaceRow(s, isOrgAdmin))}
-                {orphanSpaces.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-1">Nenhum space sem equipe.</p>
-                )}
-                {isOrgAdmin && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setNewSpaceTeamId(null);
-                      setNewSpaceName("");
-                    }}
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Novo Space
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
       </div>
 
       {/* New team dialog */}
@@ -389,9 +348,7 @@ export default function SpacesAdmin() {
           <DialogHeader>
             <DialogTitle>Novo space</DialogTitle>
             <DialogDescription>
-              {newSpaceTeamId
-                ? "O space será criado dentro da equipe selecionada."
-                : "Este space ficará sem equipe vinculada."}
+              O space será criado dentro da equipe selecionada.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -432,7 +389,7 @@ export default function SpacesAdmin() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.kind === "team"
-                ? "Os spaces vinculados a esta equipe terão sua associação removida e ficarão como “Spaces sem equipe”. Esta ação não pode ser desfeita."
+                ? "Todos os spaces, listas e tarefas vinculados a esta equipe serão removidos permanentemente. Esta ação não pode ser desfeita."
                 : "Todas as listas e tarefas dentro deste space também serão removidas permanentemente. Esta ação não pode ser desfeita."}
             </AlertDialogDescription>
           </AlertDialogHeader>

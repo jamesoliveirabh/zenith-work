@@ -903,7 +903,7 @@ export type Database = {
           id: string
           name: string
           position: number
-          team_id: string | null
+          team_id: string
           updated_at: string
           workspace_id: string
         }
@@ -915,7 +915,7 @@ export type Database = {
           id?: string
           name: string
           position?: number
-          team_id?: string | null
+          team_id: string
           updated_at?: string
           workspace_id: string
         }
@@ -927,7 +927,7 @@ export type Database = {
           id?: string
           name?: string
           position?: number
-          team_id?: string | null
+          team_id?: string
           updated_at?: string
           workspace_id?: string
         }
