@@ -166,12 +166,14 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-md p-2 hover:bg-sidebar-accent transition-colors w-full text-left">
-              <div className="h-8 w-8 rounded-md gradient-primary shrink-0" />
+            <button className="flex items-center gap-2 rounded-lg p-2 hover:bg-sidebar-accent/60 transition-colors w-full text-left">
+              <div className="h-9 w-9 rounded-lg gradient-active shadow-active shrink-0 flex items-center justify-center text-white font-bold text-sm">
+                {(current?.name ?? "W")[0].toUpperCase()}
+              </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{current?.name ?? "Sem workspace"}</div>
-                  <div className="text-xs text-muted-foreground">Workspace</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Workspace</div>
                 </div>
               )}
             </button>
