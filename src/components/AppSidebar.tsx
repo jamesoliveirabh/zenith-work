@@ -310,16 +310,6 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {(isOrgAdmin || isGestor) && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/teams">
-                      <Users2 className="h-4 w-4" />
-                      {!collapsed && <span>Gerenciar Equipes</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setOpenSpaces((p) => ({ ...p, __security: !(p.__security ?? true) }))}
@@ -333,14 +323,6 @@ export function AppSidebar() {
               </SidebarMenuItem>
               {(openSpaces.__security ?? true) && !collapsed && (
                 <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="pl-9">
-                      <NavLink to="/security" end>
-                        <Activity className="h-3.5 w-3.5" />
-                        <span>Visão geral</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild className="pl-9">
                       <NavLink to="/security/people">
@@ -362,6 +344,14 @@ export function AppSidebar() {
                       <NavLink to="/security/spaces">
                         <LayoutGrid className="h-3.5 w-3.5" />
                         <span>Equipes & Spaces</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/security" end>
+                        <Activity className="h-3.5 w-3.5" />
+                        <span>Logs</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
