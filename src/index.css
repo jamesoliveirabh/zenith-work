@@ -142,5 +142,32 @@
 @layer utilities {
   .gradient-primary { background: var(--gradient-primary); }
   .gradient-subtle { background: var(--gradient-subtle); }
+  .gradient-sidebar { background: var(--gradient-sidebar); }
+  .gradient-active { background: var(--gradient-active); }
   .shadow-elegant { box-shadow: var(--shadow-lg); }
+  .shadow-active {
+    box-shadow: 0 6px 16px -4px hsl(var(--primary) / 0.45),
+                0 2px 4px -1px hsl(var(--primary) / 0.25);
+  }
+}
+
+/* Sidebar — colorido moderno */
+[data-sidebar="sidebar"] {
+  background: var(--gradient-sidebar) !important;
+}
+
+[data-sidebar="menu-button"][data-active="true"] {
+  background: var(--gradient-active) !important;
+  color: hsl(var(--sidebar-primary-foreground)) !important;
+  box-shadow: 0 6px 16px -4px hsl(var(--primary) / 0.45),
+              0 2px 4px -1px hsl(var(--primary) / 0.25);
+  font-weight: 600;
+}
+[data-sidebar="menu-button"][data-active="true"] svg {
+  color: hsl(var(--sidebar-primary-foreground)) !important;
+}
+
+[data-sidebar="menu-button"]:not([data-active="true"]):hover {
+  background: hsl(var(--sidebar-accent) / 0.7) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
 }
