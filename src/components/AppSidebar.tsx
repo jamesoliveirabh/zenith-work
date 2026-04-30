@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -21,7 +21,7 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Space { id: string; name: string; color: string | null; }
+interface Space { id: string; name: string; color: string | null; team_id: string | null; }
 interface List { id: string; name: string; space_id: string; }
 
 export function AppSidebar() {
@@ -42,7 +42,7 @@ export function AppSidebar() {
   const loadTree = async () => {
     if (!current) return;
     const [{ data: sp }, { data: ls }] = await Promise.all([
-      supabase.from("spaces").select("id,name,color").eq("workspace_id", current.id).order("position"),
+      supabase.from("spaces").select("id,name,color,team_id").eq("workspace_id", current.id).order("position"),
       supabase.from("lists").select("id,name,space_id").eq("workspace_id", current.id).order("position"),
     ]);
     setSpaces(sp ?? []);
@@ -198,6 +198,14 @@ export function AppSidebar() {
                   <NavLink to="/" end>
                     <LayoutDashboard className="h-4 w-4" />
                     {!collapsed && <span>Dashboard</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/teams">
+                    <Users2 className="h-4 w-4" />
+                    {!collapsed && <span>Equipes</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
