@@ -117,15 +117,24 @@ export function AppSidebar() {
   const renderSpaceItem = (s: Space) => {
     const spaceLists = lists.filter((l) => l.space_id === s.id);
     const open = openSpaces[s.id] ?? true;
+    const spaceColor = s.color ?? "#6366f1";
     return (
       <div key={s.id}>
         <SidebarMenuItem>
           <SidebarMenuButton
             onClick={() => setOpenSpaces((p) => ({ ...p, [s.id]: !open }))}
-            className="group"
+            className="group rounded-lg"
           >
-            {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            <FolderKanban className="h-4 w-4" style={{ color: s.color ?? undefined }} />
+            {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
+            <span
+              className="flex h-5 w-5 items-center justify-center rounded-md shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${spaceColor}, ${spaceColor}cc)`,
+                boxShadow: `0 2px 6px -1px ${spaceColor}66`,
+              }}
+            >
+              <FolderKanban className="h-3 w-3 text-white" />
+            </span>
             {!collapsed && <span className="truncate">{s.name}</span>}
             {!collapsed && (
               <button
@@ -140,7 +149,7 @@ export function AppSidebar() {
         </SidebarMenuItem>
         {open && !collapsed && spaceLists.map((l) => (
           <SidebarMenuItem key={l.id}>
-            <SidebarMenuButton asChild isActive={listId === l.id} className="pl-9">
+            <SidebarMenuButton asChild isActive={listId === l.id} className="pl-10 rounded-lg">
               <NavLink to={`/list/${l.id}`}>
                 <Menu className="h-3.5 w-3.5" />
                 <span className="truncate">{l.name}</span>
@@ -157,12 +166,14 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-md p-2 hover:bg-sidebar-accent transition-colors w-full text-left">
-              <div className="h-8 w-8 rounded-md gradient-primary shrink-0" />
+            <button className="flex items-center gap-2 rounded-lg p-2 hover:bg-sidebar-accent/60 transition-colors w-full text-left">
+              <div className="h-9 w-9 rounded-lg gradient-active shadow-active shrink-0 flex items-center justify-center text-white font-bold text-sm">
+                {(current?.name ?? "W")[0].toUpperCase()}
+              </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{current?.name ?? "Sem workspace"}</div>
-                  <div className="text-xs text-muted-foreground">Workspace</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Workspace</div>
                 </div>
               )}
             </button>
@@ -235,13 +246,16 @@ export function AppSidebar() {
                         onClick={() => setOpenTeams((p) => ({ ...p, [team.id]: !open }))}
                         className="group"
                       >
-                        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                        {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
                         <span
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: team.color }}
+                          className="h-3 w-3 rounded-full shrink-0 ring-2 ring-white/40"
+                          style={{
+                            backgroundColor: team.color,
+                            boxShadow: `0 0 8px ${team.color}88`,
+                          }}
                           aria-hidden
                         />
-                        {!collapsed && <span className="truncate font-medium">{team.name}</span>}
+                        {!collapsed && <span className="truncate font-semibold text-[13px]">{team.name}</span>}
                         {!collapsed && canCreate && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setNewSpaceTeamId(team.id); }}
