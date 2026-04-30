@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, AlertCircle, RotateCcw, Lock } from "lucide-react";
+import { ShieldCheck, AlertCircle, RotateCcw, Lock, Info } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type Role = "admin" | "member" | "member_limited" | "guest";
+type Role = "admin" | "gestor" | "member" | "member_limited" | "guest";
 
 interface CatalogRow {
   key: string; category: string; label: string; description: string; position: number;
@@ -22,8 +23,9 @@ interface PermRow {
 const ROLES: { key: Role; label: string; description: string }[] = [
   { key: "guest",           label: "Convidado",       description: "Acesso restrito (clientes / stakeholders externos)" },
   { key: "member_limited",  label: "Membro limitado", description: "Colabora em tarefas, sem alterar configurações" },
-  { key: "member",          label: "Membro",          description: "Colaborador padrão da operação" },
-  { key: "admin",           label: "Administrador",   description: "Acesso total. Sempre habilitado." },
+  { key: "member",          label: "Membro",          description: "Acessa apenas os spaces e listas aos quais foi adicionado" },
+  { key: "gestor",          label: "Gestor",          description: "Cria e gerencia equipes e spaces, adiciona membros às suas equipes" },
+  { key: "admin",           label: "Administrador",   description: "Controle total da organização, configurações globais. Sempre habilitado." },
 ];
 
 export default function Permissions() {
@@ -142,11 +144,21 @@ export default function Permissions() {
                   Ações
                 </th>
                 {ROLES.map((r) => (
-                  <th key={r.key} className="p-4 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground min-w-[140px]">
-                    <div className="flex flex-col items-center gap-1">
-                      <span>{r.label}</span>
-                      {r.key === "admin" && <Lock className="h-3 w-3 opacity-50" />}
-                    </div>
+                  <th key={r.key} className={`p-4 text-center text-xs font-medium uppercase tracking-wider min-w-[140px] ${r.key === "gestor" ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"}`}>
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex flex-col items-center gap-1 cursor-help">
+                            <span className="flex items-center gap-1">
+                              {r.label}
+                              <Info className="h-3 w-3 opacity-50" />
+                            </span>
+                            {r.key === "admin" && <Lock className="h-3 w-3 opacity-50" />}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">{r.description}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </th>
                 ))}
               </tr>
@@ -190,15 +202,23 @@ export default function Permissions() {
         </div>
       </Card>
 
-      <div className="grid gap-3 md:grid-cols-4 text-xs text-muted-foreground">
-        {ROLES.map((r) => (
-          <div key={r.key} className="flex items-start gap-2 p-3 rounded-lg border bg-card">
-            <Badge variant={r.key === "admin" ? "destructive" : r.key === "guest" ? "outline" : "secondary"} className="shrink-0">
-              {r.label}
-            </Badge>
-            <span className="leading-relaxed">{r.description}</span>
-          </div>
-        ))}
+      <div className="grid gap-3 md:grid-cols-5 text-xs text-muted-foreground">
+        {ROLES.map((r) => {
+          const variant =
+            r.key === "admin" ? "destructive" : r.key === "guest" ? "outline" : "secondary";
+          const extraClass =
+            r.key === "gestor"
+              ? "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-300"
+              : "";
+          return (
+            <div key={r.key} className="flex items-start gap-2 p-3 rounded-lg border bg-card">
+              <Badge variant={variant} className={`shrink-0 ${extraClass}`}>
+                {r.label}
+              </Badge>
+              <span className="leading-relaxed">{r.description}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

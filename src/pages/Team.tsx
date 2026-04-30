@@ -18,11 +18,13 @@ import { Copy, Mail, Trash2, UserPlus } from "lucide-react";
 import { z } from "zod";
 
 type Role = "admin" | "member" | "member_limited" | "guest";
+type OrgRole = "admin" | "gestor" | "member";
 
 interface Member {
   id: string;
   user_id: string;
   role: Role;
+  org_role: OrgRole;
   profile?: { display_name: string | null; email: string | null; avatar_url: string | null };
 }
 interface Invitation {
@@ -56,7 +58,7 @@ export default function Team() {
     if (!current) return;
     const [{ data: mems }, { data: invs }] = await Promise.all([
       supabase.from("workspace_members")
-        .select("id, user_id, role")
+        .select("id, user_id, role, org_role")
         .eq("workspace_id", current.id),
       supabase.from("workspace_invitations")
         .select("id, email, role, token, status, expires_at, created_at")
@@ -134,6 +136,24 @@ export default function Team() {
     load();
   };
 
+  const updateMemberOrgRole = async (memberId: string, newOrgRole: OrgRole) => {
+    const { error } = await supabase.from("workspace_members")
+      .update({ org_role: newOrgRole }).eq("id", memberId);
+    if (error) return toast.error(error.message);
+    toast.success("Papel organizacional atualizado");
+    load();
+  };
+
+  const orgBadgeProps = (r: OrgRole): { variant: "destructive" | "secondary" | "outline"; className: string } => {
+    if (r === "admin") return { variant: "destructive", className: "" };
+    if (r === "gestor")
+      return {
+        variant: "secondary",
+        className: "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-300",
+      };
+    return { variant: "outline", className: "" };
+  };
+
   const removeMember = async (memberId: string) => {
     if (!confirm("Remover este membro do workspace?")) return;
     const { error } = await supabase.from("workspace_members").delete().eq("id", memberId);
@@ -198,7 +218,8 @@ export default function Team() {
             <TableHeader>
               <TableRow>
                 <TableHead>Pessoa</TableHead>
-                <TableHead>Papel</TableHead>
+                <TableHead>Papel organizacional</TableHead>
+                <TableHead>Papel de workspace</TableHead>
                 <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
@@ -223,6 +244,23 @@ export default function Team() {
                         <div className="text-xs text-muted-foreground truncate">{m.profile?.email}</div>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {isAdmin && m.user_id !== user?.id ? (
+                      <Select value={m.org_role ?? "member"} onValueChange={(v) => updateMemberOrgRole(m.id, v as OrgRole)}>
+                        <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="gestor">Gestor</SelectItem>
+                          <SelectItem value="member">Member</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      (() => {
+                        const props = orgBadgeProps(m.org_role ?? "member");
+                        return <Badge variant={props.variant} className={props.className}>{m.org_role ?? "member"}</Badge>;
+                      })()
+                    )}
                   </TableCell>
                   <TableCell>
                     {isAdmin && m.user_id !== user?.id ? (

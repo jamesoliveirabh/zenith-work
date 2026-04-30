@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTeams } from "@/hooks/useTeams";
+import { useMyOrgAccess } from "@/hooks/useOrgRole";
 
 interface Space { id: string; name: string; color: string | null; team_id: string | null; }
 interface List { id: string; name: string; space_id: string; }
+
+const GENERAL_KEY = "__general__";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -32,11 +36,18 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { listId } = useParams();
 
+  const { data: teams = [] } = useTeams();
+  const { data: orgAccess } = useMyOrgAccess();
+  const isOrgAdmin = !!orgAccess?.isOrgAdmin;
+  const isGestor = !!orgAccess?.isGestor;
+  const teamRoles = orgAccess?.teamRoles ?? {};
+
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [lists, setLists] = useState<List[]>([]);
   const [openSpaces, setOpenSpaces] = useState<Record<string, boolean>>({});
+  const [openTeams, setOpenTeams] = useState<Record<string, boolean>>({});
 
-  const [newSpaceOpen, setNewSpaceOpen] = useState(false);
+  const [newSpaceTeamId, setNewSpaceTeamId] = useState<string | null | undefined>(undefined); // undefined = closed
   const [newListSpaceId, setNewListSpaceId] = useState<string | null>(null);
 
   const loadTree = async () => {
@@ -56,14 +67,38 @@ export function AppSidebar() {
 
   useEffect(() => { loadTree(); /* eslint-disable-next-line */ }, [current?.id]);
 
+  // Filter teams to those the user belongs to (or all, if org admin)
+  const visibleTeams = useMemo(() => {
+    if (isOrgAdmin) return teams;
+    return teams.filter((t) => teamRoles[t.id] !== undefined);
+  }, [teams, teamRoles, isOrgAdmin]);
+
+  // Group spaces by team_id
+  const spacesByTeam = useMemo(() => {
+    const map: Record<string, Space[]> = {};
+    spaces.forEach((s) => {
+      const key = s.team_id ?? GENERAL_KEY;
+      (map[key] ||= []).push(s);
+    });
+    return map;
+  }, [spaces]);
+
+  const generalSpaces = spacesByTeam[GENERAL_KEY] ?? [];
+
+  const canCreateSpaceForTeam = (teamId: string) =>
+    isOrgAdmin || teamRoles[teamId] === "gestor";
+
   const handleCreateSpace = async (name: string) => {
-    if (!current || !name.trim()) return;
+    if (!current || !name.trim() || newSpaceTeamId === undefined) return;
     const { error } = await supabase.from("spaces").insert({
-      workspace_id: current.id, name: name.trim(), created_by: user?.id,
+      workspace_id: current.id,
+      name: name.trim(),
+      created_by: user?.id,
+      team_id: newSpaceTeamId,
     });
     if (error) return toast.error(error.message);
     toast.success("Space criado");
-    setNewSpaceOpen(false);
+    setNewSpaceTeamId(undefined);
     loadTree();
   };
 
@@ -77,6 +112,44 @@ export function AppSidebar() {
     setNewListSpaceId(null);
     await loadTree();
     if (data) navigate(`/list/${data.id}`);
+  };
+
+  const renderSpaceItem = (s: Space) => {
+    const spaceLists = lists.filter((l) => l.space_id === s.id);
+    const open = openSpaces[s.id] ?? true;
+    return (
+      <div key={s.id}>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => setOpenSpaces((p) => ({ ...p, [s.id]: !open }))}
+            className="group"
+          >
+            {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            <FolderKanban className="h-4 w-4" style={{ color: s.color ?? undefined }} />
+            {!collapsed && <span className="truncate">{s.name}</span>}
+            {!collapsed && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setNewListSpaceId(s.id); }}
+                className="ml-auto opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                aria-label="Nova lista"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        {open && !collapsed && spaceLists.map((l) => (
+          <SidebarMenuItem key={l.id}>
+            <SidebarMenuButton asChild isActive={listId === l.id} className="pl-9">
+              <NavLink to={`/list/${l.id}`}>
+                <Hash className="h-3.5 w-3.5" />
+                <span className="truncate">{l.name}</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -111,85 +184,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between pr-2">
-            <span>Spaces</span>
-            <Dialog open={newSpaceOpen} onOpenChange={setNewSpaceOpen}>
-              <DialogTrigger asChild>
-                <button className="opacity-60 hover:opacity-100" aria-label="Novo space">
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo space</DialogTitle>
-                  <DialogDescription>Spaces agrupam listas por área ou departamento.</DialogDescription>
-                </DialogHeader>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const fd = new FormData(e.currentTarget);
-                    handleCreateSpace(String(fd.get("name") ?? ""));
-                  }}
-                  className="space-y-3"
-                >
-                  <Label htmlFor="space-name">Nome</Label>
-                  <Input id="space-name" name="name" autoFocus required />
-                  <DialogFooter>
-                    <Button type="submit">Criar</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {spaces.map((s) => {
-                const spaceLists = lists.filter((l) => l.space_id === s.id);
-                const open = openSpaces[s.id] ?? true;
-                return (
-                  <div key={s.id}>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => setOpenSpaces((p) => ({ ...p, [s.id]: !open }))}
-                        className="group"
-                      >
-                        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                        <FolderKanban className="h-4 w-4" style={{ color: s.color ?? undefined }} />
-                        {!collapsed && <span className="truncate">{s.name}</span>}
-                        {!collapsed && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setNewListSpaceId(s.id); }}
-                            className="ml-auto opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                            aria-label="Nova lista"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {open && !collapsed && spaceLists.map((l) => (
-                      <SidebarMenuItem key={l.id}>
-                        <SidebarMenuButton asChild isActive={listId === l.id} className="pl-9">
-                          <NavLink to={`/list/${l.id}`}>
-                            <Hash className="h-3.5 w-3.5" />
-                            <span className="truncate">{l.name}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </div>
-                );
-              })}
-              {spaces.length === 0 && !collapsed && (
-                <p className="px-2 py-3 text-xs text-muted-foreground">
-                  Crie seu primeiro space
-                </p>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
+        {/* Dashboard */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -201,19 +196,93 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/teams">
-                    <Users2 className="h-4 w-4" />
-                    {!collapsed && <span>Equipes</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Teams → Spaces hierarchy */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Equipes & Spaces</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {visibleTeams.map((team) => {
+                const teamSpaces = spacesByTeam[team.id] ?? [];
+                const open = openTeams[team.id] ?? true;
+                const canCreate = canCreateSpaceForTeam(team.id);
+                return (
+                  <div key={team.id}>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => setOpenTeams((p) => ({ ...p, [team.id]: !open }))}
+                      >
+                        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: team.color }}
+                          aria-hidden
+                        />
+                        {!collapsed && <span className="truncate font-medium">{team.name}</span>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {open && (
+                      <>
+                        {teamSpaces.map(renderSpaceItem)}
+                        {!collapsed && canCreate && (
+                          <SidebarMenuItem>
+                            <SidebarMenuButton
+                              onClick={() => setNewSpaceTeamId(team.id)}
+                              className="pl-9 text-muted-foreground hover:text-foreground"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              <span>Novo space</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                        {!collapsed && teamSpaces.length === 0 && !canCreate && (
+                          <p className="px-9 py-2 text-xs text-muted-foreground">Nenhum space</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* "Geral" group: spaces with no team_id */}
+              {generalSpaces.length > 0 && (
+                <div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setOpenTeams((p) => ({ ...p, [GENERAL_KEY]: !(p[GENERAL_KEY] ?? true) }))}
+                    >
+                      {(openTeams[GENERAL_KEY] ?? true)
+                        ? <ChevronDown className="h-3.5 w-3.5" />
+                        : <ChevronRight className="h-3.5 w-3.5" />}
+                      <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
+                      {!collapsed && <span className="truncate font-medium">Geral</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  {(openTeams[GENERAL_KEY] ?? true) && generalSpaces.map(renderSpaceItem)}
+                </div>
+              )}
+
+              {visibleTeams.length === 0 && generalSpaces.length === 0 && !collapsed && (
+                <p className="px-2 py-3 text-xs text-muted-foreground">
+                  Nenhuma equipe ou space disponível.
+                </p>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Other features */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/goals">
                     <Target className="h-4 w-4" />
-                    {!collapsed && <span>Goals</span>}
+                    {!collapsed && <span>Metas</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -233,6 +302,24 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Admin / settings */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {(isOrgAdmin || isGestor) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/teams">
+                      <Users2 className="h-4 w-4" />
+                      {!collapsed && <span>Gerenciar Equipes</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setOpenSpaces((p) => ({ ...p, __security: !(p.__security ?? true) }))}
@@ -241,7 +328,7 @@ export function AppSidebar() {
                     ? <ChevronDown className="h-3.5 w-3.5" />
                     : <ChevronRight className="h-3.5 w-3.5" />}
                   <Shield className="h-4 w-4" />
-                  {!collapsed && <span>Segurança</span>}
+                  {!collapsed && <span>Configurações</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {(openSpaces.__security ?? true) && !collapsed && (
@@ -302,6 +389,34 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarFooter>
+
+      {/* New space dialog (per team) */}
+      <Dialog open={newSpaceTeamId !== undefined} onOpenChange={(v) => !v && setNewSpaceTeamId(undefined)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo space</DialogTitle>
+            <DialogDescription>
+              {newSpaceTeamId
+                ? `O space será criado dentro da equipe selecionada.`
+                : `Spaces agrupam listas por área ou departamento.`}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              handleCreateSpace(String(fd.get("name") ?? ""));
+            }}
+            className="space-y-3"
+          >
+            <Label htmlFor="space-name">Nome</Label>
+            <Input id="space-name" name="name" autoFocus required />
+            <DialogFooter>
+              <Button type="submit">Criar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* New list dialog */}
       <Dialog open={!!newListSpaceId} onOpenChange={(v) => !v && setNewListSpaceId(null)}>
