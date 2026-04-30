@@ -347,7 +347,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild className="pl-9">
                       <NavLink to="/settings/fields">
                         <Settings2 className="h-3.5 w-3.5" />
-                        <span>Campos</span>
+                        <span>Campos Personalizados</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
