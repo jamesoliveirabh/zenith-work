@@ -247,14 +247,21 @@ export function AppSidebar() {
                         className="group"
                       >
                         {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-                        <span
-                          className="h-3 w-3 rounded-full shrink-0 ring-2 ring-white/40"
-                          style={{
-                            backgroundColor: team.color,
-                            boxShadow: `0 0 8px ${team.color}88`,
-                          }}
-                          aria-hidden
-                        />
+                        {(() => {
+                          const TeamIcon = getTeamIcon(team.name);
+                          return (
+                            <span
+                              className="flex h-6 w-6 items-center justify-center rounded-md shrink-0"
+                              style={{
+                                background: `linear-gradient(135deg, ${team.color}, ${team.color}cc)`,
+                                boxShadow: `0 2px 6px -1px ${team.color}66`,
+                              }}
+                              aria-hidden
+                            >
+                              <TeamIcon className="h-3.5 w-3.5 text-white" />
+                            </span>
+                          );
+                        })()}
                         {!collapsed && <span className="truncate font-semibold text-[13px]">{team.name}</span>}
                         {!collapsed && canCreate && (
                           <button
