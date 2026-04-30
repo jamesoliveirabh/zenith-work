@@ -249,6 +249,17 @@ export default function SpacesAdmin() {
                         {canManage && (
                           <>
                             <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setNewSpaceTeamId(team.id);
+                                setNewSpaceName("");
+                              }}
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" /> Criar novo espaço
+                            </Button>
+                            <Button
                               size="icon"
                               variant="ghost"
                               className="h-7 w-7"
@@ -284,19 +295,6 @@ export default function SpacesAdmin() {
                   <p className="text-xs text-muted-foreground py-1">
                     Nenhum space nesta equipe ainda.
                   </p>
-                )}
-                {canManage && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setNewSpaceTeamId(team.id);
-                      setNewSpaceName("");
-                    }}
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Novo Space nesta equipe
-                  </Button>
                 )}
               </CardContent>
             </Card>
