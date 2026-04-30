@@ -1711,7 +1711,7 @@ export type Database = {
       task_priority: "low" | "medium" | "high" | "urgent"
       task_relation_type: "blocks" | "relates_to" | "duplicates"
       team_role: "gestor" | "member"
-      workspace_role: "admin" | "member_limited" | "member" | "guest"
+      workspace_role: "admin" | "gestor" | "member_limited" | "member" | "guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1902,7 +1902,7 @@ export const Constants = {
       task_priority: ["low", "medium", "high", "urgent"],
       task_relation_type: ["blocks", "relates_to", "duplicates"],
       team_role: ["gestor", "member"],
-      workspace_role: ["admin", "member_limited", "member", "guest"],
+      workspace_role: ["admin", "gestor", "member_limited", "member", "guest"],
     },
   },
 } as const
