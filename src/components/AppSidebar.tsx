@@ -296,14 +296,6 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/settings/fields">
-                    <Settings2 className="h-4 w-4" />
-                    {!collapsed && <span>Campos</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -348,6 +340,14 @@ export function AppSidebar() {
                       <NavLink to="/security/spaces">
                         <LayoutGrid className="h-3.5 w-3.5" />
                         <span>Equipes & Spaces</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/settings/fields">
+                        <Settings2 className="h-3.5 w-3.5" />
+                        <span>Campos</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
