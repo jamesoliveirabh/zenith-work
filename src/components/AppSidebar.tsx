@@ -117,15 +117,24 @@ export function AppSidebar() {
   const renderSpaceItem = (s: Space) => {
     const spaceLists = lists.filter((l) => l.space_id === s.id);
     const open = openSpaces[s.id] ?? true;
+    const spaceColor = s.color ?? "#6366f1";
     return (
       <div key={s.id}>
         <SidebarMenuItem>
           <SidebarMenuButton
             onClick={() => setOpenSpaces((p) => ({ ...p, [s.id]: !open }))}
-            className="group"
+            className="group rounded-lg"
           >
-            {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            <FolderKanban className="h-4 w-4" style={{ color: s.color ?? undefined }} />
+            {open ? <ChevronDown className="h-3.5 w-3.5 opacity-60" /> : <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
+            <span
+              className="flex h-5 w-5 items-center justify-center rounded-md shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${spaceColor}, ${spaceColor}cc)`,
+                boxShadow: `0 2px 6px -1px ${spaceColor}66`,
+              }}
+            >
+              <FolderKanban className="h-3 w-3 text-white" />
+            </span>
             {!collapsed && <span className="truncate">{s.name}</span>}
             {!collapsed && (
               <button
@@ -140,7 +149,7 @@ export function AppSidebar() {
         </SidebarMenuItem>
         {open && !collapsed && spaceLists.map((l) => (
           <SidebarMenuItem key={l.id}>
-            <SidebarMenuButton asChild isActive={listId === l.id} className="pl-9">
+            <SidebarMenuButton asChild isActive={listId === l.id} className="pl-10 rounded-lg">
               <NavLink to={`/list/${l.id}`}>
                 <Menu className="h-3.5 w-3.5" />
                 <span className="truncate">{l.name}</span>
