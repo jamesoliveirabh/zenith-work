@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Hash, LogOut, Plus, Check, Users, Users2, Settings2, Zap, LayoutDashboard, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -360,8 +360,8 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild className="pl-9">
                       <NavLink to="/security/spaces">
-                        <FolderKanban className="h-3.5 w-3.5" />
-                        <span>Spaces</span>
+                        <LayoutGrid className="h-3.5 w-3.5" />
+                        <span>Equipes & Spaces</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
