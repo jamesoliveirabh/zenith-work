@@ -16,6 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Copy, Mail, Trash2, UserPlus } from "lucide-react";
 import { z } from "zod";
+import { checkEntitlement, EntitlementBlockedError } from "@/lib/billing/enforcement";
+import { useEntitlementGuard } from "@/components/billing/EntitlementGuardProvider";
 
 type Role = "admin" | "member" | "member_limited" | "guest";
 type OrgRole = "admin" | "gestor" | "member";
