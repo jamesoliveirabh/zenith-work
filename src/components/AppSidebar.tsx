@@ -41,6 +41,7 @@ export function AppSidebar() {
   const { data: teams = [] } = useTeams();
   const { data: orgAccess } = useMyOrgAccess();
   const isOrgAdmin = !!orgAccess?.isOrgAdmin;
+  const { data: isPlatformAdmin } = useIsPlatformAdmin();
   const isGestor = !!orgAccess?.isGestor;
   const teamRoles = orgAccess?.teamRoles ?? {};
 
