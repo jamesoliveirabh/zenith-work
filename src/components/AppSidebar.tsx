@@ -5,7 +5,8 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Folder, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid, CreditCard } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Folder, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid, CreditCard, Briefcase } from "lucide-react";
+import { useIsPlatformAdmin } from "@/hooks/usePlatformAdmin";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -40,6 +41,7 @@ export function AppSidebar() {
   const { data: teams = [] } = useTeams();
   const { data: orgAccess } = useMyOrgAccess();
   const isOrgAdmin = !!orgAccess?.isOrgAdmin;
+  const { data: isPlatformAdmin } = useIsPlatformAdmin();
   const isGestor = !!orgAccess?.isGestor;
   const teamRoles = orgAccess?.teamRoles ?? {};
 
@@ -388,6 +390,24 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isPlatformAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Backoffice</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/billing">
+                      <Briefcase className="h-4 w-4" />
+                      {!collapsed && <span>Billing Admin</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">

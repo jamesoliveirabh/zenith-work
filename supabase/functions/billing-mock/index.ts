@@ -707,17 +707,19 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Authorization: caller must be a workspace admin (when workspaceId is given).
-  // close_expired is the only cross-workspace job; restrict to any workspace admin.
+  // Platform admins (internal staff) can call any action across workspaces.
+  const { data: isPlatformAdmin } = await admin.rpc("is_platform_admin", { _user: userId });
+
+  // Authorization: caller must be a workspace admin (when workspaceId is given) OR platform admin.
   const workspaceId = body.workspaceId ? String(body.workspaceId) : null;
-  if (workspaceId) {
+  if (workspaceId && !isPlatformAdmin) {
     const { data: isAdmin, error: aErr } = await admin.rpc("is_workspace_admin", {
       _ws: workspaceId,
       _user: userId,
     });
     if (aErr) return bad(aErr.message, 500);
     if (!isAdmin) return bad("Forbidden: workspace admin required", 403);
-  } else if (
+  } else if (!isPlatformAdmin && !workspaceId &&
     def.adminRequired && (
       action === "subscription.close_expired" ||
       action === "dunning.process_due" ||

@@ -1208,6 +1208,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          is_platform_admin: boolean
           updated_at: string
         }
         Insert: {
@@ -1216,6 +1217,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          is_platform_admin?: boolean
           updated_at?: string
         }
         Update: {
@@ -1224,6 +1226,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          is_platform_admin?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -2170,6 +2173,83 @@ export type Database = {
     }
     Functions: {
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
+      admin_billing_account_detail: {
+        Args: { _workspace_id: string }
+        Returns: Json
+      }
+      admin_billing_apply_entitlement_override: {
+        Args: {
+          _allowlisted: boolean
+          _feature_key: string
+          _mode: string
+          _override_until: string
+          _reason: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
+      admin_billing_extend_trial: {
+        Args: {
+          _additional_days: number
+          _reason: string
+          _workspace_id: string
+        }
+        Returns: Json
+      }
+      admin_billing_list_accounts: {
+        Args: {
+          _dunning_status?: string
+          _limit?: number
+          _offset?: number
+          _plan_code?: string
+          _search?: string
+          _sub_status?: string
+        }
+        Returns: {
+          cancel_at_period_end: boolean
+          currency: string
+          current_period_end: string
+          dunning_status: string
+          open_dunning_case_id: string
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          plan_code: string
+          plan_id: string
+          plan_interval: string
+          plan_name: string
+          price_cents: number
+          provider: string
+          sub_status: string
+          subscription_id: string
+          total_count: number
+          trial_ends_at: string
+          updated_at: string
+          workspace_id: string
+          workspace_name: string
+          workspace_slug: string
+        }[]
+      }
+      admin_billing_log_action: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _reason?: string
+          _target_id: string
+          _target_type: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
+      admin_billing_mark_invoice: {
+        Args: { _invoice_id: string; _new_status: string; _reason: string }
+        Returns: Json
+      }
+      admin_billing_metrics: { Args: { _window_days?: number }; Returns: Json }
+      admin_billing_remove_entitlement_override: {
+        Args: { _override_id: string; _reason: string }
+        Returns: undefined
+      }
       billing_apply_override: {
         Args: {
           _allowlisted: boolean
@@ -2372,6 +2452,7 @@ export type Database = {
         Returns: boolean
       }
       is_org_admin: { Args: { _user: string; _ws: string }; Returns: boolean }
+      is_platform_admin: { Args: { _user: string }; Returns: boolean }
       is_team_gestor: {
         Args: { _team: string; _user: string }
         Returns: boolean
