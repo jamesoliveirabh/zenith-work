@@ -667,6 +667,13 @@ const ACTIONS: Record<
   "invoice.generate": { adminRequired: true, handler: actGenerateInvoice },
   "invoice.mark_paid": { adminRequired: true, handler: actMarkInvoicePaid },
   "invoice.simulate_failure": { adminRequired: true, handler: actSimulateFailure },
+  // Phase H6 — dunning
+  "dunning.record_attempt": { adminRequired: true, handler: actDunningRecordAttempt },
+  "dunning.process_due": { adminRequired: true, handler: actDunningProcessDue },
+  "dunning.process_expired": { adminRequired: true, handler: actDunningProcessExpired },
+  "dunning.extend_grace": { adminRequired: true, handler: actDunningExtendGrace },
+  "dunning.cancel_nonpayment": { adminRequired: true, handler: actDunningCancelNonpayment },
+  "dunning.simulate_payment_method_update": { adminRequired: true, handler: actDunningSimulatePaymentMethodUpdate },
 };
 
 Deno.serve(async (req) => {
