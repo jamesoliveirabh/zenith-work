@@ -22,6 +22,7 @@ import AdminSecurityUsers from "@/pages/admin-app/AdminSecurityUsers";
 import AdminReconciliation from "@/pages/admin-app/AdminReconciliation";
 import AdminSecuritySessions from "@/pages/admin-app/AdminSecuritySessions";
 import AdminSecurityAudit from "@/pages/admin-app/AdminSecurityAudit";
+import AdminExports from "@/pages/admin-app/AdminExports";
 import { RequireRole } from "@/components/admin-app/RequireRole";
 import NotFound from "@/pages/NotFound";
 
@@ -86,6 +87,14 @@ const AdminApp = () => (
                   element={
                     <RequireRole anyOf={["platform_owner", "security_admin"]}>
                       <AdminSecuritySessions />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="/exports"
+                  element={
+                    <RequireRole anyOf={["platform_owner", "finance_admin", "support_admin", "security_admin"]}>
+                      <AdminExports />
                     </RequireRole>
                   }
                 />
