@@ -49,6 +49,13 @@ export default function BillingSettings() {
   const { data: events = [], isLoading: loadingEvents } = useBillingEvents(workspaceId);
   const usage = useWorkspaceUsageEntitlements(workspaceId);
 
+  // Phase H6 — dunning
+  const { data: dunningPolicy } = useDunningPolicy(workspaceId);
+  const { data: activeCase, isLoading: loadingCase } = useActiveDunningCase(workspaceId);
+  const { data: attempts = [], isLoading: loadingAttempts } = useDunningAttempts(activeCase?.id ?? null);
+  const simulatePM = useSimulatePaymentMethodUpdate(workspaceId);
+  const retrySuccess = useSimulateRetrySuccess(workspaceId);
+
   // TODO(billing-h4): tracking analítico
   //   billing.usage.warning_shown / critical_shown / billing.upgrade_cta_clicked
   //   quando infraestrutura de telemetria estiver pronta.
