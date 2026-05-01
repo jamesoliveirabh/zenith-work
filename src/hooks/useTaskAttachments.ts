@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { tasksKey } from "./useTasks";
+import { assertEntitlement, decrementUsage, EntitlementBlockedError } from "@/lib/billing/enforcement";
+import { useEntitlementGuard } from "@/components/billing/EntitlementGuardProvider";
 
 export const ATTACHMENTS_BUCKET = "task-attachments";
 export const SIGNED_URL_TTL = 3600; // 1h
