@@ -717,8 +717,14 @@ Deno.serve(async (req) => {
     });
     if (aErr) return bad(aErr.message, 500);
     if (!isAdmin) return bad("Forbidden: workspace admin required", 403);
-  } else if (def.adminRequired && action === "subscription.close_expired") {
-    // Conservative: require user to be admin of at least one workspace
+  } else if (
+    def.adminRequired && (
+      action === "subscription.close_expired" ||
+      action === "dunning.process_due" ||
+      action === "dunning.process_expired"
+    )
+  ) {
+    // Cross-workspace jobs: caller must be admin of at least one workspace.
     const { count } = await admin
       .from("workspace_members")
       .select("*", { count: "exact", head: true })
