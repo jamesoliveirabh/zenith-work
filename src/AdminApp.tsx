@@ -19,6 +19,7 @@ import AdminMetricsHome from "@/pages/admin-app/AdminMetricsHome";
 import AdminMetricsCohorts from "@/pages/admin-app/AdminMetricsCohorts";
 import AdminMetricsFunnel from "@/pages/admin-app/AdminMetricsFunnel";
 import AdminSecurityUsers from "@/pages/admin-app/AdminSecurityUsers";
+import AdminReconciliation from "@/pages/admin-app/AdminReconciliation";
 import AdminSecuritySessions from "@/pages/admin-app/AdminSecuritySessions";
 import AdminSecurityAudit from "@/pages/admin-app/AdminSecurityAudit";
 import { RequireRole } from "@/components/admin-app/RequireRole";
@@ -64,6 +65,14 @@ const AdminApp = () => (
                 <Route path="/metrics" element={<AdminMetricsHome />} />
                 <Route path="/metrics/cohorts" element={<AdminMetricsCohorts />} />
                 <Route path="/metrics/funnel" element={<AdminMetricsFunnel />} />
+                <Route
+                  path="/reconciliation"
+                  element={
+                    <RequireRole anyOf={["platform_owner", "finance_admin"]}>
+                      <AdminReconciliation />
+                    </RequireRole>
+                  }
+                />
                 <Route
                   path="/security/admin-users"
                   element={

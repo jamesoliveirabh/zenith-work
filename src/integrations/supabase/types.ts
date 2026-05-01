@@ -1339,6 +1339,65 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_reconciliation_log: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          after_snapshot: Json
+          before_snapshot: Json
+          created_at: string
+          details: Json
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          kind: string
+          reason: string | null
+          severity: string | null
+          validator: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after_snapshot?: Json
+          before_snapshot?: Json
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind: string
+          reason?: string | null
+          severity?: string | null
+          validator?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after_snapshot?: Json
+          before_snapshot?: Json
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          severity?: string | null
+          validator?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_reconciliation_log_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           admin_disabled_at: string | null
@@ -2868,6 +2927,20 @@ export type Database = {
         Args: { _reason: string; _workspace_id: string }
         Returns: undefined
       }
+      platform_admin_reconciliation_fix: {
+        Args: {
+          _entity_id: string
+          _entity_type: string
+          _reason: string
+          _validator: string
+        }
+        Returns: Json
+      }
+      platform_admin_reconciliation_history: {
+        Args: { _kind?: string; _limit?: number }
+        Returns: Json
+      }
+      platform_admin_reconciliation_scan: { Args: never; Returns: Json }
       platform_admin_revoke_role: {
         Args: {
           _reason: string
