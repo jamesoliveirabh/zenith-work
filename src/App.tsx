@@ -33,6 +33,7 @@ import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
 import BillingSettings from "./pages/BillingSettings";
+import { EntitlementGuardProvider } from "@/components/billing/EntitlementGuardProvider";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -61,6 +62,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <WorkspaceProvider>
+              <EntitlementGuardProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/invite/:token" element={<AcceptInvite />} />
@@ -104,6 +106,7 @@ const App = () => (
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </EntitlementGuardProvider>
             </WorkspaceProvider>
           </AuthProvider>
         </BrowserRouter>
