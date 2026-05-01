@@ -5,6 +5,7 @@ import { AdminMetricsTiles } from '@/components/admin/billing/AdminMetricsTiles'
 import { AccountFiltersBar } from '@/components/admin/billing/AccountFiltersBar';
 import { AccountsTable } from '@/components/admin/billing/AccountsTable';
 import { useAdminBillingAccounts, useAdminBillingMetrics } from '@/hooks/useAdminBilling';
+import { BillingHealthBadge } from '@/components/admin/billing/BillingHealthBadge';
 import { usePlans } from '@/hooks/useBillingFoundation';
 import type { AdminAccountsFilters } from '@/types/admin-billing';
 
@@ -27,6 +28,7 @@ export default function AdminBillingHome() {
         </div>
 
         <BillingHomologationBanner />
+        <BillingHealthBadge />
         <AdminMetricsTiles metrics={metrics} isLoading={metricsLoading} />
 
         <div className="space-y-3">
