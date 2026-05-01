@@ -75,6 +75,20 @@ export function AdminLayout() {
             <LineChart className="h-4 w-4 inline mr-1.5" />
             Métricas
           </NavLink>
+          <CanRole anyOf={["platform_owner", "finance_admin"]}>
+            <NavLink
+              to="/reconciliation"
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-1.5 rounded-md text-sm",
+                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+                )
+              }
+            >
+              <ShieldAlert className="h-4 w-4 inline mr-1.5" />
+              Reconciliação
+            </NavLink>
+          </CanRole>
           <CanRole anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}>
             <NavLink
               to="/security/audit"
