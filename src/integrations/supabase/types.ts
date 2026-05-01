@@ -1201,6 +1201,42 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admin_actions_log: {
+        Row: {
+          admin_user_id: string | null
+          created_at: string
+          email: string | null
+          event: string
+          id: string
+          ip: string | null
+          metadata: Json
+          route: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          admin_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          event: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          route?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          admin_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          event?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          route?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2479,6 +2515,10 @@ export type Database = {
           _ws: string
         }
         Returns: undefined
+      }
+      log_platform_admin_event: {
+        Args: { _event: string; _metadata?: Json; _route?: string }
+        Returns: string
       }
       mark_all_notifications_read: {
         Args: { _workspace_id: string }
