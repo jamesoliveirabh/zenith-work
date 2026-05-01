@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock, LineChart, ShieldAlert, Download } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock, LineChart, ShieldAlert, Download, Siren } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
@@ -101,6 +101,20 @@ export function AdminLayout() {
             >
               <Download className="h-4 w-4 inline mr-1.5" />
               Exports
+            </NavLink>
+          </CanRole>
+          <CanRole anyOf={["platform_owner", "security_admin", "finance_admin"]}>
+            <NavLink
+              to="/operations"
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-1.5 rounded-md text-sm",
+                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+                )
+              }
+            >
+              <Siren className="h-4 w-4 inline mr-1.5" />
+              Ops
             </NavLink>
           </CanRole>
           <CanRole anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}>
