@@ -47,6 +47,7 @@ const inviteSchema = z.object({
 export default function Team() {
   const { current } = useWorkspace();
   const { user } = useAuth();
+  const guard = useEntitlementGuard();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [email, setEmail] = useState("");
@@ -98,6 +99,23 @@ export default function Team() {
       return;
     }
     setLoading(true);
+    // H5 enforcement: convite consome 1 membro futuro.
+    const check = await checkEntitlement({
+      workspaceId: current.id,
+      featureKey: "members",
+      incrementBy: 1,
+      action: "member.invite",
+    });
+    if (!check.allowed) {
+      setLoading(false);
+      guard.handleError(new EntitlementBlockedError(check));
+      return;
+    }
+    if (check.decision === "warned") {
+      // permite, mas alerta
+      const { showEntitlementWarningToast } = await import("@/components/billing/EntitlementWarningToast");
+      showEntitlementWarningToast(check);
+    }
     const { data, error } = await supabase.from("workspace_invitations").insert({
       workspace_id: current.id,
       email: parsed.data.email.toLowerCase(),
