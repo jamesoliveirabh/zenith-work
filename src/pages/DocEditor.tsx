@@ -354,7 +354,7 @@ export default function DocEditor() {
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium flex items-center gap-2"><Globe className="h-4 w-4" /> Publicar doc</span>
-                <Switch checked={doc.is_published} onCheckedChange={(v) => publishDoc.mutate({ id: doc.id, published: v })} />
+                <Switch checked={doc.is_published} onCheckedChange={(v) => publishDoc.mutate({ id: doc.id, published: v, workspace_id: doc.workspace_id })} />
               </div>
               {doc.is_published && (
                 <div className="flex gap-2 items-center">
