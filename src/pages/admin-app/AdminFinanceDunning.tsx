@@ -154,7 +154,6 @@ export default function AdminFinanceDunning() {
         title="Forçar retry de cobrança"
         description="Simula uma nova tentativa de cobrança neste caso de inadimplência."
         confirmLabel="Executar retry"
-        requireReason
         loading={retry.isPending}
         onConfirm={async (reason) => {
           if (action?.kind !== "retry") return;
@@ -181,7 +180,6 @@ export default function AdminFinanceDunning() {
         title="Estender período de carência"
         description="Adiciona dias ao prazo final antes de cancelamento por inadimplência."
         confirmLabel="Estender"
-        requireReason
         loading={extend.isPending}
         onConfirm={async (reason) => {
           if (action?.kind !== "extend") return;
@@ -208,7 +206,6 @@ export default function AdminFinanceDunning() {
         title="Encerrar caso de dunning"
         description="Marca o caso como encerrado manualmente. A assinatura não é alterada."
         confirmLabel="Encerrar caso"
-        requireReason
         loading={closeCase.isPending}
         onConfirm={async (reason) => {
           if (action?.kind !== "close") return;

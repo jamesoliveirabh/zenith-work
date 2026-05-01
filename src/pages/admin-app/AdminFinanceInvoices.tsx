@@ -139,13 +139,12 @@ export default function AdminFinanceInvoices() {
         title={`Marcar fatura como ${markTarget?.status ?? ""}`}
         description="Esta ação será registrada no log de auditoria e atualizará a fatura imediatamente."
         confirmLabel="Confirmar"
-        requireReason
         loading={mark.isPending}
         onConfirm={async (reason) => {
           if (!markTarget) return;
           await mark.mutateAsync({
             invoiceId: markTarget.id,
-            newStatus: markTarget.status,
+            status: markTarget.status,
             reason: reason!,
           });
           setMarkTarget(null);
