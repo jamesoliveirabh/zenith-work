@@ -66,6 +66,14 @@ const AdminApp = () => (
                 <Route path="/metrics/cohorts" element={<AdminMetricsCohorts />} />
                 <Route path="/metrics/funnel" element={<AdminMetricsFunnel />} />
                 <Route
+                  path="/reconciliation"
+                  element={
+                    <RequireRole anyOf={["platform_owner", "finance_admin"]}>
+                      <AdminReconciliation />
+                    </RequireRole>
+                  }
+                />
+                <Route
                   path="/security/admin-users"
                   element={
                     <RequireRole anyOf={["platform_owner", "security_admin"]}>
