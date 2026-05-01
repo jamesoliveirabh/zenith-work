@@ -28,7 +28,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
 import { Button } from "@/components/ui/button";
-import { CanRole, type AdminRole } from "@/components/admin-app/RequireRole";
+import { CanRole } from "@/components/admin-app/RequireRole";
+import type { PlatformRole } from "@/lib/admin/securityService";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -36,7 +37,7 @@ type NavItem = {
   href: string;
   icon: typeof LayoutDashboard;
   end?: boolean;
-  roles?: AdminRole[];
+  roles?: PlatformRole[];
 };
 
 export const adminNavItems: NavItem[] = [
