@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { JSONContent } from "@tiptap/react";
+import { assertEntitlement, decrementUsage, EntitlementBlockedError } from "@/lib/billing/enforcement";
+import { useEntitlementGuard } from "@/components/billing/EntitlementGuardProvider";
 
 export interface Doc {
   id: string;
@@ -164,14 +166,34 @@ export function useMoveDoc() {
 
 export function usePublishDoc() {
   const qc = useQueryClient();
+  const guard = useEntitlementGuard();
   return useMutation({
-    mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
+    mutationFn: async ({ id, published, workspace_id }: { id: string; published: boolean; workspace_id?: string }) => {
+      if (published && workspace_id) {
+        await assertEntitlement({
+          workspaceId: workspace_id,
+          featureKey: "published_docs",
+          incrementBy: 1,
+          action: "doc.publish",
+          commitUsage: true,
+        });
+      }
       const { error } = await supabase.from("docs").update({ is_published: published }).eq("id", id);
-      if (error) throw error;
+      if (error) {
+        if (published && workspace_id) await decrementUsage(workspace_id, "published_docs", 1);
+        throw error;
+      }
+      if (!published && workspace_id) {
+        await decrementUsage(workspace_id, "published_docs", 1);
+      }
     },
     onSuccess: (_, v) => {
       qc.invalidateQueries({ queryKey: ["doc", v.id] });
       qc.invalidateQueries({ queryKey: ["doc-tree"] });
+    },
+    onError: (e: any) => {
+      if (e instanceof EntitlementBlockedError) { guard.handleError(e); return; }
+      toast.error(e.message);
     },
   });
 }
