@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { assertEntitlement, decrementUsage, EntitlementBlockedError } from "@/lib/billing/enforcement";
+import { useEntitlementGuard } from "@/components/billing/EntitlementGuardProvider";
 
 export type AutomationTrigger =
   | "task_created"
@@ -112,8 +114,19 @@ type SavePayload = Omit<Automation, "id" | "run_count" | "last_run_at" | "create
 export function useCreateAutomation() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const guard = useEntitlementGuard();
   return useMutation({
     mutationFn: async (a: SavePayload) => {
+      // H5 enforcement: somente quando a automação é criada já ativa.
+      if (a.is_active) {
+        await assertEntitlement({
+          workspaceId: a.workspace_id,
+          featureKey: "automations",
+          incrementBy: 1,
+          action: "automation.create",
+          commitUsage: true,
+        });
+      }
       const { data, error } = await supabase
         .from("automations")
         .insert({
@@ -129,14 +142,23 @@ export function useCreateAutomation() {
         })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        if (a.is_active) await decrementUsage(a.workspace_id, "automations", 1);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["automations"] });
       toast.success("Automação criada");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      if (e instanceof EntitlementBlockedError) {
+        guard.handleError(e);
+        return;
+      }
+      toast.error(e.message);
+    },
   });
 }
 
@@ -168,10 +190,26 @@ export function useUpdateAutomation() {
 
 export function useToggleAutomation() {
   const qc = useQueryClient();
+  const guard = useEntitlementGuard();
   return useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({ id, is_active, workspace_id }: { id: string; is_active: boolean; workspace_id?: string }) => {
+      if (is_active && workspace_id) {
+        await assertEntitlement({
+          workspaceId: workspace_id,
+          featureKey: "automations",
+          incrementBy: 1,
+          action: "automation.activate",
+          commitUsage: true,
+        });
+      }
       const { error } = await supabase.from("automations").update({ is_active }).eq("id", id);
-      if (error) throw error;
+      if (error) {
+        if (is_active && workspace_id) await decrementUsage(workspace_id, "automations", 1);
+        throw error;
+      }
+      if (!is_active && workspace_id) {
+        await decrementUsage(workspace_id, "automations", 1);
+      }
     },
     onMutate: async ({ id, is_active }) => {
       await qc.cancelQueries({ queryKey: ["automations"] });
@@ -182,8 +220,12 @@ export function useToggleAutomation() {
       });
       return { prev };
     },
-    onError: (_e, _v, ctx) => {
+    onError: (e, _v, ctx) => {
       ctx?.prev.forEach(([key, data]) => qc.setQueryData(key, data));
+      if (e instanceof EntitlementBlockedError) {
+        guard.handleError(e);
+        return;
+      }
       toast.error("Falha ao alternar automação");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["automations"] }),
@@ -193,9 +235,12 @@ export function useToggleAutomation() {
 export function useDeleteAutomation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("automations").delete().eq("id", id);
+    mutationFn: async (a: { id: string; workspace_id?: string; is_active?: boolean }) => {
+      const { error } = await supabase.from("automations").delete().eq("id", a.id);
       if (error) throw error;
+      if (a.is_active && a.workspace_id) {
+        await decrementUsage(a.workspace_id, "automations", 1);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["automations"] });

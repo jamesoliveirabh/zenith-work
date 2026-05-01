@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { assertEntitlement, decrementUsage, EntitlementBlockedError } from "@/lib/billing/enforcement";
+import { useEntitlementGuard } from "@/components/billing/EntitlementGuardProvider";
 
 export type GoalFilter = "all" | "mine" | "archived";
 
@@ -98,8 +100,16 @@ export function useGoalDetail(goalId: string | undefined) {
 export function useCreateGoal() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const guard = useEntitlementGuard();
   return useMutation({
     mutationFn: async (input: { workspace_id: string; name: string; color?: string; description?: string; due_date?: string | null; start_date?: string | null }) => {
+      await assertEntitlement({
+        workspaceId: input.workspace_id,
+        featureKey: "active_goals",
+        incrementBy: 1,
+        action: "goal.create",
+        commitUsage: true,
+      });
       const { data, error } = await supabase
         .from("goals")
         .insert({
@@ -114,14 +124,23 @@ export function useCreateGoal() {
         })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        await decrementUsage(input.workspace_id, "active_goals", 1);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["goals"] });
       toast.success("Goal criado");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      if (e instanceof EntitlementBlockedError) {
+        guard.handleError(e);
+        return;
+      }
+      toast.error(e.message);
+    },
   });
 }
 
@@ -143,14 +162,35 @@ export function useUpdateGoal() {
 
 export function useArchiveGoal() {
   const qc = useQueryClient();
+  const guard = useEntitlementGuard();
   return useMutation({
-    mutationFn: async ({ id, archived }: { id: string; archived: boolean }) => {
+    mutationFn: async ({ id, archived, workspace_id }: { id: string; archived: boolean; workspace_id?: string }) => {
+      // Unarchive consome 1 vaga; archive devolve.
+      if (!archived && workspace_id) {
+        await assertEntitlement({
+          workspaceId: workspace_id,
+          featureKey: "active_goals",
+          incrementBy: 1,
+          action: "goal.unarchive",
+          commitUsage: true,
+        });
+      }
       const { error } = await supabase.from("goals").update({ is_archived: archived }).eq("id", id);
-      if (error) throw error;
+      if (error) {
+        if (!archived && workspace_id) await decrementUsage(workspace_id, "active_goals", 1);
+        throw error;
+      }
+      if (archived && workspace_id) {
+        await decrementUsage(workspace_id, "active_goals", 1);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["goals"] });
       toast.success("Goal atualizado");
+    },
+    onError: (e: any) => {
+      if (e instanceof EntitlementBlockedError) { guard.handleError(e); return; }
+      toast.error(e.message);
     },
   });
 }
@@ -158,9 +198,12 @@ export function useArchiveGoal() {
 export function useDeleteGoal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("goals").delete().eq("id", id);
+    mutationFn: async (g: { id: string; workspace_id?: string; is_archived?: boolean }) => {
+      const { error } = await supabase.from("goals").delete().eq("id", g.id);
       if (error) throw error;
+      if (!g.is_archived && g.workspace_id) {
+        await decrementUsage(g.workspace_id, "active_goals", 1);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["goals"] });

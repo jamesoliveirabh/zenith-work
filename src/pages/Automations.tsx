@@ -97,7 +97,7 @@ export default function Automations() {
 
   const handleDelete = async (a: Automation) => {
     if (!confirm(`Remover "${a.name}"?`)) return;
-    await remove.mutateAsync(a.id);
+    await remove.mutateAsync({ id: a.id, workspace_id: a.workspace_id, is_active: a.is_active });
   };
 
   if (!current) return null;
@@ -170,7 +170,7 @@ export default function Automations() {
                       <div className="flex items-center gap-1">
                         <Switch
                           checked={a.is_active}
-                          onCheckedChange={(v) => toggle.mutate({ id: a.id, is_active: v })}
+                          onCheckedChange={(v) => toggle.mutate({ id: a.id, is_active: v, workspace_id: a.workspace_id })}
                         />
                         <Button variant="ghost" size="icon" onClick={() => openEdit(a)} aria-label="Editar">
                           <Pencil className="h-4 w-4" />

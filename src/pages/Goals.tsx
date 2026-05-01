@@ -193,12 +193,12 @@ export default function Goals() {
                         <DropdownMenuItem onClick={() => duplicate.mutate(g)}>
                           <Copy className="h-4 w-4 mr-2" /> Duplicar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => archive.mutate({ id: g.id, archived: !g.is_archived })}>
+                        <DropdownMenuItem onClick={() => archive.mutate({ id: g.id, archived: !g.is_archived, workspace_id: g.workspace_id })}>
                           <Archive className="h-4 w-4 mr-2" /> {g.is_archived ? "Desarquivar" : "Arquivar"}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive" onClick={() => {
-                          if (confirm("Deletar este goal?")) del.mutate(g.id);
+                          if (confirm("Deletar este goal?")) del.mutate({ id: g.id, workspace_id: g.workspace_id, is_archived: g.is_archived });
                         }}>
                           <Trash2 className="h-4 w-4 mr-2" /> Deletar
                         </DropdownMenuItem>
