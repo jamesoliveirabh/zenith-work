@@ -9,6 +9,8 @@ import { RequirePlatformOwner } from "@/components/admin-app/RequirePlatformOwne
 import { AdminLayout } from "@/pages/admin-app/AdminLayout";
 import AdminLogin from "@/pages/admin-app/AdminLogin";
 import AdminDashboard from "@/pages/admin-app/AdminDashboard";
+import AdminClientsList from "@/pages/admin-app/AdminClientsList";
+import AdminClientDetail from "@/pages/admin-app/AdminClientDetail";
 import NotFound from "@/pages/NotFound";
 
 /**
@@ -42,6 +44,8 @@ const AdminApp = () => (
                 }
               >
                 <Route path="/" element={<AdminDashboard />} />
+                <Route path="/clients" element={<AdminClientsList />} />
+                <Route path="/clients/:workspaceId" element={<AdminClientDetail />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
