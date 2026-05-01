@@ -61,6 +61,9 @@ const AdminApp = () => (
                 <Route path="/finance/subscriptions" element={<AdminFinanceSubscriptions />} />
                 <Route path="/finance/invoices" element={<AdminFinanceInvoices />} />
                 <Route path="/finance/dunning" element={<AdminFinanceDunning />} />
+                <Route path="/metrics" element={<AdminMetricsHome />} />
+                <Route path="/metrics/cohorts" element={<AdminMetricsCohorts />} />
+                <Route path="/metrics/funnel" element={<AdminMetricsFunnel />} />
                 <Route
                   path="/security/admin-users"
                   element={
