@@ -41,6 +41,16 @@ export default function BillingSettings() {
     useWorkspaceSubscription(workspaceId);
   const { data: invoices = [], isLoading: loadingInvoices } = useWorkspaceInvoices(workspaceId);
   const { data: events = [], isLoading: loadingEvents } = useBillingEvents(workspaceId);
+  const usage = useWorkspaceUsageEntitlements(workspaceId);
+
+  // TODO(billing-h4): tracking analítico
+  //   billing.usage.warning_shown / critical_shown / billing.upgrade_cta_clicked
+  //   quando infraestrutura de telemetria estiver pronta.
+  const scrollToPlans = () => {
+    document.getElementById('billing-plans-section')?.scrollIntoView({
+      behavior: 'smooth', block: 'start',
+    });
+  };
 
   const createSub = useCreateSubscriptionMock(workspaceId);
   const changePlan = useChangePlanMock(workspaceId);
@@ -144,6 +154,36 @@ export default function BillingSettings() {
       )}
 
       <section className="space-y-3">
+        <div className="flex items-baseline justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-lg font-semibold">Uso do plano</h2>
+            <p className="text-xs text-muted-foreground">
+              Visão dos recursos consumidos vs. os limites do seu plano. Em homologação,
+              nenhum recurso é bloqueado — apenas avisado.
+            </p>
+          </div>
+        </div>
+
+        <UsageAlertsPanel
+          items={usage.items}
+          onUpgrade={scrollToPlans}
+          canMutate={canMutate}
+        />
+
+        {usage.isLoading ? (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}
+          </div>
+        ) : (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {usage.items.map((item) => (
+              <EntitlementUsageCard key={item.featureKey} item={item} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section id="billing-plans-section" className="space-y-3">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-semibold">Planos disponíveis</h2>
           {!subscription && (
