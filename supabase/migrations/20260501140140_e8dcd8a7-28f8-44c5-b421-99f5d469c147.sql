@@ -1,0 +1,1 @@
+UPDATE public.profiles SET is_platform_admin = true WHERE id = '2abb2a8b-e609-49c3-936c-29ee22b84fdb';
