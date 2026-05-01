@@ -45,6 +45,7 @@ interface ActionCtx {
   admin: ReturnType<typeof createClient>;
   userId: string;
   isAdmin: boolean;
+  authToken: string;
 }
 
 async function loadPlan(admin: ActionCtx["admin"], code: string) {
