@@ -2371,6 +2371,10 @@ export type Database = {
         Args: { _event: string; _metadata: Json; _route: string }
         Returns: undefined
       }
+      _mrr_contribution: {
+        Args: { _interval: string; _price_cents: number; _status: string }
+        Returns: number
+      }
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
       admin_billing_account_detail: {
         Args: { _workspace_id: string }
@@ -2843,6 +2847,22 @@ export type Database = {
           workspace_id: string
           workspace_name: string
         }[]
+      }
+      platform_admin_metrics_cohorts: {
+        Args: { _months?: number }
+        Returns: Json
+      }
+      platform_admin_metrics_funnel: {
+        Args: { _from?: string; _plan_code?: string; _to?: string }
+        Returns: Json
+      }
+      platform_admin_metrics_summary: {
+        Args: { _from?: string; _to?: string }
+        Returns: Json
+      }
+      platform_admin_metrics_timeseries: {
+        Args: { _months?: number }
+        Returns: Json
       }
       platform_admin_reactivate_workspace: {
         Args: { _reason: string; _workspace_id: string }
