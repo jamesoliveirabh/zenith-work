@@ -103,6 +103,20 @@ export function AdminLayout() {
               Exports
             </NavLink>
           </CanRole>
+          <CanRole anyOf={["platform_owner", "security_admin", "finance_admin"]}>
+            <NavLink
+              to="/operations"
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-1.5 rounded-md text-sm",
+                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+                )
+              }
+            >
+              <Siren className="h-4 w-4 inline mr-1.5" />
+              Ops
+            </NavLink>
+          </CanRole>
           <CanRole anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}>
             <NavLink
               to="/security/audit"
