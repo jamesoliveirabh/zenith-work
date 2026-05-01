@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock, LineChart } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock, LineChart, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
