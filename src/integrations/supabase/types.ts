@@ -1926,6 +1926,41 @@ export type Database = {
           },
         ]
       }
+      workspace_admin_notes: {
+        Row: {
+          author_email: string | null
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          workspace_id: string
+        }
+        Insert: {
+          author_email?: string | null
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          workspace_id: string
+        }
+        Update: {
+          author_email?: string | null
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_admin_notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_entitlements: {
         Row: {
           created_at: string
@@ -2180,25 +2215,34 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_suspended: boolean
           name: string
           owner_id: string
           slug: string
+          suspended_at: string | null
+          suspended_reason: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_suspended?: boolean
           name: string
           owner_id: string
           slug: string
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_suspended?: boolean
           name?: string
           owner_id?: string
           slug?: string
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2208,6 +2252,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _log_platform_event: {
+        Args: { _event: string; _metadata: Json; _route: string }
+        Returns: undefined
+      }
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
       admin_billing_account_detail: {
         Args: { _workspace_id: string }
@@ -2523,6 +2571,52 @@ export type Database = {
       mark_all_notifications_read: {
         Args: { _workspace_id: string }
         Returns: number
+      }
+      platform_admin_add_note: {
+        Args: { _body: string; _workspace_id: string }
+        Returns: string
+      }
+      platform_admin_client_detail: {
+        Args: { _workspace_id: string }
+        Returns: Json
+      }
+      platform_admin_list_clients: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _limit?: number
+          _offset?: number
+          _plan_code?: string
+          _search?: string
+          _sub_status?: string
+          _suspended_only?: boolean
+        }
+        Returns: {
+          current_period_end: string
+          is_suspended: boolean
+          open_dunning_case_id: string
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          plan_code: string
+          plan_name: string
+          sub_status: string
+          suspended_at: string
+          total_count: number
+          updated_at: string
+          workspace_created_at: string
+          workspace_id: string
+          workspace_name: string
+          workspace_slug: string
+        }[]
+      }
+      platform_admin_reactivate_workspace: {
+        Args: { _reason: string; _workspace_id: string }
+        Returns: undefined
+      }
+      platform_admin_suspend_workspace: {
+        Args: { _reason: string; _workspace_id: string }
+        Returns: undefined
       }
       seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
       task_link_path: { Args: { _task_id: string }; Returns: string }
