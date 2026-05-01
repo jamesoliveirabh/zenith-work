@@ -2610,6 +2610,76 @@ export type Database = {
           workspace_slug: string
         }[]
       }
+      platform_admin_list_dunning: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: {
+          case_id: string
+          created_at: string
+          grace_ends_at: string
+          invoice_id: string
+          next_retry_at: string
+          retry_count: number
+          status: string
+          subscription_id: string
+          total_count: number
+          updated_at: string
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
+      platform_admin_list_invoices: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: {
+          amount_due_cents: number
+          amount_paid_cents: number
+          created_at: string
+          currency: string
+          due_at: string
+          invoice_id: string
+          paid_at: string
+          plan_code: string
+          status: string
+          total_count: number
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
+      platform_admin_list_subscriptions: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _plan_code?: string
+          _search?: string
+          _status?: string
+        }
+        Returns: {
+          cancel_at_period_end: boolean
+          current_period_end: string
+          owner_email: string
+          plan_code: string
+          plan_name: string
+          provider: string
+          status: string
+          subscription_id: string
+          total_count: number
+          trial_ends_at: string
+          updated_at: string
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
       platform_admin_reactivate_workspace: {
         Args: { _reason: string; _workspace_id: string }
         Returns: undefined

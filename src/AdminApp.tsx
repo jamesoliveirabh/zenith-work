@@ -11,6 +11,10 @@ import AdminLogin from "@/pages/admin-app/AdminLogin";
 import AdminDashboard from "@/pages/admin-app/AdminDashboard";
 import AdminClientsList from "@/pages/admin-app/AdminClientsList";
 import AdminClientDetail from "@/pages/admin-app/AdminClientDetail";
+import AdminFinanceHome from "@/pages/admin-app/AdminFinanceHome";
+import AdminFinanceSubscriptions from "@/pages/admin-app/AdminFinanceSubscriptions";
+import AdminFinanceInvoices from "@/pages/admin-app/AdminFinanceInvoices";
+import AdminFinanceDunning from "@/pages/admin-app/AdminFinanceDunning";
 import NotFound from "@/pages/NotFound";
 
 /**
@@ -46,6 +50,10 @@ const AdminApp = () => (
                 <Route path="/" element={<AdminDashboard />} />
                 <Route path="/clients" element={<AdminClientsList />} />
                 <Route path="/clients/:workspaceId" element={<AdminClientDetail />} />
+                <Route path="/finance" element={<AdminFinanceHome />} />
+                <Route path="/finance/subscriptions" element={<AdminFinanceSubscriptions />} />
+                <Route path="/finance/invoices" element={<AdminFinanceInvoices />} />
+                <Route path="/finance/dunning" element={<AdminFinanceDunning />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
@@ -47,6 +47,18 @@ export function AdminLayout() {
           >
             <Users className="h-4 w-4 inline mr-1.5" />
             Clientes
+          </NavLink>
+          <NavLink
+            to="/finance"
+            className={({ isActive }) =>
+              cn(
+                "px-3 py-1.5 rounded-md text-sm",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+              )
+            }
+          >
+            <Wallet className="h-4 w-4 inline mr-1.5" />
+            Finance
           </NavLink>
         </nav>
         <div className="flex-1" />
