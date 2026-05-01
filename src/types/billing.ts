@@ -81,3 +81,64 @@ export interface WorkspaceInvoice {
   created_at: string;
   updated_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// Phase H2 — engine types
+// ---------------------------------------------------------------------------
+
+export type BillingEventType =
+  | 'subscription.created'
+  | 'subscription.plan_changed'
+  | 'subscription.cancel_scheduled'
+  | 'subscription.resumed'
+  | 'subscription.canceled'
+  | 'invoice.created'
+  | 'invoice.paid'
+  | 'invoice.payment_failed';
+
+export type EffectiveMode = 'immediate' | 'next_cycle';
+
+export interface PendingPlanChange {
+  new_plan_id: string;
+  new_plan_code: string;
+  effective_at: string | null;
+  scheduled_at: string;
+}
+
+export interface SubscriptionMetadata {
+  pending_plan_change?: PendingPlanChange | null;
+  [key: string]: unknown;
+}
+
+// DTOs
+export interface CreateSubscriptionInput {
+  workspaceId: string;
+  planCode: string;
+  trialDays?: number;
+  providerEventId?: string;
+}
+
+export interface ChangePlanInput {
+  workspaceId: string;
+  newPlanCode: string;
+  effectiveMode: EffectiveMode;
+}
+
+export interface WorkspaceOnlyInput {
+  workspaceId: string;
+}
+
+export interface GenerateInvoiceInput {
+  workspaceId: string;
+  subscriptionId: string;
+  amountDueCents: number;
+  currency?: string;
+  dueInDays?: number;
+}
+
+export interface InvoiceTargetInput {
+  workspaceId: string;
+  invoiceId: string;
+  finalize?: boolean;
+}
+
