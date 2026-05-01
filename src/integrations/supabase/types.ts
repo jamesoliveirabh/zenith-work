@@ -2551,6 +2551,17 @@ export type Database = {
         }
         Returns: string
       }
+      _seed_homolog_ensure_plans: { Args: never; Returns: undefined }
+      _seed_homolog_reset: { Args: never; Returns: undefined }
+      _seed_homolog_run: { Args: { p_reset?: boolean }; Returns: Json }
+      _seed_homolog_users: {
+        Args: never
+        Returns: {
+          email: string
+          label: string
+          user_id: string
+        }[]
+      }
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
       admin_billing_account_detail: {
         Args: { _workspace_id: string }
