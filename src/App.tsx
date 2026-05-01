@@ -32,6 +32,7 @@ import DocsHome from "./pages/DocsHome";
 import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
+import BillingSettings from "./pages/BillingSettings";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -99,6 +100,7 @@ const App = () => (
                   <Route path="/security/spaces" element={<SpacesAdmin />} />
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                   <Route path="/security/lists/:listId/roles" element={<ListRolePermissions />} />
+                  <Route path="/settings/billing" element={<BillingSettings />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
