@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { AdminThemeProvider } from "@/components/admin-app/AdminThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequirePlatformOwner } from "@/components/admin-app/RequirePlatformOwner";
 import { AdminLayout } from "@/pages/admin-app/AdminLayout";
@@ -42,7 +42,7 @@ const adminQueryClient = new QueryClient({
 
 const AdminApp = () => (
   <QueryClientProvider client={adminQueryClient}>
-    <ThemeProvider>
+    <AdminThemeProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -123,7 +123,7 @@ const AdminApp = () => (
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
-    </ThemeProvider>
+    </AdminThemeProvider>
   </QueryClientProvider>
 );
 

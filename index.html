@@ -23,6 +23,27 @@
 </head>
 
   <body>
+    <script>
+      // Backoffice-only theme pre-bootstrap. Avoids flicker on admin host
+      // by applying the persisted theme class before React mounts.
+      // Customer app keeps its own ThemeProvider untouched.
+      (function () {
+        try {
+          var host = window.location.hostname || "";
+          var isAdmin =
+            host.startsWith("admin.") ||
+            host.indexOf("admin-") !== -1 ||
+            host.indexOf("backoffice") !== -1;
+          if (!isAdmin) return;
+          var stored = localStorage.getItem("backoffice.theme");
+          var theme = stored === "light" || stored === "dark" ? stored : "dark";
+          var root = document.documentElement;
+          root.classList.remove("light", "dark");
+          root.classList.add(theme);
+          root.style.colorScheme = theme;
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
