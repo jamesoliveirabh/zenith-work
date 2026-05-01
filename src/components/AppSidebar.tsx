@@ -5,7 +5,7 @@ import {
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronDown, ChevronRight, FolderKanban, Folder, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Folder, Menu, LogOut, Plus, Check, Users, Users2, Settings2, Zap, Boxes, Shield, Activity, Lock, Target, LayoutGrid, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -364,6 +364,14 @@ export function AppSidebar() {
                       <NavLink to="/settings/fields">
                         <Settings2 className="h-3.5 w-3.5" />
                         <span>Campos Personalizados</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/settings/billing">
+                        <CreditCard className="h-3.5 w-3.5" />
+                        <span>Cobrança</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
