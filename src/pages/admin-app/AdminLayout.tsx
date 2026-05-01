@@ -1,13 +1,16 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
+import { useTrackAdminSession } from "@/hooks/admin/useTrackAdminSession";
+import { CanRole } from "@/components/admin-app/RequireRole";
 import { cn } from "@/lib/utils";
 
 export function AdminLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  useTrackAdminSession();
 
   const handleLogout = async () => {
     await logPlatformAdminEvent("logout", { metadata: { email: user?.email } });

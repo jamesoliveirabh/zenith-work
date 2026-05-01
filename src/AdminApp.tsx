@@ -15,6 +15,10 @@ import AdminFinanceHome from "@/pages/admin-app/AdminFinanceHome";
 import AdminFinanceSubscriptions from "@/pages/admin-app/AdminFinanceSubscriptions";
 import AdminFinanceInvoices from "@/pages/admin-app/AdminFinanceInvoices";
 import AdminFinanceDunning from "@/pages/admin-app/AdminFinanceDunning";
+import AdminSecurityUsers from "@/pages/admin-app/AdminSecurityUsers";
+import AdminSecuritySessions from "@/pages/admin-app/AdminSecuritySessions";
+import AdminSecurityAudit from "@/pages/admin-app/AdminSecurityAudit";
+import { RequireRole } from "@/components/admin-app/RequireRole";
 import NotFound from "@/pages/NotFound";
 
 /**
@@ -54,6 +58,32 @@ const AdminApp = () => (
                 <Route path="/finance/subscriptions" element={<AdminFinanceSubscriptions />} />
                 <Route path="/finance/invoices" element={<AdminFinanceInvoices />} />
                 <Route path="/finance/dunning" element={<AdminFinanceDunning />} />
+                <Route
+                  path="/security/admin-users"
+                  element={
+                    <RequireRole anyOf={["platform_owner", "security_admin"]}>
+                      <AdminSecurityUsers />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="/security/sessions"
+                  element={
+                    <RequireRole anyOf={["platform_owner", "security_admin"]}>
+                      <AdminSecuritySessions />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="/security/audit"
+                  element={
+                    <RequireRole
+                      anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}
+                    >
+                      <AdminSecurityAudit />
+                    </RequireRole>
+                  }
+                />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,18 +1,18 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsPlatformAdmin } from "@/hooks/usePlatformAdmin";
+import { useMyPlatformRoles } from "@/hooks/admin/useSecurity";
 import AdminAccessDenied from "@/pages/admin-app/AdminAccessDenied";
 
 /**
- * Phase P0 — Guard for the platform-owner backoffice.
- * - Unauthenticated → redirect to /login (admin login page).
- * - Authenticated but not platform admin → render AdminAccessDenied (audited).
- * - Authenticated platform admin → render children.
+ * Phase P0/P3 — Backoffice gate.
+ * Allows any user with at least one active platform-admin role
+ * (platform_owner / finance_admin / support_admin / security_admin).
+ * Per-module access is then refined via <RequireRole>.
  */
 export function RequirePlatformOwner({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const { data: isAdmin, isLoading } = useIsPlatformAdmin();
+  const { data: roles, isLoading } = useMyPlatformRoles();
   const location = useLocation();
 
   if (loading || (user && isLoading)) {
@@ -27,7 +27,7 @@ export function RequirePlatformOwner({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (!isAdmin) {
+  if (!roles || roles.length === 0) {
     return <AdminAccessDenied />;
   }
 
