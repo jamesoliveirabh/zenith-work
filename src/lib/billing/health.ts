@@ -49,13 +49,13 @@ export async function checkBillingHealth(): Promise<BillingHealthReport> {
   // 1. Plans table reachable
   const plans = await timed(async () => {
     const { error, count } = await supabase
-      .from('billing_plans')
+      .from('plans')
       .select('id', { count: 'exact', head: true });
     if (error) throw error;
     return count ?? 0;
   });
   components.push({
-    name: 'db.billing_plans',
+    name: 'db.plans',
     status: plans.error ? 'down' : 'ok',
     latency_ms: plans.ms,
     detail: plans.error ? String((plans.error as Error)?.message ?? plans.error) : undefined,

@@ -91,7 +91,7 @@ export async function runBillingPreflight(): Promise<PreflightReport> {
 
   // 3. Open invoices older than 30 days (potential stuck billing)
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const stale = await countWhere('billing_invoices', (q) =>
+  const stale = await countWhere('workspace_invoices', (q) =>
     q.select('id, workspace_id, status, created_at', { count: 'exact' })
       .eq('status', 'open')
       .lt('created_at', cutoff)
