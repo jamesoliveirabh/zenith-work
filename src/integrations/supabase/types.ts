@@ -1237,6 +1237,45 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admin_exports_log: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          created_at: string
+          dataset: string
+          filters: Json
+          id: string
+          ip: string | null
+          row_count: number
+          source: string
+          user_agent: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          dataset: string
+          filters?: Json
+          id?: string
+          ip?: string | null
+          row_count?: number
+          source?: string
+          user_agent?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          dataset?: string
+          filters?: Json
+          id?: string
+          ip?: string | null
+          row_count?: number
+          source?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       platform_admin_roles: {
         Row: {
           expires_at: string | null
@@ -2434,6 +2473,15 @@ export type Database = {
         Args: { _interval: string; _price_cents: number; _status: string }
         Returns: number
       }
+      _platform_admin_log_export: {
+        Args: {
+          _dataset: string
+          _filters: Json
+          _row_count: number
+          _source?: string
+        }
+        Returns: string
+      }
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
       admin_billing_account_detail: {
         Args: { _workspace_id: string }
@@ -2766,6 +2814,124 @@ export type Database = {
         Args: { _workspace_id: string }
         Returns: Json
       }
+      platform_admin_export_audit: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _event?: string
+          _search?: string
+          _source?: string
+        }
+        Returns: {
+          admin_user_id: string
+          created_at: string
+          email: string
+          event: string
+          id: string
+          ip: string
+          metadata: Json
+          route: string
+          user_agent: string
+        }[]
+      }
+      platform_admin_export_clients: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _plan_code?: string
+          _search?: string
+          _source?: string
+          _sub_status?: string
+          _suspended_only?: boolean
+        }
+        Returns: {
+          current_period_end: string
+          is_suspended: boolean
+          member_count: number
+          owner_email: string
+          owner_name: string
+          plan_code: string
+          plan_name: string
+          sub_status: string
+          suspended_at: string
+          trial_ends_at: string
+          workspace_created_at: string
+          workspace_id: string
+          workspace_name: string
+          workspace_slug: string
+        }[]
+      }
+      platform_admin_export_dunning: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _search?: string
+          _source?: string
+          _status?: string
+        }
+        Returns: {
+          case_id: string
+          closed_at: string
+          created_at: string
+          grace_ends_at: string
+          invoice_id: string
+          next_retry_at: string
+          retry_count: number
+          status: string
+          subscription_id: string
+          updated_at: string
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
+      platform_admin_export_invoices: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _search?: string
+          _source?: string
+          _status?: string
+        }
+        Returns: {
+          amount_due_cents: number
+          amount_paid_cents: number
+          created_at: string
+          currency: string
+          due_at: string
+          invoice_id: string
+          paid_at: string
+          plan_code: string
+          status: string
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
+      platform_admin_export_subscriptions: {
+        Args: {
+          _created_after?: string
+          _created_before?: string
+          _plan_code?: string
+          _search?: string
+          _source?: string
+          _status?: string
+        }
+        Returns: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          owner_email: string
+          plan_code: string
+          plan_name: string
+          provider: string
+          status: string
+          subscription_id: string
+          trial_ends_at: string
+          updated_at: string
+          workspace_id: string
+          workspace_name: string
+        }[]
+      }
       platform_admin_grant_role: {
         Args: {
           _reason: string
@@ -2857,6 +3023,19 @@ export type Database = {
           updated_at: string
           workspace_id: string
           workspace_name: string
+        }[]
+      }
+      platform_admin_list_exports: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          actor_email: string
+          created_at: string
+          dataset: string
+          filters: Json
+          id: string
+          row_count: number
+          source: string
+          total_count: number
         }[]
       }
       platform_admin_list_invoices: {
