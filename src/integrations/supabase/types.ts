@@ -2557,9 +2557,9 @@ export type Database = {
       _seed_homolog_users: {
         Args: never
         Returns: {
-          email: string
-          label: string
-          user_id: string
+          out_email: string
+          out_label: string
+          out_user_id: string
         }[]
       }
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
