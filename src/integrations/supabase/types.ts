@@ -1237,32 +1237,143 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admin_roles: {
+        Row: {
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          granted_reason: string | null
+          id: string
+          is_active: boolean
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
+          role: Database["public"]["Enums"]["platform_admin_role"]
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          granted_reason?: string | null
+          id?: string
+          is_active?: boolean
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          role: Database["public"]["Enums"]["platform_admin_role"]
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          granted_reason?: string | null
+          id?: string
+          is_active?: boolean
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          role?: Database["public"]["Enums"]["platform_admin_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_admin_sessions: {
+        Row: {
+          email: string | null
+          ended_at: string | null
+          ended_reason: string | null
+          id: string
+          ip: string | null
+          last_seen_at: string
+          metadata: Json
+          started_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          email?: string | null
+          ended_at?: string | null
+          ended_reason?: string | null
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          started_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          email?: string | null
+          ended_at?: string | null
+          ended_reason?: string | null
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          metadata?: Json
+          started_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_admin_settings: {
+        Row: {
+          id: boolean
+          mfa_enforcement_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          mfa_enforcement_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          mfa_enforcement_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          admin_disabled_at: string | null
+          admin_disabled_reason: string | null
           avatar_url: string | null
           created_at: string
           display_name: string | null
           email: string | null
           id: string
           is_platform_admin: boolean
+          mfa_required: boolean
           updated_at: string
         }
         Insert: {
+          admin_disabled_at?: string | null
+          admin_disabled_reason?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id: string
           is_platform_admin?: boolean
+          mfa_required?: boolean
           updated_at?: string
         }
         Update: {
+          admin_disabled_at?: string | null
+          admin_disabled_reason?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
           is_platform_admin?: boolean
+          mfa_required?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -2252,6 +2363,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _log_platform_admin_event: {
+        Args: { _event: string; _metadata?: Json }
+        Returns: undefined
+      }
       _log_platform_event: {
         Args: { _event: string; _metadata: Json; _route: string }
         Returns: undefined
@@ -2531,6 +2646,14 @@ export type Database = {
         Args: { _key: string; _list: string; _user: string }
         Returns: boolean
       }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_admin_role"]
+          _user: string
+        }
+        Returns: boolean
+      }
+      is_any_platform_admin: { Args: { _user: string }; Returns: boolean }
       is_gestor_of_space: {
         Args: { _space: string; _user: string }
         Returns: boolean
@@ -2579,6 +2702,47 @@ export type Database = {
       platform_admin_client_detail: {
         Args: { _workspace_id: string }
         Returns: Json
+      }
+      platform_admin_grant_role: {
+        Args: {
+          _reason: string
+          _role: Database["public"]["Enums"]["platform_admin_role"]
+          _target_user: string
+        }
+        Returns: string
+      }
+      platform_admin_list_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          is_disabled: boolean
+          last_seen_at: string
+          mfa_required: boolean
+          roles: string[]
+          user_id: string
+        }[]
+      }
+      platform_admin_list_audit: {
+        Args: {
+          _event?: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+        }
+        Returns: {
+          admin_user_id: string
+          created_at: string
+          email: string
+          event: string
+          id: string
+          ip: string
+          metadata: Json
+          route: string
+          total_count: number
+          user_agent: string
+        }[]
       }
       platform_admin_list_clients: {
         Args: {
@@ -2684,6 +2848,26 @@ export type Database = {
         Args: { _reason: string; _workspace_id: string }
         Returns: undefined
       }
+      platform_admin_revoke_role: {
+        Args: {
+          _reason: string
+          _role: Database["public"]["Enums"]["platform_admin_role"]
+          _target_user: string
+        }
+        Returns: undefined
+      }
+      platform_admin_revoke_session: {
+        Args: { _reason: string; _session_id: string }
+        Returns: undefined
+      }
+      platform_admin_set_disabled: {
+        Args: { _disabled: boolean; _reason: string; _target_user: string }
+        Returns: undefined
+      }
+      platform_admin_set_mfa_enforcement: {
+        Args: { _enabled: boolean; _reason: string }
+        Returns: undefined
+      }
       platform_admin_suspend_workspace: {
         Args: { _reason: string; _workspace_id: string }
         Returns: undefined
@@ -2755,6 +2939,11 @@ export type Database = {
         | "task_completed"
         | "invitation_accepted"
       org_role: "admin" | "gestor" | "member"
+      platform_admin_role:
+        | "platform_owner"
+        | "finance_admin"
+        | "support_admin"
+        | "security_admin"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_relation_type: "blocks" | "relates_to" | "duplicates"
       team_role: "gestor" | "member"
@@ -2946,6 +3135,12 @@ export const Constants = {
         "invitation_accepted",
       ],
       org_role: ["admin", "gestor", "member"],
+      platform_admin_role: [
+        "platform_owner",
+        "finance_admin",
+        "support_admin",
+        "security_admin",
+      ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_relation_type: ["blocks", "relates_to", "duplicates"],
       team_role: ["gestor", "member"],

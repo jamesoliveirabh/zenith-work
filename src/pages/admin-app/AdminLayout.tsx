@@ -1,13 +1,16 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
+import { useTrackAdminSession } from "@/hooks/admin/useTrackAdminSession";
+import { CanRole } from "@/components/admin-app/RequireRole";
 import { cn } from "@/lib/utils";
 
 export function AdminLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  useTrackAdminSession();
 
   const handleLogout = async () => {
     await logPlatformAdminEvent("logout", { metadata: { email: user?.email } });
@@ -60,6 +63,20 @@ export function AdminLayout() {
             <Wallet className="h-4 w-4 inline mr-1.5" />
             Finance
           </NavLink>
+          <CanRole anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}>
+            <NavLink
+              to="/security/audit"
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-1.5 rounded-md text-sm",
+                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+                )
+              }
+            >
+              <Lock className="h-4 w-4 inline mr-1.5" />
+              Security
+            </NavLink>
+          </CanRole>
         </nav>
         <div className="flex-1" />
         <div className="text-xs text-muted-foreground">{user?.email}</div>
