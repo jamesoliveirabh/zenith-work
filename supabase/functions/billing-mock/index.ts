@@ -589,7 +589,7 @@ async function actDunningExtendGrace(ctx: ActionCtx, body: Json) {
 
   // Use user JWT so the SECURITY DEFINER RPC sees auth.uid() correctly.
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${(_lastAuth as string)}` } },
+    global: { headers: { Authorization: `Bearer ${ctx.authToken}` } },
   });
   const { data, error } = await userClient.rpc("billing_dunning_extend_grace", {
     _case_id: caseId, _additional_days: days, _reason: reason,
@@ -604,7 +604,7 @@ async function actDunningCancelNonpayment(ctx: ActionCtx, body: Json) {
   if (!caseId || !reason) return bad("caseId and reason required");
 
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${(_lastAuth as string)}` } },
+    global: { headers: { Authorization: `Bearer ${ctx.authToken}` } },
   });
   const { data, error } = await userClient.rpc("billing_dunning_cancel_for_nonpayment", {
     _case_id: caseId, _reason: reason,
@@ -720,7 +720,7 @@ Deno.serve(async (req) => {
     if (!count || count < 1) return bad("Forbidden", 403);
   }
 
-  const ctx: ActionCtx = { admin, userId, isAdmin: true };
+  const ctx: ActionCtx = { admin, userId, isAdmin: true, authToken: authHeader.replace("Bearer ", "") };
 
   try {
     return await def.handler(ctx, body);
