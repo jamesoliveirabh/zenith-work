@@ -8,9 +8,9 @@ import type {
   WorkspaceOnlyInput,
 } from '@/types/billing';
 
-async function call<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+async function call<T>(action: string, payload: object): Promise<T> {
   const { data, error } = await supabase.functions.invoke('billing-mock', {
-    body: { action, ...payload },
+    body: { action, ...(payload as Record<string, unknown>) },
   });
   if (error) throw new Error(error.message);
   if (data && typeof data === 'object' && 'error' in data && data.error) {
