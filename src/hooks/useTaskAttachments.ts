@@ -143,13 +143,30 @@ export async function uploadAttachment(taskId: string, input: UploadInput): Prom
 
 export function useUploadAttachment(taskId: string, listId?: string) {
   const qc = useQueryClient();
+  const guard = useEntitlementGuard();
   return useMutation({
-    mutationFn: (input: UploadInput) => uploadAttachment(taskId, input),
+    mutationFn: async (input: UploadInput) => {
+      const sizeGb = input.file.size / (1024 * 1024 * 1024);
+      // Storage é medido em GB (inteiro). Para uploads pequenos, increment≈0
+      // ainda valida limite atual (uso vs limite) — útil quando já estourou.
+      await assertEntitlement({
+        workspaceId: input.workspaceId,
+        featureKey: "storage_gb",
+        incrementBy: Math.max(0, Math.ceil(sizeGb)),
+        action: "attachment.upload",
+        commitUsage: false, // contabilidade real vem de query agregada de bytes
+        context: { filename: input.file.name, size_bytes: input.file.size },
+      });
+      return uploadAttachment(taskId, input);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: attachmentsKey(taskId) });
       if (listId) qc.invalidateQueries({ queryKey: tasksKey(listId) });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof EntitlementBlockedError) { guard.handleError(e); return; }
+      toast.error(e.message);
+    },
   });
 }
 
