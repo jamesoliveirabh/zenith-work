@@ -222,6 +222,123 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_enforcement_logs: {
+        Row: {
+          action: string
+          context: Json | null
+          created_at: string
+          current_usage: number | null
+          decision: string
+          feature_key: string
+          id: string
+          increment_by: number | null
+          limit_value: number | null
+          mode: string
+          reason_code: string | null
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          context?: Json | null
+          created_at?: string
+          current_usage?: number | null
+          decision: string
+          feature_key: string
+          id?: string
+          increment_by?: number | null
+          limit_value?: number | null
+          mode: string
+          reason_code?: string | null
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          context?: Json | null
+          created_at?: string
+          current_usage?: number | null
+          decision?: string
+          feature_key?: string
+          id?: string
+          increment_by?: number | null
+          limit_value?: number | null
+          mode?: string
+          reason_code?: string | null
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      billing_enforcement_overrides: {
+        Row: {
+          allowlisted: boolean
+          applied_by: string | null
+          created_at: string
+          feature_key: string | null
+          id: string
+          mode: string | null
+          override_until: string | null
+          reason: string
+          workspace_id: string
+        }
+        Insert: {
+          allowlisted?: boolean
+          applied_by?: string | null
+          created_at?: string
+          feature_key?: string | null
+          id?: string
+          mode?: string | null
+          override_until?: string | null
+          reason: string
+          workspace_id: string
+        }
+        Update: {
+          allowlisted?: boolean
+          applied_by?: string | null
+          created_at?: string
+          feature_key?: string | null
+          id?: string
+          mode?: string | null
+          override_until?: string | null
+          reason?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      billing_enforcement_settings: {
+        Row: {
+          default_mode: string
+          enabled: boolean
+          environment: string
+          feature_modes: Json
+          id: string
+          kill_switch: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          default_mode?: string
+          enabled?: boolean
+          environment?: string
+          feature_modes?: Json
+          id?: string
+          kill_switch?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          default_mode?: string
+          enabled?: boolean
+          environment?: string
+          feature_modes?: Json
+          id?: string
+          kill_switch?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       billing_events: {
         Row: {
           created_at: string
@@ -1889,7 +2006,37 @@ export type Database = {
     }
     Functions: {
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
+      billing_apply_override: {
+        Args: {
+          _allowlisted: boolean
+          _feature_key: string
+          _mode: string
+          _override_until: string
+          _reason: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
+      billing_check_entitlement: {
+        Args: {
+          _action?: string
+          _commit_usage?: boolean
+          _context?: Json
+          _feature_key: string
+          _increment_by?: number
+          _workspace_id: string
+        }
+        Returns: Json
+      }
       billing_close_expired_cancellations: { Args: never; Returns: number }
+      billing_decrement_usage: {
+        Args: {
+          _decrement_by?: number
+          _feature_key: string
+          _workspace_id: string
+        }
+        Returns: undefined
+      }
       billing_record_event: {
         Args: {
           _event_type: string
