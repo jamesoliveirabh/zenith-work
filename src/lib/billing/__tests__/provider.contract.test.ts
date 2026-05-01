@@ -57,8 +57,8 @@ describe('BillingProvider contract', () => {
       closeExpiredCancellations: async () => ({ closed: 0 }),
     };
     assertProviderShape(stub);
-    expect(stub.createSubscription({ workspace_id: 'w', plan_code: 'free' })).toBeInstanceOf(Promise);
-    expect(stub.cancelSubscription({ workspace_id: 'w' })).toBeInstanceOf(Promise);
+    expect(stub.createSubscription({ workspaceId: 'w', planCode: 'free' })).toBeInstanceOf(Promise);
+    expect(stub.cancelSubscription({ workspaceId: 'w' })).toBeInstanceOf(Promise);
   });
 
   it('change-plan response carries a recognized mode (forward-compatible)', async () => {
@@ -66,7 +66,7 @@ describe('BillingProvider contract', () => {
       ...mockBillingProvider,
       changePlan: async () => ({ mode: 'next_cycle', effective_at: '2030-01-01' }),
     };
-    const res = await stub.changePlan({ workspace_id: 'w', new_plan_code: 'pro', mode: 'next_cycle' });
+    const res = await stub.changePlan({ workspaceId: 'w', newPlanCode: 'pro', effectiveMode: 'next_cycle' });
     expect(['immediate', 'next_cycle']).toContain(res.mode);
   });
 });
