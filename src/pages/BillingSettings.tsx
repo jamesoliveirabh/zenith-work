@@ -15,6 +15,10 @@ import { PlanComparisonGrid } from '@/components/billing/PlanComparisonGrid';
 import { InvoiceTable } from '@/components/billing/InvoiceTable';
 import { BillingEventsTimeline } from '@/components/billing/BillingEventsTimeline';
 import { BillingActionButtons } from '@/components/billing/BillingActionButtons';
+import { EntitlementUsageCard } from '@/components/billing/EntitlementUsageCard';
+import { UsageAlertsPanel } from '@/components/billing/UsageAlertsPanel';
+import { useWorkspaceUsageEntitlements } from '@/hooks/useWorkspaceUsageEntitlements';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
