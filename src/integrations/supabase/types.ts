@@ -222,6 +222,170 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_dunning_attempts: {
+        Row: {
+          attempt_number: number
+          attempted_at: string
+          created_at: string
+          dunning_case_id: string
+          id: string
+          metadata: Json
+          reason: string | null
+          result: string
+          workspace_id: string
+        }
+        Insert: {
+          attempt_number: number
+          attempted_at?: string
+          created_at?: string
+          dunning_case_id: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          result: string
+          workspace_id: string
+        }
+        Update: {
+          attempt_number?: number
+          attempted_at?: string
+          created_at?: string
+          dunning_case_id?: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          result?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_dunning_attempts_dunning_case_id_fkey"
+            columns: ["dunning_case_id"]
+            isOneToOne: false
+            referencedRelation: "billing_dunning_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_dunning_cases: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          grace_ends_at: string | null
+          id: string
+          invoice_id: string
+          metadata: Json
+          next_retry_at: string | null
+          reason: string | null
+          retry_count: number
+          status: string
+          subscription_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          grace_ends_at?: string | null
+          id?: string
+          invoice_id: string
+          metadata?: Json
+          next_retry_at?: string | null
+          reason?: string | null
+          retry_count?: number
+          status?: string
+          subscription_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          grace_ends_at?: string | null
+          id?: string
+          invoice_id?: string
+          metadata?: Json
+          next_retry_at?: string | null
+          reason?: string | null
+          retry_count?: number
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      billing_dunning_policies: {
+        Row: {
+          auto_cancel_after_grace: boolean
+          created_at: string
+          enforcement_mode_during_past_due: string
+          grace_period_days: number
+          id: string
+          max_retries: number
+          pause_features_during_past_due: boolean
+          retry_schedule_days: number[]
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          auto_cancel_after_grace?: boolean
+          created_at?: string
+          enforcement_mode_during_past_due?: string
+          grace_period_days?: number
+          id?: string
+          max_retries?: number
+          pause_features_during_past_due?: boolean
+          retry_schedule_days?: number[]
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          auto_cancel_after_grace?: boolean
+          created_at?: string
+          enforcement_mode_during_past_due?: string
+          grace_period_days?: number
+          id?: string
+          max_retries?: number
+          pause_features_during_past_due?: boolean
+          retry_schedule_days?: number[]
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      billing_email_outbox: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          recipient_email: string | null
+          recipient_user_id: string | null
+          sent_at: string | null
+          template: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          recipient_email?: string | null
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          template: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          recipient_email?: string | null
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          template?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       billing_enforcement_logs: {
         Row: {
           action: string
@@ -2036,6 +2200,125 @@ export type Database = {
           _workspace_id: string
         }
         Returns: undefined
+      }
+      billing_dunning_cancel_for_nonpayment: {
+        Args: { _case_id: string; _reason: string }
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          grace_ends_at: string | null
+          id: string
+          invoice_id: string
+          metadata: Json
+          next_retry_at: string | null
+          reason: string | null
+          retry_count: number
+          status: string
+          subscription_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "billing_dunning_cases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      billing_dunning_compute_next_retry: {
+        Args: { _attempt_count: number; _schedule: number[] }
+        Returns: string
+      }
+      billing_dunning_extend_grace: {
+        Args: { _additional_days: number; _case_id: string; _reason: string }
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          grace_ends_at: string | null
+          id: string
+          invoice_id: string
+          metadata: Json
+          next_retry_at: string | null
+          reason: string | null
+          retry_count: number
+          status: string
+          subscription_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "billing_dunning_cases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      billing_dunning_get_policy: {
+        Args: { _workspace_id: string }
+        Returns: {
+          auto_cancel_after_grace: boolean
+          created_at: string
+          enforcement_mode_during_past_due: string
+          grace_period_days: number
+          id: string
+          max_retries: number
+          pause_features_during_past_due: boolean
+          retry_schedule_days: number[]
+          updated_at: string
+          workspace_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "billing_dunning_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      billing_dunning_list_due: {
+        Args: { _limit?: number; _now?: string }
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          grace_ends_at: string | null
+          id: string
+          invoice_id: string
+          metadata: Json
+          next_retry_at: string | null
+          reason: string | null
+          retry_count: number
+          status: string
+          subscription_id: string
+          updated_at: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "billing_dunning_cases"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      billing_dunning_open_case: {
+        Args: {
+          _invoice_id: string
+          _reason?: string
+          _subscription_id: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
+      billing_dunning_process_expired_grace: {
+        Args: { _now?: string }
+        Returns: number
+      }
+      billing_dunning_record_attempt: {
+        Args: {
+          _case_id: string
+          _metadata?: Json
+          _reason?: string
+          _result: string
+        }
+        Returns: Json
       }
       billing_record_event: {
         Args: {
