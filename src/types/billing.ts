@@ -142,3 +142,20 @@ export interface InvoiceTargetInput {
   finalize?: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Phase H4 — usage / entitlements view types
+// ---------------------------------------------------------------------------
+
+export type UsageStatus = 'ok' | 'warning' | 'critical' | 'unlimited';
+
+export interface UsageItem {
+  featureKey: string;
+  label: string;
+  unit?: string;
+  currentUsage: number;
+  limitValue: number | null; // null = ilimitado
+  usagePct: number | null;
+  status: UsageStatus;
+}
+
+
