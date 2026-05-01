@@ -1237,6 +1237,51 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admin_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          title: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       platform_admin_exports_log: {
         Row: {
           actor_email: string | null
@@ -1373,6 +1418,30 @@ export type Database = {
         Update: {
           id?: boolean
           mfa_enforcement_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      platform_feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          key?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -2810,6 +2879,40 @@ export type Database = {
         Args: { _body: string; _workspace_id: string }
         Returns: string
       }
+      platform_admin_alert_ack: { Args: { _id: string }; Returns: undefined }
+      platform_admin_alert_resolve: {
+        Args: { _id: string; _note: string }
+        Returns: undefined
+      }
+      platform_admin_alerts_check: {
+        Args: never
+        Returns: {
+          created: number
+        }[]
+      }
+      platform_admin_alerts_list: {
+        Args: { _limit?: number; _status?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          title: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "platform_admin_alerts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       platform_admin_client_detail: {
         Args: { _workspace_id: string }
         Returns: Json
@@ -2931,6 +3034,26 @@ export type Database = {
           workspace_id: string
           workspace_name: string
         }[]
+      }
+      platform_admin_flag_list: {
+        Args: never
+        Returns: {
+          description: string | null
+          enabled: boolean
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "platform_feature_flags"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      platform_admin_flag_set: {
+        Args: { _enabled: boolean; _key: string; _reason: string }
+        Returns: undefined
       }
       platform_admin_grant_role: {
         Args: {
@@ -3144,6 +3267,7 @@ export type Database = {
         Args: { _reason: string; _workspace_id: string }
         Returns: undefined
       }
+      platform_kill_switch_active: { Args: never; Returns: boolean }
       seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
       task_link_path: { Args: { _task_id: string }; Returns: string }
       tiptap_to_text: { Args: { _doc: Json }; Returns: string }
