@@ -166,7 +166,20 @@ export default function BillingSettings() {
         />
       )}
 
-      <section className="space-y-3">
+      <DunningStatusCard
+        activeCase={activeCase ?? null}
+        policy={dunningPolicy ?? null}
+        loading={loadingCase}
+        canMutate={canMutate}
+        isSimulating={simulatePM.isPending}
+        isRetrying={retrySuccess.isPending}
+        onSimulatePaymentMethod={() => simulatePM.mutate()}
+        onRetryNow={() => activeCase && retrySuccess.mutate(activeCase.id)}
+      />
+
+      {activeCase && (
+        <DunningTimeline attempts={attempts} loading={loadingAttempts} />
+      )}
         <div className="flex items-baseline justify-between flex-wrap gap-2">
           <div>
             <h2 className="text-lg font-semibold">Uso do plano</h2>
