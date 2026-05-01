@@ -235,9 +235,12 @@ export function useToggleAutomation() {
 export function useDeleteAutomation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("automations").delete().eq("id", id);
+    mutationFn: async (a: { id: string; workspace_id?: string; is_active?: boolean }) => {
+      const { error } = await supabase.from("automations").delete().eq("id", a.id);
       if (error) throw error;
+      if (a.is_active && a.workspace_id) {
+        await decrementUsage(a.workspace_id, "automations", 1);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["automations"] });
