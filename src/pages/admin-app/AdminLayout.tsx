@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-app/AdminSidebar";
 import { useTrackAdminSession } from "@/hooks/admin/useTrackAdminSession";
+import { AdminThemeToggle } from "@/components/admin-app/AdminThemeToggle";
 
 const SIDEBAR_PREF_KEY = "platform.sidebar.collapsed";
 
@@ -36,6 +37,9 @@ export function AdminLayout() {
             />
             <div className="text-sm font-medium text-muted-foreground">
               Platform Backoffice
+            </div>
+            <div className="ml-auto flex items-center gap-1">
+              <AdminThemeToggle />
             </div>
           </header>
           <main className="flex-1 overflow-auto">
