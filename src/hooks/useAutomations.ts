@@ -190,10 +190,26 @@ export function useUpdateAutomation() {
 
 export function useToggleAutomation() {
   const qc = useQueryClient();
+  const guard = useEntitlementGuard();
   return useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({ id, is_active, workspace_id }: { id: string; is_active: boolean; workspace_id?: string }) => {
+      if (is_active && workspace_id) {
+        await assertEntitlement({
+          workspaceId: workspace_id,
+          featureKey: "automations",
+          incrementBy: 1,
+          action: "automation.activate",
+          commitUsage: true,
+        });
+      }
       const { error } = await supabase.from("automations").update({ is_active }).eq("id", id);
-      if (error) throw error;
+      if (error) {
+        if (is_active && workspace_id) await decrementUsage(workspace_id, "automations", 1);
+        throw error;
+      }
+      if (!is_active && workspace_id) {
+        await decrementUsage(workspace_id, "automations", 1);
+      }
     },
     onMutate: async ({ id, is_active }) => {
       await qc.cancelQueries({ queryKey: ["automations"] });
@@ -204,8 +220,12 @@ export function useToggleAutomation() {
       });
       return { prev };
     },
-    onError: (_e, _v, ctx) => {
+    onError: (e, _v, ctx) => {
       ctx?.prev.forEach(([key, data]) => qc.setQueryData(key, data));
+      if (e instanceof EntitlementBlockedError) {
+        guard.handleError(e);
+        return;
+      }
       toast.error("Falha ao alternar automação");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["automations"] }),
