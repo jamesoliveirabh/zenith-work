@@ -1796,6 +1796,7 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          metadata: Json
           plan_id: string | null
           provider_customer_id: string | null
           provider_subscription_id: string | null
@@ -1812,6 +1813,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          metadata?: Json
           plan_id?: string | null
           provider_customer_id?: string | null
           provider_subscription_id?: string | null
@@ -1828,6 +1830,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          metadata?: Json
           plan_id?: string | null
           provider_customer_id?: string | null
           provider_subscription_id?: string | null
@@ -1886,6 +1889,22 @@ export type Database = {
     }
     Functions: {
       accept_workspace_invitation: { Args: { _token: string }; Returns: string }
+      billing_close_expired_cancellations: { Args: never; Returns: number }
+      billing_record_event: {
+        Args: {
+          _event_type: string
+          _payload: Json
+          _provider: string
+          _provider_event_id?: string
+          _subscription_id: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
+      billing_sync_entitlements: {
+        Args: { _plan_id: string; _workspace_id: string }
+        Returns: undefined
+      }
       calculate_goal_progress: { Args: { _goal_id: string }; Returns: number }
       can_access_space: {
         Args: { _space: string; _user: string }
