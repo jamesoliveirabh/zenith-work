@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock } from "lucide-react";
+import { LogOut, ShieldCheck, LayoutDashboard, Users, Wallet, Lock, LineChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { logPlatformAdminEvent } from "@/lib/admin/audit";
@@ -62,6 +62,18 @@ export function AdminLayout() {
           >
             <Wallet className="h-4 w-4 inline mr-1.5" />
             Finance
+          </NavLink>
+          <NavLink
+            to="/metrics"
+            className={({ isActive }) =>
+              cn(
+                "px-3 py-1.5 rounded-md text-sm",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/60",
+              )
+            }
+          >
+            <LineChart className="h-4 w-4 inline mr-1.5" />
+            Métricas
           </NavLink>
           <CanRole anyOf={["platform_owner", "security_admin", "finance_admin", "support_admin"]}>
             <NavLink

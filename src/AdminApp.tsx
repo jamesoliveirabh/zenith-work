@@ -15,6 +15,9 @@ import AdminFinanceHome from "@/pages/admin-app/AdminFinanceHome";
 import AdminFinanceSubscriptions from "@/pages/admin-app/AdminFinanceSubscriptions";
 import AdminFinanceInvoices from "@/pages/admin-app/AdminFinanceInvoices";
 import AdminFinanceDunning from "@/pages/admin-app/AdminFinanceDunning";
+import AdminMetricsHome from "@/pages/admin-app/AdminMetricsHome";
+import AdminMetricsCohorts from "@/pages/admin-app/AdminMetricsCohorts";
+import AdminMetricsFunnel from "@/pages/admin-app/AdminMetricsFunnel";
 import AdminSecurityUsers from "@/pages/admin-app/AdminSecurityUsers";
 import AdminSecuritySessions from "@/pages/admin-app/AdminSecuritySessions";
 import AdminSecurityAudit from "@/pages/admin-app/AdminSecurityAudit";
@@ -58,6 +61,9 @@ const AdminApp = () => (
                 <Route path="/finance/subscriptions" element={<AdminFinanceSubscriptions />} />
                 <Route path="/finance/invoices" element={<AdminFinanceInvoices />} />
                 <Route path="/finance/dunning" element={<AdminFinanceDunning />} />
+                <Route path="/metrics" element={<AdminMetricsHome />} />
+                <Route path="/metrics/cohorts" element={<AdminMetricsCohorts />} />
+                <Route path="/metrics/funnel" element={<AdminMetricsFunnel />} />
                 <Route
                   path="/security/admin-users"
                   element={
