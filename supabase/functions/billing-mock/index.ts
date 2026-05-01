@@ -45,6 +45,7 @@ interface ActionCtx {
   admin: ReturnType<typeof createClient>;
   userId: string;
   isAdmin: boolean;
+  authToken: string;
 }
 
 async function loadPlan(admin: ActionCtx["admin"], code: string) {
@@ -487,7 +488,158 @@ async function actSimulateFailure(ctx: ActionCtx, body: Json) {
     payload: { invoice_id: invoiceId, finalize, new_status: newStatus },
   });
 
-  return jsonResponse({ ok: true, invoice_status: newStatus });
+  // Open or reuse dunning case (idempotent)
+  let dunningCaseId: string | null = null;
+  if (inv.subscription_id && !finalize) {
+    const { data: caseId, error: dErr } = await ctx.admin.rpc("billing_dunning_open_case", {
+      _workspace_id: workspaceId,
+      _subscription_id: inv.subscription_id,
+      _invoice_id: invoiceId,
+      _reason: String(body.reason ?? "card_declined_mock"),
+    });
+    if (dErr) return bad(dErr.message, 500);
+    dunningCaseId = caseId as string;
+  }
+
+  return jsonResponse({ ok: true, invoice_status: newStatus, dunning_case_id: dunningCaseId });
+}
+
+// ----- Dunning actions (Phase H6) -----
+
+async function actDunningRecordAttempt(ctx: ActionCtx, body: Json) {
+  const caseId = String(body.caseId ?? "");
+  const result = String(body.result ?? "");
+  if (!caseId) return bad("caseId required");
+  if (!["paid", "failed", "skipped"].includes(result))
+    return bad("result must be paid|failed|skipped");
+
+  // Authorize: caller must be admin of the case's workspace
+  const { data: caseRow } = await ctx.admin
+    .from("billing_dunning_cases")
+    .select("workspace_id")
+    .eq("id", caseId)
+    .maybeSingle();
+  if (!caseRow) return bad("dunning case not found", 404);
+  const { data: isAdmin } = await ctx.admin.rpc("is_workspace_admin", {
+    _ws: caseRow.workspace_id,
+    _user: ctx.userId,
+  });
+  if (!isAdmin) return bad("Forbidden: workspace admin required", 403);
+
+  const { data, error } = await ctx.admin.rpc("billing_dunning_record_attempt", {
+    _case_id: caseId,
+    _result: result,
+    _reason: body.reason ? String(body.reason) : null,
+    _metadata: (body.metadata as Json) ?? {},
+  });
+  if (error) return bad(error.message, 500);
+
+  await logAdminAction(ctx.admin, {
+    adminUserId: ctx.userId,
+    workspaceId: caseRow.workspace_id as string,
+    action: "billing.dunning.record_attempt",
+    targetType: "dunning_case",
+    targetId: caseId,
+    metadata: { result, reason: body.reason ?? null },
+  });
+
+  return jsonResponse({ ok: true, ...(data as Json) });
+}
+
+async function actDunningProcessDue(ctx: ActionCtx, body: Json) {
+  // Idempotent retry processor. By default each due case gets a "failed" attempt
+  // (mock card decline). For QA, caller may pass forceResult: 'paid'|'failed'.
+  const forceResult = body.forceResult ? String(body.forceResult) : "failed";
+  const limit = Number(body.limit ?? 50);
+  const { data: due, error } = await ctx.admin.rpc("billing_dunning_list_due", {
+    _now: new Date().toISOString(),
+    _limit: limit,
+  });
+  if (error) return bad(error.message, 500);
+
+  const processed: Json[] = [];
+  for (const c of (due ?? []) as Array<Record<string, unknown>>) {
+    const { data: res, error: rErr } = await ctx.admin.rpc("billing_dunning_record_attempt", {
+      _case_id: c.id,
+      _result: forceResult,
+      _reason: "scheduled_retry",
+      _metadata: { source: "scheduler" },
+    });
+    if (rErr) {
+      processed.push({ case_id: c.id, error: rErr.message });
+    } else {
+      processed.push({ case_id: c.id, result: res });
+    }
+  }
+  return jsonResponse({ ok: true, processed_count: processed.length, processed });
+}
+
+async function actDunningProcessExpired(ctx: ActionCtx, _body: Json) {
+  const { data, error } = await ctx.admin.rpc("billing_dunning_process_expired_grace");
+  if (error) return bad(error.message, 500);
+  return jsonResponse({ ok: true, closed: data });
+}
+
+async function actDunningExtendGrace(ctx: ActionCtx, body: Json) {
+  const caseId = String(body.caseId ?? "");
+  const days = Number(body.additionalDays ?? 0);
+  const reason = String(body.reason ?? "");
+  if (!caseId || days <= 0 || !reason)
+    return bad("caseId, additionalDays>0 and reason required");
+
+  // Use user JWT so the SECURITY DEFINER RPC sees auth.uid() correctly.
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.authToken}` } },
+  });
+  const { data, error } = await userClient.rpc("billing_dunning_extend_grace", {
+    _case_id: caseId, _additional_days: days, _reason: reason,
+  });
+  if (error) return bad(error.message, 500);
+  return jsonResponse({ ok: true, case: data });
+}
+
+async function actDunningCancelNonpayment(ctx: ActionCtx, body: Json) {
+  const caseId = String(body.caseId ?? "");
+  const reason = String(body.reason ?? "");
+  if (!caseId || !reason) return bad("caseId and reason required");
+
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.authToken}` } },
+  });
+  const { data, error } = await userClient.rpc("billing_dunning_cancel_for_nonpayment", {
+    _case_id: caseId, _reason: reason,
+  });
+  if (error) return bad(error.message, 500);
+  return jsonResponse({ ok: true, case: data });
+}
+
+async function actDunningSimulatePaymentMethodUpdate(ctx: ActionCtx, body: Json) {
+  // Mock: marks all open dunning cases of the workspace as "paid" via record_attempt.
+  const workspaceId = String(body.workspaceId ?? "");
+  if (!workspaceId) return bad("workspaceId required");
+  const { data: cases, error } = await ctx.admin
+    .from("billing_dunning_cases")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .in("status", ["open", "recovering", "exhausted"]);
+  if (error) return bad(error.message, 500);
+
+  const results: Json[] = [];
+  for (const c of cases ?? []) {
+    const { data, error: rErr } = await ctx.admin.rpc("billing_dunning_record_attempt", {
+      _case_id: c.id, _result: "paid",
+      _reason: "payment_method_updated_mock",
+      _metadata: { source: "payment_method_update" },
+    });
+    results.push({ case_id: c.id, ok: !rErr, result: data, error: rErr?.message });
+  }
+  await logAdminAction(ctx.admin, {
+    adminUserId: ctx.userId, workspaceId,
+    action: "billing.dunning.payment_method_updated_mock",
+    targetType: "workspace", targetId: workspaceId,
+    metadata: { recovered_cases: results.length },
+  });
+  return jsonResponse({ ok: true, recovered_cases: results.length, results });
 }
 
 async function actCloseExpired(ctx: ActionCtx, _body: Json) {
@@ -515,6 +667,13 @@ const ACTIONS: Record<
   "invoice.generate": { adminRequired: true, handler: actGenerateInvoice },
   "invoice.mark_paid": { adminRequired: true, handler: actMarkInvoicePaid },
   "invoice.simulate_failure": { adminRequired: true, handler: actSimulateFailure },
+  // Phase H6 — dunning
+  "dunning.record_attempt": { adminRequired: true, handler: actDunningRecordAttempt },
+  "dunning.process_due": { adminRequired: true, handler: actDunningProcessDue },
+  "dunning.process_expired": { adminRequired: true, handler: actDunningProcessExpired },
+  "dunning.extend_grace": { adminRequired: true, handler: actDunningExtendGrace },
+  "dunning.cancel_nonpayment": { adminRequired: true, handler: actDunningCancelNonpayment },
+  "dunning.simulate_payment_method_update": { adminRequired: true, handler: actDunningSimulatePaymentMethodUpdate },
 };
 
 Deno.serve(async (req) => {
@@ -558,8 +717,14 @@ Deno.serve(async (req) => {
     });
     if (aErr) return bad(aErr.message, 500);
     if (!isAdmin) return bad("Forbidden: workspace admin required", 403);
-  } else if (def.adminRequired && action === "subscription.close_expired") {
-    // Conservative: require user to be admin of at least one workspace
+  } else if (
+    def.adminRequired && (
+      action === "subscription.close_expired" ||
+      action === "dunning.process_due" ||
+      action === "dunning.process_expired"
+    )
+  ) {
+    // Cross-workspace jobs: caller must be admin of at least one workspace.
     const { count } = await admin
       .from("workspace_members")
       .select("*", { count: "exact", head: true })
@@ -568,7 +733,7 @@ Deno.serve(async (req) => {
     if (!count || count < 1) return bad("Forbidden", 403);
   }
 
-  const ctx: ActionCtx = { admin, userId, isAdmin: true };
+  const ctx: ActionCtx = { admin, userId, isAdmin: true, authToken: authHeader.replace("Bearer ", "") };
 
   try {
     return await def.handler(ctx, body);

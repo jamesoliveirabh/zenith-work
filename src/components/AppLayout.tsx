@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch, GlobalSearchTrigger } from "@/components/GlobalSearch";
+import { PastDueBannerContainer } from "@/components/billing/PastDueBannerContainer";
 
 export function AppLayout() {
   return (
@@ -18,6 +19,7 @@ export function AppLayout() {
             <NotificationBell />
             <ThemeToggle />
           </header>
+          <PastDueBannerContainer />
           <main className="flex-1 overflow-auto">
             <Outlet />
           </main>

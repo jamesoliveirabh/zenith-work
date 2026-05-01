@@ -18,6 +18,12 @@ import { BillingActionButtons } from '@/components/billing/BillingActionButtons'
 import { EntitlementUsageCard } from '@/components/billing/EntitlementUsageCard';
 import { UsageAlertsPanel } from '@/components/billing/UsageAlertsPanel';
 import { useWorkspaceUsageEntitlements } from '@/hooks/useWorkspaceUsageEntitlements';
+import { DunningStatusCard } from '@/components/billing/DunningStatusCard';
+import { DunningTimeline } from '@/components/billing/DunningTimeline';
+import {
+  useActiveDunningCase, useDunningAttempts, useDunningPolicy,
+  useSimulatePaymentMethodUpdate, useSimulateRetrySuccess,
+} from '@/hooks/useDunning';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +48,13 @@ export default function BillingSettings() {
   const { data: invoices = [], isLoading: loadingInvoices } = useWorkspaceInvoices(workspaceId);
   const { data: events = [], isLoading: loadingEvents } = useBillingEvents(workspaceId);
   const usage = useWorkspaceUsageEntitlements(workspaceId);
+
+  // Phase H6 — dunning
+  const { data: dunningPolicy } = useDunningPolicy(workspaceId);
+  const { data: activeCase, isLoading: loadingCase } = useActiveDunningCase(workspaceId);
+  const { data: attempts = [], isLoading: loadingAttempts } = useDunningAttempts(activeCase?.id ?? null);
+  const simulatePM = useSimulatePaymentMethodUpdate(workspaceId);
+  const retrySuccess = useSimulateRetrySuccess(workspaceId);
 
   // TODO(billing-h4): tracking analítico
   //   billing.usage.warning_shown / critical_shown / billing.upgrade_cta_clicked
@@ -151,6 +164,21 @@ export default function BillingSettings() {
           onCancel={() => cancelSub.mutate({ workspaceId })}
           onResume={() => resumeSub.mutate({ workspaceId })}
         />
+      )}
+
+      <DunningStatusCard
+        activeCase={activeCase ?? null}
+        policy={dunningPolicy ?? null}
+        loading={loadingCase}
+        canMutate={canMutate}
+        isSimulating={simulatePM.isPending}
+        isRetrying={retrySuccess.isPending}
+        onSimulatePaymentMethod={() => simulatePM.mutate()}
+        onRetryNow={() => activeCase && retrySuccess.mutate(activeCase.id)}
+      />
+
+      {activeCase && (
+        <DunningTimeline attempts={attempts} loading={loadingAttempts} />
       )}
 
       <section className="space-y-3">
