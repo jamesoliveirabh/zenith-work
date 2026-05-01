@@ -180,6 +180,8 @@ export default function BillingSettings() {
       {activeCase && (
         <DunningTimeline attempts={attempts} loading={loadingAttempts} />
       )}
+
+      <section className="space-y-3">
         <div className="flex items-baseline justify-between flex-wrap gap-2">
           <div>
             <h2 className="text-lg font-semibold">Uso do plano</h2>
