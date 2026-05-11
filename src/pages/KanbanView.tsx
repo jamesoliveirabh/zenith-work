@@ -67,6 +67,9 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
         <Badge variant="outline" className={cn("font-normal text-[10px] py-0 h-5", priorityClass[task.priority])}>
           {priorityLabel[task.priority]}
         </Badge>
+        <span onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+          <TaskDependencyIndicator taskId={task.id} taskTitle={task.title} compact />
+        </span>
         {task.due_date && (
           <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
             <Calendar className="h-3 w-3" />
