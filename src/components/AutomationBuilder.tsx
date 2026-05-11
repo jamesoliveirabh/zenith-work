@@ -399,8 +399,9 @@ export default function AutomationBuilder({
             </div>
           </div>
         )}
+        </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 px-6 py-4 shrink-0 border-t bg-background">
           {step > 1 && (
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
