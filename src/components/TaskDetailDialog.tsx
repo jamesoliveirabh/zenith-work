@@ -204,6 +204,23 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
         </DialogHeader>
 
         <div className="space-y-5">
+          {blockedBy.length > 0 && (
+            <Alert variant="destructive" className="border-destructive/40 bg-destructive/10">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <span className="font-medium">⚠️ Esta task está bloqueada por </span>
+                {blockedBy.slice(0, 3).map((b, i) => (
+                  <span key={b.dependencyId}>
+                    {i > 0 && ", "}
+                    <span className="font-medium underline-offset-2 underline">{b.title}</span>
+                  </span>
+                ))}
+                {blockedBy.length > 3 && ` +${blockedBy.length - 3}`}
+                . Conclua a{blockedBy.length > 1 ? "s" : ""} task{blockedBy.length > 1 ? "s" : ""} bloqueante{blockedBy.length > 1 ? "s" : ""} primeiro.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Description */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
