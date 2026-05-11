@@ -44,6 +44,9 @@ export interface AutomationAction {
   title?: string;
   body?: string;
   user_id?: string;
+  channel_id?: string;
+  channel_name?: string;
+  message?: string;
 }
 
 export interface Automation {
