@@ -92,6 +92,13 @@ const TEMPLATES: TemplateSeed[] = [
     trigger_config: { days_before: 2 },
     actions: [{ type: "set_priority", priority: "urgent" } as any],
   },
+  {
+    name: "Notificar responsável quando houver novo comentário",
+    description: "Avisa o responsável da tarefa sempre que alguém comentar nela.",
+    category: "notificações",
+    trigger: "comment_added",
+    actions: [{ type: "send_notification" } as any],
+  },
 ];
 
 export default function Automations() {
