@@ -84,6 +84,14 @@ const TEMPLATES: TemplateSeed[] = [
     trigger: "task_created",
     actions: [{ type: "set_due_date", days_from_now: 7 } as any],
   },
+  {
+    name: "Marcar urgente quando próximo do prazo",
+    description: "Eleva a prioridade para urgente 2 dias antes do vencimento.",
+    category: "organização",
+    trigger: "due_date_approaching",
+    trigger_config: { days_before: 2 },
+    actions: [{ type: "set_priority", priority: "urgent" } as any],
+  },
 ];
 
 export default function Automations() {
