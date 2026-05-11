@@ -113,6 +113,13 @@ const TEMPLATES: TemplateSeed[] = [
     trigger: "task_completed",
     actions: [{ type: "send_notification" } as any],
   },
+  {
+    name: "Liberar responsável após conclusão",
+    description: "Remove o responsável da tarefa assim que ela for concluída.",
+    category: "organização",
+    trigger: "task_completed",
+    actions: [{ type: "unassign_user" } as any],
+  },
 ];
 
 export default function Automations() {
