@@ -128,7 +128,7 @@ export function useCreateDependency(workspaceId: string | undefined) {
         },
       );
       if (rpcErr) throw rpcErr;
-      const result = (check ?? {}) as CheckResult;
+      const result = (check ?? {}) as unknown as CheckResult;
       if (result.valid === false) {
         throw new Error(
           result.message ||
