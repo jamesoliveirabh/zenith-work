@@ -2909,6 +2909,15 @@ export type Database = {
         Args: { _user: string; _ws: string }
         Returns: boolean
       }
+      check_circular_dependency: {
+        Args: {
+          dep_type?: string
+          source_id: string
+          target_id: string
+          workspace_id?: string
+        }
+        Returns: Json
+      }
       global_search: {
         Args: { p_limit?: number; p_query: string; p_workspace_id: string }
         Returns: {
