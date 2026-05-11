@@ -218,23 +218,36 @@ export default function Automations() {
               Comece com uma base — você pode ajustar tudo antes de salvar.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0">
-            {TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.name}
-                type="button"
-                onClick={() => openTemplate(tpl)}
-                className="text-left rounded-md border bg-background p-3 hover:border-primary hover:bg-accent/40 transition-colors"
-              >
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
-                  {tpl.name}
+          <CardContent className="space-y-4 pt-0">
+            {(Object.keys(CATEGORY_LABEL) as TemplateCategory[]).map((cat) => {
+              const items = TEMPLATES.filter((t) => t.category === cat);
+              if (items.length === 0) return null;
+              return (
+                <div key={cat} className="space-y-2">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {CATEGORY_LABEL[cat]}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {items.map((tpl) => (
+                      <button
+                        key={tpl.name}
+                        type="button"
+                        onClick={() => openTemplate(tpl)}
+                        className="text-left rounded-md border bg-background p-3 hover:border-primary hover:bg-accent/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
+                          {tpl.name}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {tpl.description}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                  {tpl.description}
-                </p>
-              </button>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       )}
