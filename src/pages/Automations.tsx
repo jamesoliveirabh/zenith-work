@@ -99,6 +99,13 @@ const TEMPLATES: TemplateSeed[] = [
     trigger: "comment_added",
     actions: [{ type: "send_notification" } as any],
   },
+  {
+    name: "Marcar urgência ao mudar prioridade",
+    description: "Adiciona a tag 'urgente' sempre que a prioridade da tarefa for alterada.",
+    category: "organização",
+    trigger: "priority_changed",
+    actions: [{ type: "add_tag", tag: "urgente" } as any],
+  },
 ];
 
 export default function Automations() {
