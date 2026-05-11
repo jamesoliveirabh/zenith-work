@@ -458,32 +458,32 @@ export default function GanttView() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Toolbar */}
-      <header className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-3">
-        <div>
-          <h1 className="text-lg font-semibold">{listData ?? "Lista"}</h1>
+      <header className="flex flex-wrap items-center gap-2 lg:gap-3 border-b bg-card px-3 lg:px-4 py-3 max-w-full">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold truncate">{listData ?? "Lista"}</h1>
         </div>
 
-        <div className="flex gap-1 rounded-md border p-0.5">
-          <Button asChild variant="ghost" size="sm" className="h-8">
+        <div className="flex gap-1 rounded-md border p-0.5 max-w-full overflow-x-auto scrollbar-thin">
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
             <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 mr-1.5" />Lista</Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
             <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 mr-1.5" />Kanban</Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
             <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8">
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
             <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
           </Button>
-          <Button variant="secondary" size="sm" className="h-8">
+          <Button variant="secondary" size="sm" className="h-8 shrink-0">
             <GanttChart className="h-4 w-4 mr-1.5" />Gantt
           </Button>
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden xl:block flex-1" />
 
-        <div className="flex gap-1 rounded-md border p-0.5">
+        <div className="flex gap-1 rounded-md border p-0.5 shrink-0">
           {(["day", "week", "month"] as Zoom[]).map((z) => (
             <Button
               key={z}
