@@ -23,25 +23,35 @@ import {
   useToggleAutomation,
 } from "@/hooks/useAutomations";
 
+type TemplateCategory = "notificações" | "organização";
+
 type TemplateSeed = {
   name: string;
   description: string;
+  category: TemplateCategory;
   trigger: Automation["trigger"];
   trigger_config?: Record<string, unknown>;
   conditions?: Automation["conditions"];
   actions: Automation["actions"];
 };
 
+const CATEGORY_LABEL: Record<TemplateCategory, string> = {
+  "notificações": "Notificações",
+  "organização": "Organização",
+};
+
 const TEMPLATES: TemplateSeed[] = [
   {
     name: "Notificar responsável quando atribuído",
     description: "Avisa quem foi designado assim que a tarefa muda de responsável.",
+    category: "notificações",
     trigger: "assignee_changed",
     actions: [{ type: "send_notification" } as any],
   },
   {
     name: "Lembrete 3 dias antes do prazo",
     description: "Notifica o responsável 3 dias antes do vencimento.",
+    category: "notificações",
     trigger: "due_date_approaching",
     trigger_config: { days_before: 3 },
     actions: [{ type: "send_notification" } as any],
@@ -49,14 +59,30 @@ const TEMPLATES: TemplateSeed[] = [
   {
     name: "Comentar quando concluída",
     description: "Posta um comentário automático quando a tarefa é finalizada.",
+    category: "notificações",
     trigger: "task_completed",
     actions: [{ type: "post_comment", body: "✅ Tarefa concluída automaticamente." } as any],
   },
   {
     name: "Marcar urgente quando virar 'Em revisão'",
     description: "Eleva a prioridade ao mover para um status específico.",
+    category: "organização",
     trigger: "status_changed",
     actions: [{ type: "set_priority", priority: "urgent" } as any],
+  },
+  {
+    name: "Adicionar tag 'novo' ao criar tarefa",
+    description: "Marca toda tarefa recém-criada com uma tag de triagem.",
+    category: "organização",
+    trigger: "task_created",
+    actions: [{ type: "add_tag", tag: "novo" } as any],
+  },
+  {
+    name: "Definir prazo de 7 dias ao criar",
+    description: "Atribui automaticamente uma data de vencimento para tarefas novas.",
+    category: "organização",
+    trigger: "task_created",
+    actions: [{ type: "set_due_date", days_from_now: 7 } as any],
   },
 ];
 
@@ -192,23 +218,36 @@ export default function Automations() {
               Comece com uma base — você pode ajustar tudo antes de salvar.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0">
-            {TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.name}
-                type="button"
-                onClick={() => openTemplate(tpl)}
-                className="text-left rounded-md border bg-background p-3 hover:border-primary hover:bg-accent/40 transition-colors"
-              >
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
-                  {tpl.name}
+          <CardContent className="space-y-4 pt-0">
+            {(Object.keys(CATEGORY_LABEL) as TemplateCategory[]).map((cat) => {
+              const items = TEMPLATES.filter((t) => t.category === cat);
+              if (items.length === 0) return null;
+              return (
+                <div key={cat} className="space-y-2">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {CATEGORY_LABEL[cat]}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {items.map((tpl) => (
+                      <button
+                        key={tpl.name}
+                        type="button"
+                        onClick={() => openTemplate(tpl)}
+                        className="text-left rounded-md border bg-background p-3 hover:border-primary hover:bg-accent/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
+                          {tpl.name}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {tpl.description}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                  {tpl.description}
-                </p>
-              </button>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       )}
