@@ -180,6 +180,10 @@ export default function KanbanView() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [filters, setFilters] = useState<ListFilters>(EMPTY_FILTERS);
+  const [pendingMove, setPendingMove] = useState<{
+    updates: { id: string; position: number; status_id?: string | null }[];
+    blockerTaskId: string;
+  } | null>(null);
 
   const { data: listData } = useQuery({
     queryKey: ["list-breadcrumb", listId],
