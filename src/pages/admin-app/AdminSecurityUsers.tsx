@@ -30,7 +30,8 @@ type DialogState = null
   | { kind: "grant" }
   | { kind: "revoke"; userId: string; role: PlatformRole; email: string | null }
   | { kind: "toggle"; userId: string; disable: boolean; email: string | null }
-  | { kind: "mfa"; nextValue: boolean };
+  | { kind: "mfa"; nextValue: boolean }
+  | { kind: "password"; userId: string; email: string | null };
 
 export default function AdminSecurityUsers() {
   const { data: admins = [], isLoading } = useAdminUsers();
