@@ -133,7 +133,14 @@ export default function AdminSecurityUsers() {
                       : <Badge variant="outline">ativo</Badge>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{formatDateTime(a.last_seen_at)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setNewPassword(""); setDialog({ kind: "password", userId: a.user_id, email: a.email }); }}
+                    >
+                      <KeyRound className="h-4 w-4 mr-1" /> Senha
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
