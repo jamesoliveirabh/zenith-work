@@ -151,7 +151,7 @@ export default function AutomationBuilder({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader>
           <DialogTitle>{initial?.id ? "Editar automação" : "Nova automação"}</DialogTitle>
           <div className="flex gap-2 pt-2">
