@@ -277,46 +277,55 @@ export default function AutomationBuilder({
               Condições adicionais (todas precisam ser verdadeiras). Opcional.
             </p>
             {draft.conditions.map((c, i) => (
-              <div key={i} className="flex gap-2 items-start rounded border p-2 bg-background">
-                <Select value={c.field} onValueChange={(v: any) => updateCondition(i, { field: v, value: "" })}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="priority">Prioridade</SelectItem>
-                    <SelectItem value="status">Status</SelectItem>
-                    <SelectItem value="assignee">Responsável</SelectItem>
-                    <SelectItem value="list">Lista</SelectItem>
-                    <SelectItem value="tag">Tag</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={c.op} onValueChange={(v: any) => updateCondition(i, { op: v })}>
-                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {c.field === "tag" ? (
-                      <>
-                        <SelectItem value="contains">contém</SelectItem>
-                        <SelectItem value="not_contains">não contém</SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="eq">é</SelectItem>
-                        <SelectItem value="neq">não é</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-                <div className="flex-1">
-                  <ConditionValueInput
-                    field={c.field}
-                    value={c.value}
-                    onChange={(v) => updateCondition(i, { value: v })}
-                    members={members}
-                    statuses={scopedStatuses}
-                    lists={lists}
-                  />
+              <div key={i} className="space-y-2">
+                {i > 0 && (
+                  <div className="flex justify-center">
+                    <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      E
+                    </span>
+                  </div>
+                )}
+                <div className="flex gap-2 items-start rounded border p-2 bg-background">
+                  <Select value={c.field} onValueChange={(v: any) => updateCondition(i, { field: v, value: "" })}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="priority">Prioridade</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                      <SelectItem value="assignee">Responsável</SelectItem>
+                      <SelectItem value="list">Lista</SelectItem>
+                      <SelectItem value="tag">Tag</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={c.op} onValueChange={(v: any) => updateCondition(i, { op: v })}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {c.field === "tag" ? (
+                        <>
+                          <SelectItem value="contains">contém</SelectItem>
+                          <SelectItem value="not_contains">não contém</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="eq">é</SelectItem>
+                          <SelectItem value="neq">não é</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex-1">
+                    <ConditionValueInput
+                      field={c.field}
+                      value={c.value}
+                      onChange={(v) => updateCondition(i, { value: v })}
+                      members={members}
+                      statuses={scopedStatuses}
+                      lists={lists}
+                    />
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => removeCondition(i)}>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeCondition(i)}>
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
             ))}
             <Button variant="outline" size="sm" onClick={addCondition}>
