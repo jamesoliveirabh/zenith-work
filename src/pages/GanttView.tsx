@@ -35,8 +35,8 @@ import {
 type Zoom = "day" | "week" | "month";
 type GroupBy = "status" | "priority" | "assignee" | "none";
 
-const ROW_H = 40;
-const SUB_ROW_H = 32;
+const ROW_H = 56;
+const SUB_ROW_H = 44;
 const HEADER_H = 56;
 const LEFT_PANEL_DEFAULT = 280;
 const LEFT_PANEL_MIN = 180;
@@ -587,7 +587,10 @@ export default function GanttView() {
           {/* LEFT PANEL */}
           <div
             className="border-r bg-card flex flex-col"
-            style={{ width: leftWidth, flexShrink: 0 }}
+            style={{
+              width: `clamp(${LEFT_PANEL_MIN}px, min(${leftWidth}px, 38vw), ${LEFT_PANEL_MAX}px)`,
+              flexShrink: 0,
+            }}
           >
             <div
               className="border-b bg-muted/30 flex items-end px-3 text-xs font-medium text-muted-foreground"
