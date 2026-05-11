@@ -7,10 +7,11 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const { bot_token } = await req.json();
-    if (!bot_token || typeof bot_token !== 'string' || !bot_token.startsWith('xoxb-')) {
-      return new Response(JSON.stringify({ valid: false, error: 'Token inválido (esperado xoxb-...)' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const raw = (await req.json())?.bot_token;
+    const bot_token = typeof raw === 'string' ? raw.trim() : '';
+    if (!bot_token || !/^xox[bpose]-/.test(bot_token)) {
+      return new Response(JSON.stringify({ valid: false, error: 'Token inválido. Use um Bot Token (xoxb-...) ou User Token (xoxp-...).' }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
