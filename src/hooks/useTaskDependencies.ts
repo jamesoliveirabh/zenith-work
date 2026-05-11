@@ -93,7 +93,21 @@ interface CreateInput {
   dependencyType: DependencyType;
 }
 
-/** Create a dependency, validating against cycles via SQL function. */
+interface CheckResult {
+  valid: boolean;
+  error?: string;
+  message?: string;
+}
+
+const ERROR_MESSAGES: Record<string, string> = {
+  circular: "Não é possível criar esta dependência (circular)",
+  self_reference: "Uma tarefa não pode depender de si mesma",
+  workspace_mismatch: "As tarefas pertencem a workspaces diferentes",
+  task_not_found: "Tarefa não encontrada",
+  missing_task: "Selecione uma tarefa",
+};
+
+/** Create a dependency. Validates against cycles via SQL function before insert. */
 export function useCreateDependency(workspaceId: string | undefined) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -102,22 +116,25 @@ export function useCreateDependency(workspaceId: string | undefined) {
     mutationFn: async ({ sourceTaskId, targetTaskId, dependencyType }: CreateInput) => {
       if (!workspaceId) throw new Error("Workspace não informado");
       if (!user) throw new Error("Usuário não autenticado");
-      if (sourceTaskId === targetTaskId) {
-        throw new Error("Uma tarefa não pode depender de si mesma");
-      }
 
-      // Pre-flight cycle check (the DB trigger also enforces this).
-      const { data: wouldCycle, error: rpcErr } = await supabase.rpc(
-        "task_dependency_would_cycle",
+      // Pre-flight validation (server-side authoritative).
+      const { data: check, error: rpcErr } = await supabase.rpc(
+        "check_circular_dependency",
         {
-          _source: sourceTaskId,
-          _target: targetTaskId,
-          _type: dependencyType,
+          source_id: sourceTaskId,
+          target_id: targetTaskId,
+          workspace_id: workspaceId,
+          dep_type: dependencyType,
         },
       );
       if (rpcErr) throw rpcErr;
-      if (wouldCycle === true) {
-        throw new Error("Esta dependência criaria um ciclo");
+      const result = (check ?? {}) as CheckResult;
+      if (result.valid === false) {
+        throw new Error(
+          result.message ||
+            ERROR_MESSAGES[result.error ?? ""] ||
+            "Dependência inválida",
+        );
       }
 
       const { data, error } = await supabase
@@ -132,8 +149,17 @@ export function useCreateDependency(workspaceId: string | undefined) {
         .select("id, source_task_id, target_task_id")
         .single();
       if (error) {
-        if (error.message?.toLowerCase().includes("circular")) {
-          throw new Error("Esta dependência criaria um ciclo");
+        // Postgres error code → friendlier message.
+        const code = (error as { code?: string }).code;
+        const lower = error.message?.toLowerCase() ?? "";
+        if (code === "42501" || lower.includes("row-level security")) {
+          throw new Error("Você não tem permissão para editar esta task");
+        }
+        if (code === "23505" || lower.includes("duplicate") || lower.includes("unique")) {
+          throw new Error("Esta dependência já existe");
+        }
+        if (code === "23514" || lower.includes("circular") || lower.includes("check")) {
+          throw new Error("Não é possível criar esta dependência (circular)");
         }
         throw error;
       }
@@ -145,7 +171,7 @@ export function useCreateDependency(workspaceId: string | undefined) {
       qc.invalidateQueries({ queryKey: taskDependenciesKey(data.target_task_id) });
       qc.invalidateQueries({ queryKey: blockedByChainKey(data.source_task_id) });
       qc.invalidateQueries({ queryKey: blockedByChainKey(data.target_task_id) });
-      toast.success("Dependência criada");
+      toast.success("Dependência criada com sucesso");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Erro ao criar dependência");
