@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSlackIntegration } from "@/hooks/useWorkspaceIntegrations";
 import { cn } from "@/lib/utils";
-import { Plus, X, ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
+import { Plus, X, ArrowRight, ArrowLeft, GripVertical, AlertTriangle } from "lucide-react";
 import {
   type Automation,
   type AutomationAction,
