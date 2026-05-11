@@ -440,6 +440,7 @@ function isActionValid(a: AutomationAction): boolean {
     case "create_subtask": return !!a.title?.trim();
     case "post_comment": return !!a.body?.trim();
     case "send_notification": return !!a.body?.trim();
+    case "send_slack_message": return !!a.channel_id && !!a.message?.trim();
     default: return false;
   }
 }
