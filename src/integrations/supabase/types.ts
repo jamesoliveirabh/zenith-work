@@ -1863,6 +1863,58 @@ export type Database = {
           },
         ]
       }
+      task_dependencies: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dependency_type: string
+          id: string
+          source_task_id: string
+          target_task_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dependency_type: string
+          id?: string
+          source_task_id: string
+          target_task_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dependency_type?: string
+          id?: string
+          source_task_id?: string
+          target_task_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_dependencies_source_task_id_fkey"
+            columns: ["source_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_dependencies_target_task_id_fkey"
+            columns: ["target_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_dependencies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_field_values: {
         Row: {
           field_id: string
@@ -3323,6 +3375,10 @@ export type Database = {
       }
       platform_kill_switch_active: { Args: never; Returns: boolean }
       seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
+      task_dependency_would_cycle: {
+        Args: { _source: string; _target: string; _type: string }
+        Returns: boolean
+      }
       task_link_path: { Args: { _task_id: string }; Returns: string }
       tiptap_to_text: { Args: { _doc: Json }; Returns: string }
       user_can_access_list: {
