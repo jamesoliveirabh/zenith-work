@@ -25,6 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect, type AssigneeMember } from "@/components/AssigneeSelect";
+import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { TagsInput } from "@/components/TagsInput";
 import { useStatuses } from "@/hooks/useStatuses";
 import {
