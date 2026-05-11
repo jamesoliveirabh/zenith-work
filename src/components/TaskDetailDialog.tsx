@@ -169,6 +169,19 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const description = (detail?.description ?? null) as JSONContent | null;
   const completedCount = subtasks.filter((s) => s.completed_at).length;
 
+  // Dependencies for this task (used for the blocked banner + section).
+  const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
+  const blockedBy = deps?.blockedBy ?? [];
+  const [depFormOpen, setDepFormOpen] = useState(false);
+  const existingDepIds = useMemo(
+    () => [
+      ...(deps?.blocks ?? []).map((r) => r.taskId),
+      ...(deps?.blockedBy ?? []).map((r) => r.taskId),
+      ...(deps?.relatedTo ?? []).map((r) => r.taskId),
+    ],
+    [deps],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
