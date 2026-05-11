@@ -23,6 +23,43 @@ import {
   useToggleAutomation,
 } from "@/hooks/useAutomations";
 
+type TemplateSeed = {
+  name: string;
+  description: string;
+  trigger: Automation["trigger"];
+  trigger_config?: Record<string, unknown>;
+  conditions?: Automation["conditions"];
+  actions: Automation["actions"];
+};
+
+const TEMPLATES: TemplateSeed[] = [
+  {
+    name: "Notificar responsável quando atribuído",
+    description: "Avisa quem foi designado assim que a tarefa muda de responsável.",
+    trigger: "assignee_changed",
+    actions: [{ type: "send_notification" } as any],
+  },
+  {
+    name: "Lembrete 3 dias antes do prazo",
+    description: "Notifica o responsável 3 dias antes do vencimento.",
+    trigger: "due_date_approaching",
+    trigger_config: { days_before: 3 },
+    actions: [{ type: "send_notification" } as any],
+  },
+  {
+    name: "Comentar quando concluída",
+    description: "Posta um comentário automático quando a tarefa é finalizada.",
+    trigger: "task_completed",
+    actions: [{ type: "post_comment", body: "✅ Tarefa concluída automaticamente." } as any],
+  },
+  {
+    name: "Marcar urgente quando virar 'Em revisão'",
+    description: "Eleva a prioridade ao mover para um status específico.",
+    trigger: "status_changed",
+    actions: [{ type: "set_priority", priority: "urgent" } as any],
+  },
+];
+
 export default function Automations() {
   const { user } = useAuth();
   const { current } = useWorkspace();
@@ -94,6 +131,25 @@ export default function Automations() {
 
   const openNew = () => { setEditing(null); setOpen(true); };
   const openEdit = (a: Automation) => { setEditing(a); setOpen(true); };
+  const openTemplate = (tpl: TemplateSeed) => {
+    if (!workspaceId) return;
+    setEditing({
+      id: "",
+      workspace_id: workspaceId,
+      list_id: null,
+      name: tpl.name,
+      is_active: true,
+      trigger: tpl.trigger,
+      trigger_config: tpl.trigger_config ?? {},
+      conditions: tpl.conditions ?? [],
+      actions: tpl.actions,
+      run_count: 0,
+      last_run_at: null,
+      created_at: "",
+      created_by: null,
+    } as unknown as Automation);
+    setOpen(true);
+  };
 
   const handleDelete = async (a: Automation) => {
     if (!confirm(`Remover "${a.name}"?`)) return;
@@ -124,6 +180,35 @@ export default function Automations() {
         <Card>
           <CardContent className="py-4 text-sm text-muted-foreground flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> Apenas admins podem criar ou editar automações.
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Modelos prontos</CardTitle>
+            <CardDescription className="text-xs">
+              Comece com uma base — você pode ajustar tudo antes de salvar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0">
+            {TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.name}
+                type="button"
+                onClick={() => openTemplate(tpl)}
+                className="text-left rounded-md border bg-background p-3 hover:border-primary hover:bg-accent/40 transition-colors"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
+                  {tpl.name}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {tpl.description}
+                </p>
+              </button>
+            ))}
           </CardContent>
         </Card>
       )}
