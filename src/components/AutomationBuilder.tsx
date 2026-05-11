@@ -362,7 +362,7 @@ export default function AutomationBuilder({
                   <div className="flex-1 space-y-2">
                     <Select
                       value={a.type}
-                      onValueChange={(v: AutomationActionType) => updateAction(i, { type: v, status_id: undefined, priority: undefined, assignee_id: undefined, list_id: undefined, body: undefined, title: undefined, tag: undefined, days_from_now: undefined })}
+                      onValueChange={(v: AutomationActionType) => updateAction(i, { type: v, status_id: undefined, priority: undefined, assignee_id: undefined, list_id: undefined, body: undefined, title: undefined, tag: undefined, days_from_now: undefined, channel_id: undefined, channel_name: undefined, message: undefined })}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -378,6 +378,7 @@ export default function AutomationBuilder({
                       statuses={scopedStatuses}
                       members={members}
                       lists={lists}
+                      workspaceId={workspaceId}
                     />
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => removeAction(i)}>
