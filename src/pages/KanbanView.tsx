@@ -17,6 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { useStatuses } from "@/hooks/useStatuses";
 import { useCreateTask, useReorderTasks, useTasks } from "@/hooks/useTasks";
