@@ -23,6 +23,43 @@ import {
   useToggleAutomation,
 } from "@/hooks/useAutomations";
 
+type TemplateSeed = {
+  name: string;
+  description: string;
+  trigger: Automation["trigger"];
+  trigger_config?: Record<string, unknown>;
+  conditions?: Automation["conditions"];
+  actions: Automation["actions"];
+};
+
+const TEMPLATES: TemplateSeed[] = [
+  {
+    name: "Notificar responsável quando atribuído",
+    description: "Avisa quem foi designado assim que a tarefa muda de responsável.",
+    trigger: "assignee_changed",
+    actions: [{ type: "send_notification" } as any],
+  },
+  {
+    name: "Lembrete 3 dias antes do prazo",
+    description: "Notifica o responsável 3 dias antes do vencimento.",
+    trigger: "due_date_approaching",
+    trigger_config: { days_before: 3 },
+    actions: [{ type: "send_notification" } as any],
+  },
+  {
+    name: "Comentar quando concluída",
+    description: "Posta um comentário automático quando a tarefa é finalizada.",
+    trigger: "task_completed",
+    actions: [{ type: "post_comment", body: "✅ Tarefa concluída automaticamente." } as any],
+  },
+  {
+    name: "Marcar urgente quando virar 'Em revisão'",
+    description: "Eleva a prioridade ao mover para um status específico.",
+    trigger: "status_changed",
+    actions: [{ type: "set_priority", priority: "urgent" } as any],
+  },
+];
+
 export default function Automations() {
   const { user } = useAuth();
   const { current } = useWorkspace();
