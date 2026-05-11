@@ -24,7 +24,8 @@ export type AutomationActionType =
   | "move_to_list"
   | "create_subtask"
   | "post_comment"
-  | "send_notification";
+  | "send_notification"
+  | "send_slack_message";
 
 export interface AutomationCondition {
   field: "priority" | "status" | "assignee" | "list" | "tag";
