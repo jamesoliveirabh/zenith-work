@@ -631,3 +631,97 @@ function ActionConfig({ action, onChange, statuses, members, lists, workspaceId 
       return null;
   }
 }
+
+const SLACK_VARS = [
+  "{{task_name}}",
+  "{{task_assignee}}",
+  "{{task_status}}",
+  "{{task_priority}}",
+  "{{task_due_date}}",
+  "{{workspace_name}}",
+];
+
+function SlackActionConfig({
+  action, onChange, workspaceId,
+}: {
+  action: AutomationAction;
+  onChange: (patch: Partial<AutomationAction>) => void;
+  workspaceId: string;
+}) {
+  const slack = useSlackIntegration(workspaceId);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const insertVar = (v: string) => {
+    const ta = textareaRef.current;
+    const current = action.message ?? "";
+    if (!ta) {
+      onChange({ message: current + v });
+      return;
+    }
+    const start = ta.selectionStart ?? current.length;
+    const end = ta.selectionEnd ?? current.length;
+    const next = current.slice(0, start) + v + current.slice(end);
+    onChange({ message: next });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + v.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const channels = slack.channels;
+  const handleChannelChange = (channelId: string) => {
+    const ch = channels.find((c) => c.id === channelId);
+    onChange({ channel_id: channelId, channel_name: ch?.name });
+  };
+
+  return (
+    <div className="space-y-2">
+      {!slack.isConnected && (
+        <Alert className="border-amber-500/40 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-sm">
+            Slack não configurado.{" "}
+            <Link to="/settings/integrations" className="text-primary underline">
+              Configure em Configurações → Integrações
+            </Link>
+            .
+          </AlertDescription>
+        </Alert>
+      )}
+      <Select
+        value={action.channel_id ?? ""}
+        onValueChange={handleChannelChange}
+        disabled={!slack.isConnected || channels.length === 0}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={slack.isConnected ? "Selecione um canal" : "Slack não conectado"} />
+        </SelectTrigger>
+        <SelectContent>
+          {channels.map((c) => (
+            <SelectItem key={c.id} value={c.id}>#{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Textarea
+        ref={textareaRef}
+        value={action.message ?? ""}
+        onChange={(e) => onChange({ message: e.target.value })}
+        placeholder="Ex: 🎉 Tarefa {{task_name}} foi concluída!"
+        rows={3}
+      />
+      <div className="flex flex-wrap gap-1">
+        {SLACK_VARS.map((v) => (
+          <button
+            type="button"
+            key={v}
+            onClick={() => insertVar(v)}
+            className="text-[11px] font-mono rounded bg-muted px-1.5 py-0.5 hover:bg-muted-foreground/20 transition-colors"
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
