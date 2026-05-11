@@ -230,6 +230,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tags</label>
             <TagsInput value={tags} onChange={updateTags} />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Pressione Enter ou vírgula para adicionar a tag.
+            </p>
           </div>
 
           {/* Assignees */}
