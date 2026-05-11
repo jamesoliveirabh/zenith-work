@@ -35,8 +35,8 @@ import {
 type Zoom = "day" | "week" | "month";
 type GroupBy = "status" | "priority" | "assignee" | "none";
 
-const ROW_H = 40;
-const SUB_ROW_H = 32;
+const ROW_H = 56;
+const SUB_ROW_H = 44;
 const HEADER_H = 56;
 const LEFT_PANEL_DEFAULT = 280;
 const LEFT_PANEL_MIN = 180;
@@ -458,121 +458,123 @@ export default function GanttView() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Toolbar */}
-      <header className="flex flex-wrap items-center gap-2 lg:gap-3 border-b bg-card px-3 lg:px-4 py-3 max-w-full">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold truncate">{listData ?? "Lista"}</h1>
-        </div>
+      <header className="shrink-0 border-b bg-card px-3 py-3 lg:px-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="min-w-0 shrink-0">
+            <h1 className="text-lg font-semibold truncate">{listData ?? "Lista"}</h1>
+          </div>
 
-        <div className="flex gap-1 rounded-md border p-0.5 max-w-full overflow-x-auto">
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Lista">
-            <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Lista</span></Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Kanban">
-            <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Kanban</span></Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Tabela">
-            <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Tabela</span></Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Calendário">
-            <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Calendário</span></Link>
-          </Button>
-          <Button variant="secondary" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Gantt">
-            <GanttChart className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Gantt</span>
-          </Button>
-        </div>
-
-        <div className="hidden xl:block flex-1" />
-
-        <div className="flex gap-1 rounded-md border p-0.5 shrink-0">
-          {(["day", "week", "month"] as Zoom[]).map((z) => (
-            <Button
-              key={z}
-              variant={zoom === z ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8"
-              onClick={() => setZoom(z)}
-            >
-              {z === "day" ? "Dias" : z === "week" ? "Semanas" : "Meses"}
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-md border p-0.5">
+            <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 gap-1.5 px-2 lg:px-3" title="Lista">
+              <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4" /><span className="hidden lg:inline">Lista</span></Link>
             </Button>
-          ))}
+            <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 gap-1.5 px-2 lg:px-3" title="Kanban">
+              <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4" /><span className="hidden lg:inline">Kanban</span></Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 gap-1.5 px-2 lg:px-3" title="Tabela">
+              <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4" /><span className="hidden lg:inline">Tabela</span></Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 gap-1.5 px-2 lg:px-3" title="Calendário">
+              <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4" /><span className="hidden lg:inline">Calendário</span></Link>
+            </Button>
+            <Button variant="secondary" size="sm" className="h-8 shrink-0 gap-1.5 px-2 lg:px-3" title="Gantt">
+              <GanttChart className="h-4 w-4" /><span className="hidden lg:inline">Gantt</span>
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={navPrev} aria-label="Anterior">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" className="h-8" onClick={goToday}>Hoje</Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={navNext} aria-label="Próximo">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+          <div className="flex shrink-0 gap-1 rounded-md border p-0.5">
+            {(["day", "week", "month"] as Zoom[]).map((z) => (
+              <Button
+                key={z}
+                variant={zoom === z ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8"
+                onClick={() => setZoom(z)}
+              >
+                {z === "day" ? "Dias" : z === "week" ? "Semanas" : "Meses"}
+              </Button>
+            ))}
+          </div>
 
-        {/* Period selector — only relevant in day-zoom; visible always for clarity */}
-        <div className="flex items-center gap-1">
-          <Select value={period} onValueChange={(v) => setPeriod(v as PeriodPreset)}>
-            <SelectTrigger className="h-8 w-36" aria-label="Período exibido">
-              <SelectValue />
-            </SelectTrigger>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navPrev} aria-label="Anterior">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" className="h-8" onClick={goToday}>Hoje</Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navNext} aria-label="Próximo">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Period selector — only relevant in day-zoom; visible always for clarity */}
+          <div className="flex shrink-0 items-center gap-1">
+            <Select value={period} onValueChange={(v) => setPeriod(v as PeriodPreset)}>
+              <SelectTrigger className="h-8 w-36" aria-label="Período exibido">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 dias</SelectItem>
+                <SelectItem value="15">15 dias</SelectItem>
+                <SelectItem value="30">30 dias</SelectItem>
+                <SelectItem value="60">60 dias</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+            {period === "custom" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {customValid
+                      ? `${format(customRange.from!, "dd/MM/yy")} – ${format(customRange.to!, "dd/MM/yy")}`
+                      : "Selecionar datas"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={{ from: customRange.from, to: customRange.to }}
+                    onSelect={(range) => {
+                      if (!range) { setCustomRange({}); setCustomError(null); return; }
+                      if (range.from && range.to && range.from > range.to) {
+                        setCustomError("A data inicial deve ser anterior ou igual à final.");
+                        return;
+                      }
+                      setCustomError(null);
+                      setCustomRange({ from: range.from, to: range.to });
+                    }}
+                    numberOfMonths={2}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                  {customError && (
+                    <div className="px-3 pb-3 text-xs text-destructive">{customError}</div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+
+          <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
+            <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">7 dias</SelectItem>
-              <SelectItem value="15">15 dias</SelectItem>
-              <SelectItem value="30">30 dias</SelectItem>
-              <SelectItem value="60">60 dias</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
+              <SelectItem value="status">Por status</SelectItem>
+              <SelectItem value="priority">Por prioridade</SelectItem>
+              <SelectItem value="assignee">Por responsável</SelectItem>
+              <SelectItem value="none">Sem agrupar</SelectItem>
             </SelectContent>
           </Select>
-          {period === "custom" && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                  <CalendarIcon className="h-3.5 w-3.5" />
-                  {customValid
-                    ? `${format(customRange.from!, "dd/MM/yy")} – ${format(customRange.to!, "dd/MM/yy")}`
-                    : "Selecionar datas"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={{ from: customRange.from, to: customRange.to }}
-                  onSelect={(range) => {
-                    if (!range) { setCustomRange({}); setCustomError(null); return; }
-                    if (range.from && range.to && range.from > range.to) {
-                      setCustomError("A data inicial deve ser anterior ou igual à final.");
-                      return;
-                    }
-                    setCustomError(null);
-                    setCustomRange({ from: range.from, to: range.to });
-                  }}
-                  numberOfMonths={2}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-                {customError && (
-                  <div className="px-3 pb-3 text-xs text-destructive">{customError}</div>
-                )}
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
 
-        <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
-          <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="status">Por status</SelectItem>
-            <SelectItem value="priority">Por prioridade</SelectItem>
-            <SelectItem value="assignee">Por responsável</SelectItem>
-            <SelectItem value="none">Sem agrupar</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-2">
-          <Switch id="show-rel" checked={showRelations} onCheckedChange={setShowRelations} />
-          <Label htmlFor="show-rel" className="text-xs cursor-pointer">Dependências</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch id="show-sub" checked={showSubtasks} onCheckedChange={setShowSubtasks} />
-          <Label htmlFor="show-sub" className="text-xs cursor-pointer">Subtarefas</Label>
+          <div className="flex shrink-0 items-center gap-2">
+            <Switch id="show-rel" checked={showRelations} onCheckedChange={setShowRelations} />
+            <Label htmlFor="show-rel" className="text-xs cursor-pointer">Dependências</Label>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Switch id="show-sub" checked={showSubtasks} onCheckedChange={setShowSubtasks} />
+            <Label htmlFor="show-sub" className="text-xs cursor-pointer">Subtarefas</Label>
+          </div>
         </div>
       </header>
 
@@ -585,7 +587,10 @@ export default function GanttView() {
           {/* LEFT PANEL */}
           <div
             className="border-r bg-card flex flex-col"
-            style={{ width: leftWidth, flexShrink: 0 }}
+            style={{
+              width: `clamp(${LEFT_PANEL_MIN}px, min(${leftWidth}px, 38vw), ${LEFT_PANEL_MAX}px)`,
+              flexShrink: 0,
+            }}
           >
             <div
               className="border-b bg-muted/30 flex items-end px-3 text-xs font-medium text-muted-foreground"
