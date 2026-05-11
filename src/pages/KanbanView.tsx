@@ -17,6 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { AssigneeSelect } from "@/components/AssigneeSelect";
+import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { useStatuses } from "@/hooks/useStatuses";
 import { useCreateTask, useReorderTasks, useTasks } from "@/hooks/useTasks";
@@ -62,6 +67,9 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
         <Badge variant="outline" className={cn("font-normal text-[10px] py-0 h-5", priorityClass[task.priority])}>
           {priorityLabel[task.priority]}
         </Badge>
+        <span onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+          <TaskDependencyIndicator taskId={task.id} taskTitle={task.title} compact />
+        </span>
         {task.due_date && (
           <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
             <Calendar className="h-3 w-3" />
@@ -172,6 +180,10 @@ export default function KanbanView() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [filters, setFilters] = useState<ListFilters>(EMPTY_FILTERS);
+  const [pendingMove, setPendingMove] = useState<{
+    updates: { id: string; position: number; status_id?: string | null }[];
+    blockerTaskId: string;
+  } | null>(null);
 
   const { data: listData } = useQuery({
     queryKey: ["list-breadcrumb", listId],
@@ -307,6 +319,27 @@ export default function KanbanView() {
       sourceCol.forEach((t, i) => updates.push({ id: t.id, position: i }));
     }
 
+    // If moving INTO a "done" column from a non-done column, check blockers.
+    const destIsDone = !!statuses.find((s) => s.id === destStatusId)?.is_done;
+    const sourceIsDone = !!statuses.find((s) => s.id === activeT.status_id)?.is_done;
+    if (destIsDone && !sourceIsDone) {
+      const { data: blockers } = await supabase
+        .from("task_dependencies")
+        .select("source_task_id, target_task_id, dependency_type")
+        .or(
+          `and(target_task_id.eq.${activeId},dependency_type.eq.blocks),` +
+          `and(source_task_id.eq.${activeId},dependency_type.eq.blocked_by)`,
+        );
+      if ((blockers ?? []).length > 0) {
+        const firstBlockerId =
+          blockers![0].dependency_type === "blocks"
+            ? blockers![0].source_task_id
+            : blockers![0].target_task_id;
+        setPendingMove({ updates, blockerTaskId: firstBlockerId });
+        return;
+      }
+    }
+
     reorderTasks.mutate(updates);
   };
 
@@ -420,6 +453,39 @@ export default function KanbanView() {
         open={!!openTaskId}
         onOpenChange={(o) => { if (!o) setOpenTaskId(null); }}
       />
+
+      <AlertDialog open={!!pendingMove} onOpenChange={(o) => { if (!o) setPendingMove(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Task ainda bloqueada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta task ainda está bloqueada por outras tarefas pendentes. Tem certeza que deseja concluí-la mesmo assim?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (pendingMove) setOpenTaskId(pendingMove.blockerTaskId);
+                setPendingMove(null);
+              }}
+            >
+              Ver task bloqueante
+            </Button>
+            <div className="flex gap-2">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingMove) reorderTasks.mutate(pendingMove.updates);
+                  setPendingMove(null);
+                }}
+              >
+                Concluir mesmo assim
+              </AlertDialogAction>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

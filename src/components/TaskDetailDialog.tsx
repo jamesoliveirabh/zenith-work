@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Circle, Link2, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTaskDependencies } from "@/hooks/useTaskDependencies";
+import { DependencyList } from "@/components/dependencies/DependencyList";
+import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -165,6 +169,19 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
   const description = (detail?.description ?? null) as JSONContent | null;
   const completedCount = subtasks.filter((s) => s.completed_at).length;
 
+  // Dependencies for this task (used for the blocked banner + section).
+  const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
+  const blockedBy = deps?.blockedBy ?? [];
+  const [depFormOpen, setDepFormOpen] = useState(false);
+  const existingDepIds = useMemo(
+    () => [
+      ...(deps?.blocks ?? []).map((r) => r.taskId),
+      ...(deps?.blockedBy ?? []).map((r) => r.taskId),
+      ...(deps?.relatedTo ?? []).map((r) => r.taskId),
+    ],
+    [deps],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -187,6 +204,23 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
         </DialogHeader>
 
         <div className="space-y-5">
+          {blockedBy.length > 0 && (
+            <Alert variant="destructive" className="border-destructive/40 bg-destructive/10">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <span className="font-medium">⚠️ Esta task está bloqueada por </span>
+                {blockedBy.slice(0, 3).map((b, i) => (
+                  <span key={b.dependencyId}>
+                    {i > 0 && ", "}
+                    <span className="font-medium underline-offset-2 underline">{b.title}</span>
+                  </span>
+                ))}
+                {blockedBy.length > 3 && ` +${blockedBy.length - 3}`}
+                . Conclua a{blockedBy.length > 1 ? "s" : ""} task{blockedBy.length > 1 ? "s" : ""} bloqueante{blockedBy.length > 1 ? "s" : ""} primeiro.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Description */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -408,6 +442,29 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
               </div>
             </form>
           </section>
+
+          <Separator />
+
+          {/* Dependências */}
+          {taskId && (
+            <section>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium flex items-center gap-1.5">
+                  <Link2 className="h-4 w-4" /> Dependências
+                </h3>
+                <Button size="sm" variant="outline" onClick={() => setDepFormOpen(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Nova
+                </Button>
+              </div>
+              <DependencyList taskId={taskId} />
+              <DependencyForm
+                taskId={taskId}
+                excludeTaskIds={existingDepIds}
+                open={depFormOpen}
+                onOpenChange={setDepFormOpen}
+              />
+            </section>
+          )}
         </div>
       </DialogContent>
     </Dialog>
