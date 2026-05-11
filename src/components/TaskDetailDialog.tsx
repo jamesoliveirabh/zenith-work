@@ -230,6 +230,9 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tags</label>
             <TagsInput value={tags} onChange={updateTags} />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Pressione Enter ou vírgula para adicionar a tag.
+            </p>
           </div>
 
           {/* Assignees */}
@@ -370,7 +373,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                 <p className="text-sm text-muted-foreground text-center py-3">Nenhum comentário ainda.</p>
               )}
             </div>
-            <form onSubmit={postComment} className="flex gap-2">
+            <form onSubmit={postComment} className="space-y-2">
               <Textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
@@ -380,12 +383,29 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                     postComment(e as unknown as React.FormEvent);
                   }
                 }}
-                placeholder="Escreva um comentário... (Ctrl+Enter)"
-                className="min-h-[60px] resize-none text-sm"
+                placeholder="Escreva um comentário... (Ctrl+Enter para enviar)"
+                className="min-h-[70px] resize-none text-sm"
               />
-              <Button type="submit" size="icon" disabled={posting || !newComment.trim()}>
-                {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
+              <div className="flex items-center justify-end gap-2">
+                {newComment.trim() && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setNewComment("")}
+                    disabled={posting}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+                <Button type="submit" size="sm" disabled={posting || !newComment.trim()}>
+                  {posting ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Enviando...</>
+                  ) : (
+                    <><Send className="h-4 w-4 mr-1.5" /> Comentar</>
+                  )}
+                </Button>
+              </div>
             </form>
           </section>
         </div>
