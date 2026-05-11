@@ -106,6 +106,13 @@ const TEMPLATES: TemplateSeed[] = [
     trigger: "priority_changed",
     actions: [{ type: "add_tag", tag: "urgente" } as any],
   },
+  {
+    name: "Notificar conclusão da tarefa",
+    description: "Avisa o responsável assim que a tarefa for marcada como concluída.",
+    category: "notificações",
+    trigger: "task_completed",
+    actions: [{ type: "send_notification" } as any],
+  },
 ];
 
 export default function Automations() {
