@@ -315,6 +315,27 @@ export default function KanbanView() {
       sourceCol.forEach((t, i) => updates.push({ id: t.id, position: i }));
     }
 
+    // If moving INTO a "done" column from a non-done column, check blockers.
+    const destIsDone = !!statuses.find((s) => s.id === destStatusId)?.is_done;
+    const sourceIsDone = !!statuses.find((s) => s.id === activeT.status_id)?.is_done;
+    if (destIsDone && !sourceIsDone) {
+      const { data: blockers } = await supabase
+        .from("task_dependencies")
+        .select("source_task_id, target_task_id, dependency_type")
+        .or(
+          `and(target_task_id.eq.${activeId},dependency_type.eq.blocks),` +
+          `and(source_task_id.eq.${activeId},dependency_type.eq.blocked_by)`,
+        );
+      if ((blockers ?? []).length > 0) {
+        const firstBlockerId =
+          blockers![0].dependency_type === "blocks"
+            ? blockers![0].source_task_id
+            : blockers![0].target_task_id;
+        setPendingMove({ updates, blockerTaskId: firstBlockerId });
+        return;
+      }
+    }
+
     reorderTasks.mutate(updates);
   };
 
