@@ -23,25 +23,35 @@ import {
   useToggleAutomation,
 } from "@/hooks/useAutomations";
 
+type TemplateCategory = "notificações" | "organização";
+
 type TemplateSeed = {
   name: string;
   description: string;
+  category: TemplateCategory;
   trigger: Automation["trigger"];
   trigger_config?: Record<string, unknown>;
   conditions?: Automation["conditions"];
   actions: Automation["actions"];
 };
 
+const CATEGORY_LABEL: Record<TemplateCategory, string> = {
+  "notificações": "Notificações",
+  "organização": "Organização",
+};
+
 const TEMPLATES: TemplateSeed[] = [
   {
     name: "Notificar responsável quando atribuído",
     description: "Avisa quem foi designado assim que a tarefa muda de responsável.",
+    category: "notificações",
     trigger: "assignee_changed",
     actions: [{ type: "send_notification" } as any],
   },
   {
     name: "Lembrete 3 dias antes do prazo",
     description: "Notifica o responsável 3 dias antes do vencimento.",
+    category: "notificações",
     trigger: "due_date_approaching",
     trigger_config: { days_before: 3 },
     actions: [{ type: "send_notification" } as any],
@@ -49,14 +59,30 @@ const TEMPLATES: TemplateSeed[] = [
   {
     name: "Comentar quando concluída",
     description: "Posta um comentário automático quando a tarefa é finalizada.",
+    category: "notificações",
     trigger: "task_completed",
     actions: [{ type: "post_comment", body: "✅ Tarefa concluída automaticamente." } as any],
   },
   {
     name: "Marcar urgente quando virar 'Em revisão'",
     description: "Eleva a prioridade ao mover para um status específico.",
+    category: "organização",
     trigger: "status_changed",
     actions: [{ type: "set_priority", priority: "urgent" } as any],
+  },
+  {
+    name: "Adicionar tag 'novo' ao criar tarefa",
+    description: "Marca toda tarefa recém-criada com uma tag de triagem.",
+    category: "organização",
+    trigger: "task_created",
+    actions: [{ type: "add_tag", tag: "novo" } as any],
+  },
+  {
+    name: "Definir prazo de 7 dias ao criar",
+    description: "Atribui automaticamente uma data de vencimento para tarefas novas.",
+    category: "organização",
+    trigger: "task_created",
+    actions: [{ type: "set_due_date", days_from_now: 7 } as any],
   },
 ];
 
