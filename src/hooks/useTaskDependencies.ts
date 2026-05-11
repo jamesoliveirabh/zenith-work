@@ -196,7 +196,13 @@ export function useDeleteDependency(_workspaceId: string | undefined) {
         .eq("id", dependencyId)
         .select("source_task_id, target_task_id")
         .single();
-      if (error) throw error;
+      if (error) {
+        const code = (error as { code?: string }).code;
+        if (code === "42501" || error.message?.toLowerCase().includes("row-level security")) {
+          throw new Error("Você não tem permissão para editar esta task");
+        }
+        throw error;
+      }
       return data;
     },
     retry: 1,
