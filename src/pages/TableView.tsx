@@ -579,6 +579,9 @@ function TableRow({
                 {task.attachment_count}
               </span>
             )}
+            <span onClick={(e) => e.stopPropagation()} className="shrink-0">
+              <TaskDependencyIndicator taskId={task.id} taskTitle={task.title} compact />
+            </span>
           </button>
         )}
       </Cell>
