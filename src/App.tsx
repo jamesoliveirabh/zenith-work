@@ -106,6 +106,7 @@ const App = () => (
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                   <Route path="/security/lists/:listId/roles" element={<ListRolePermissions />} />
                   <Route path="/settings/billing" element={<BillingSettings />} />
+                  <Route path="/settings/integrations" element={<Integrations />} />
                   <Route path="/admin/billing" element={<AdminBillingHome />} />
                   <Route path="/admin/billing/accounts/:workspaceId" element={<AdminBillingAccountDetail />} />
                 </Route>
