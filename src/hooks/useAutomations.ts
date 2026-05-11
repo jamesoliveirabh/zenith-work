@@ -311,6 +311,7 @@ export const ACTION_LABELS: Record<AutomationActionType, string> = {
   create_subtask: "Criar subtarefa",
   post_comment: "Postar comentário",
   send_notification: "Enviar notificação",
+  send_slack_message: "Enviar mensagem no Slack",
 };
 
 export function describeAutomation(a: Automation): string {
