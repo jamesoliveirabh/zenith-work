@@ -1994,6 +1994,63 @@ export type Database = {
           },
         ]
       }
+      task_subtasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_completed: boolean
+          order_index: number
+          parent_subtask_id: string | null
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          order_index?: number
+          parent_subtask_id?: string | null
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          order_index?: number
+          parent_subtask_id?: string | null
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_subtasks_parent_subtask_id_fkey"
+            columns: ["parent_subtask_id"]
+            isOneToOne: false
+            referencedRelation: "task_subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_watchers: {
         Row: {
           task_id: string
@@ -2041,11 +2098,13 @@ export type Database = {
           parent_task_id: string | null
           position: number
           priority: Database["public"]["Enums"]["task_priority"]
+          progress_percentage: number
           start_date: string | null
           status_id: string | null
           tags: string[] | null
           time_estimate_seconds: number | null
           title: string
+          total_subtasks: number
           updated_at: string
           workspace_id: string
         }
@@ -2062,11 +2121,13 @@ export type Database = {
           parent_task_id?: string | null
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
+          progress_percentage?: number
           start_date?: string | null
           status_id?: string | null
           tags?: string[] | null
           time_estimate_seconds?: number | null
           title: string
+          total_subtasks?: number
           updated_at?: string
           workspace_id: string
         }
@@ -2083,11 +2144,13 @@ export type Database = {
           parent_task_id?: string | null
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
+          progress_percentage?: number
           start_date?: string | null
           status_id?: string | null
           tags?: string[] | null
           time_estimate_seconds?: number | null
           title?: string
+          total_subtasks?: number
           updated_at?: string
           workspace_id?: string
         }
