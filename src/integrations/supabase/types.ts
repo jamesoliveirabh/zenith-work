@@ -3255,6 +3255,10 @@ export type Database = {
         Returns: Json
       }
       platform_admin_reconciliation_scan: { Args: never; Returns: Json }
+      platform_admin_reset_password: {
+        Args: { _new_password: string; _target_user: string }
+        Returns: undefined
+      }
       platform_admin_revoke_role: {
         Args: {
           _reason: string
