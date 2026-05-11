@@ -44,6 +44,8 @@ export default function AdminSecurityUsers() {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [grantEmail, setGrantEmail] = useState("");
   const [grantRoleVal, setGrantRoleVal] = useState<PlatformRole>("support_admin");
+  const [newPassword, setNewPassword] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
 
   return (
     <div className="container mx-auto p-6 space-y-4">
