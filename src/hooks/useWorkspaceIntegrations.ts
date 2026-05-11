@@ -7,7 +7,7 @@ export interface SlackConfig {
   bot_token: string;
   team_name?: string;
   team_id?: string;
-  channels?: SlackChannel[];
+  channels: SlackChannel[];
 }
 export interface WorkspaceIntegration {
   id: string;
@@ -43,11 +43,16 @@ export function useSlackIntegration(workspaceId: string | undefined) {
       });
       if (error) throw error;
       if (!data?.valid) throw new Error(data?.error || "Token inválido");
+      console.log("[Slack] Channels from API:", data?.channels);
+      const channels: SlackChannel[] = Array.isArray(data?.channels) ? data.channels : [];
+      if (channels.length === 0) {
+        toast.warning("Nenhum canal encontrado. Verifique se o bot tem o scope channels:read e foi adicionado a canais.");
+      }
       const config: SlackConfig = {
         bot_token: botToken,
         team_name: data.team_name,
         team_id: data.team_id,
-        channels: data.channels || [],
+        channels,
       };
       const { error: upErr } = await (supabase as any)
         .from("workspace_integrations")
@@ -73,7 +78,9 @@ export function useSlackIntegration(workspaceId: string | undefined) {
       });
       if (error) throw error;
       if (!data?.valid) throw new Error(data?.error || "Falha");
-      const config: SlackConfig = { ...integ.config, channels: data.channels || [], team_name: data.team_name, team_id: data.team_id };
+      console.log("[Slack] Refreshed channels:", data?.channels);
+      const channels: SlackChannel[] = Array.isArray(data?.channels) ? data.channels : [];
+      const config: SlackConfig = { ...integ.config, channels, team_name: data.team_name, team_id: data.team_id };
       const { error: upErr } = await (supabase as any)
         .from("workspace_integrations")
         .update({ config })
