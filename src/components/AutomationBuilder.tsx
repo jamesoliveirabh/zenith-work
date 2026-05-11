@@ -625,6 +625,8 @@ function ActionConfig({ action, onChange, statuses, members, lists, workspaceId 
           <Textarea value={action.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} placeholder="Mensagem da notificação" rows={2} />
         </div>
       );
+    case "send_slack_message":
+      return <SlackActionConfig action={action} onChange={onChange} workspaceId={workspaceId} />;
     default:
       return null;
   }
