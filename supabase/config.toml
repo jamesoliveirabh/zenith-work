@@ -1,1 +1,7 @@
 project_id = "vdjxlvmkcncjctcwdtra"
+
+[functions.verify-slack-token]
+verify_jwt = true
+
+[functions.send-slack-message]
+verify_jwt = false

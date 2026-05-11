@@ -371,6 +371,14 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild className="pl-9">
+                      <NavLink to="/settings/integrations">
+                        <Zap className="h-3.5 w-3.5" />
+                        <span>Integrações</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="pl-9">
                       <NavLink to="/settings/billing">
                         <CreditCard className="h-3.5 w-3.5" />
                         <span>Cobrança</span>

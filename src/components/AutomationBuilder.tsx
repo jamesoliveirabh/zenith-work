@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSlackIntegration } from "@/hooks/useWorkspaceIntegrations";
 import { cn } from "@/lib/utils";
-import { Plus, X, ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
+import { Plus, X, ArrowRight, ArrowLeft, GripVertical, AlertTriangle } from "lucide-react";
 import {
   type Automation,
   type AutomationAction,
@@ -359,7 +362,7 @@ export default function AutomationBuilder({
                   <div className="flex-1 space-y-2">
                     <Select
                       value={a.type}
-                      onValueChange={(v: AutomationActionType) => updateAction(i, { type: v, status_id: undefined, priority: undefined, assignee_id: undefined, list_id: undefined, body: undefined, title: undefined, tag: undefined, days_from_now: undefined })}
+                      onValueChange={(v: AutomationActionType) => updateAction(i, { type: v, status_id: undefined, priority: undefined, assignee_id: undefined, list_id: undefined, body: undefined, title: undefined, tag: undefined, days_from_now: undefined, channel_id: undefined, channel_name: undefined, message: undefined })}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -375,6 +378,7 @@ export default function AutomationBuilder({
                       statuses={scopedStatuses}
                       members={members}
                       lists={lists}
+                      workspaceId={workspaceId}
                     />
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => removeAction(i)}>
@@ -436,6 +440,7 @@ function isActionValid(a: AutomationAction): boolean {
     case "create_subtask": return !!a.title?.trim();
     case "post_comment": return !!a.body?.trim();
     case "send_notification": return !!a.body?.trim();
+    case "send_slack_message": return !!a.channel_id && !!a.message?.trim();
     default: return false;
   }
 }
@@ -541,10 +546,11 @@ function ConditionValueInput({ field, value, onChange, members, statuses, lists 
   return <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="tag" />;
 }
 
-function ActionConfig({ action, onChange, statuses, members, lists }: {
+function ActionConfig({ action, onChange, statuses, members, lists, workspaceId }: {
   action: AutomationAction;
   onChange: (patch: Partial<AutomationAction>) => void;
   statuses: StatusLite[]; members: MemberLite[]; lists: ListLite[];
+  workspaceId: string;
 }) {
   switch (action.type) {
     case "set_status":
@@ -619,7 +625,103 @@ function ActionConfig({ action, onChange, statuses, members, lists }: {
           <Textarea value={action.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} placeholder="Mensagem da notificação" rows={2} />
         </div>
       );
+    case "send_slack_message":
+      return <SlackActionConfig action={action} onChange={onChange} workspaceId={workspaceId} />;
     default:
       return null;
   }
+}
+
+const SLACK_VARS = [
+  "{{task_name}}",
+  "{{task_assignee}}",
+  "{{task_status}}",
+  "{{task_priority}}",
+  "{{task_due_date}}",
+  "{{workspace_name}}",
+];
+
+function SlackActionConfig({
+  action, onChange, workspaceId,
+}: {
+  action: AutomationAction;
+  onChange: (patch: Partial<AutomationAction>) => void;
+  workspaceId: string;
+}) {
+  const slack = useSlackIntegration(workspaceId);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const insertVar = (v: string) => {
+    const ta = textareaRef.current;
+    const current = action.message ?? "";
+    if (!ta) {
+      onChange({ message: current + v });
+      return;
+    }
+    const start = ta.selectionStart ?? current.length;
+    const end = ta.selectionEnd ?? current.length;
+    const next = current.slice(0, start) + v + current.slice(end);
+    onChange({ message: next });
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + v.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const channels = slack.channels;
+  const handleChannelChange = (channelId: string) => {
+    const ch = channels.find((c) => c.id === channelId);
+    onChange({ channel_id: channelId, channel_name: ch?.name });
+  };
+
+  return (
+    <div className="space-y-2">
+      {!slack.isConnected && (
+        <Alert className="border-amber-500/40 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-sm">
+            Slack não configurado.{" "}
+            <Link to="/settings/integrations" className="text-primary underline">
+              Configure em Configurações → Integrações
+            </Link>
+            .
+          </AlertDescription>
+        </Alert>
+      )}
+      <Select
+        value={action.channel_id ?? ""}
+        onValueChange={handleChannelChange}
+        disabled={!slack.isConnected || channels.length === 0}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={slack.isConnected ? "Selecione um canal" : "Slack não conectado"} />
+        </SelectTrigger>
+        <SelectContent>
+          {channels.map((c) => (
+            <SelectItem key={c.id} value={c.id}>#{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Textarea
+        ref={textareaRef}
+        value={action.message ?? ""}
+        onChange={(e) => onChange({ message: e.target.value })}
+        placeholder="Ex: 🎉 Tarefa {{task_name}} foi concluída!"
+        rows={3}
+      />
+      <div className="flex flex-wrap gap-1">
+        {SLACK_VARS.map((v) => (
+          <button
+            type="button"
+            key={v}
+            onClick={() => insertVar(v)}
+            className="text-[11px] font-mono rounded bg-muted px-1.5 py-0.5 hover:bg-muted-foreground/20 transition-colors"
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }

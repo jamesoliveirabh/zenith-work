@@ -33,6 +33,7 @@ import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
 import BillingSettings from "./pages/BillingSettings";
+import Integrations from "./pages/settings/Integrations";
 import AdminBillingHome from "./pages/admin/billing/AdminBillingHome";
 import AdminBillingAccountDetail from "./pages/admin/billing/AdminBillingAccountDetail";
 import { EntitlementGuardProvider } from "@/components/billing/EntitlementGuardProvider";
@@ -105,6 +106,7 @@ const App = () => (
                   <Route path="/security/lists/:listId" element={<ListPermissions />} />
                   <Route path="/security/lists/:listId/roles" element={<ListRolePermissions />} />
                   <Route path="/settings/billing" element={<BillingSettings />} />
+                  <Route path="/settings/integrations" element={<Integrations />} />
                   <Route path="/admin/billing" element={<AdminBillingHome />} />
                   <Route path="/admin/billing/accounts/:workspaceId" element={<AdminBillingAccountDetail />} />
                 </Route>

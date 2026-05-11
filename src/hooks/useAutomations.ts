@@ -24,7 +24,8 @@ export type AutomationActionType =
   | "move_to_list"
   | "create_subtask"
   | "post_comment"
-  | "send_notification";
+  | "send_notification"
+  | "send_slack_message";
 
 export interface AutomationCondition {
   field: "priority" | "status" | "assignee" | "list" | "tag";
@@ -43,6 +44,9 @@ export interface AutomationAction {
   title?: string;
   body?: string;
   user_id?: string;
+  channel_id?: string;
+  channel_name?: string;
+  message?: string;
 }
 
 export interface Automation {
@@ -307,6 +311,7 @@ export const ACTION_LABELS: Record<AutomationActionType, string> = {
   create_subtask: "Criar subtarefa",
   post_comment: "Postar comentário",
   send_notification: "Enviar notificação",
+  send_slack_message: "Enviar mensagem no Slack",
 };
 
 export function describeAutomation(a: Automation): string {

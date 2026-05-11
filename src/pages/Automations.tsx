@@ -120,6 +120,21 @@ const TEMPLATES: TemplateSeed[] = [
     trigger: "task_completed",
     actions: [{ type: "unassign_user" } as any],
   },
+  {
+    name: "Avisar Slack ao concluir",
+    description: "Envia uma mensagem em um canal do Slack quando a tarefa for concluída.",
+    category: "notificações",
+    trigger: "task_completed",
+    actions: [{ type: "send_slack_message", message: "✅ Tarefa *{{task_name}}* foi concluída!" } as any],
+  },
+  {
+    name: "Alerta Slack prazo próximo",
+    description: "Envia um alerta no Slack 1 dia antes do vencimento.",
+    category: "notificações",
+    trigger: "due_date_approaching",
+    trigger_config: { days_before: 1 },
+    actions: [{ type: "send_slack_message", message: "⏰ A tarefa *{{task_name}}* vence amanhã!" } as any],
+  },
 ];
 
 export default function Automations() {
