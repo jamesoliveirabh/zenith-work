@@ -546,10 +546,11 @@ function ConditionValueInput({ field, value, onChange, members, statuses, lists 
   return <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="tag" />;
 }
 
-function ActionConfig({ action, onChange, statuses, members, lists }: {
+function ActionConfig({ action, onChange, statuses, members, lists, workspaceId }: {
   action: AutomationAction;
   onChange: (patch: Partial<AutomationAction>) => void;
   statuses: StatusLite[]; members: MemberLite[]; lists: ListLite[];
+  workspaceId: string;
 }) {
   switch (action.type) {
     case "set_status":
