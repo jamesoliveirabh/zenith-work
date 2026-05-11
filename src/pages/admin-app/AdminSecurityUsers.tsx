@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, UserPlus, Power, PowerOff } from "lucide-react";
+import { ShieldCheck, ShieldOff, UserPlus, Power, PowerOff, KeyRound } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,8 @@ type DialogState = null
   | { kind: "grant" }
   | { kind: "revoke"; userId: string; role: PlatformRole; email: string | null }
   | { kind: "toggle"; userId: string; disable: boolean; email: string | null }
-  | { kind: "mfa"; nextValue: boolean };
+  | { kind: "mfa"; nextValue: boolean }
+  | { kind: "password"; userId: string; email: string | null };
 
 export default function AdminSecurityUsers() {
   const { data: admins = [], isLoading } = useAdminUsers();
@@ -42,6 +44,8 @@ export default function AdminSecurityUsers() {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [grantEmail, setGrantEmail] = useState("");
   const [grantRoleVal, setGrantRoleVal] = useState<PlatformRole>("support_admin");
+  const [newPassword, setNewPassword] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
 
   return (
     <div className="container mx-auto p-6 space-y-4">
@@ -129,7 +133,14 @@ export default function AdminSecurityUsers() {
                       : <Badge variant="outline">ativo</Badge>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{formatDateTime(a.last_seen_at)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setNewPassword(""); setDialog({ kind: "password", userId: a.user_id, email: a.email }); }}
+                    >
+                      <KeyRound className="h-4 w-4 mr-1" /> Senha
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -228,6 +239,53 @@ export default function AdminSecurityUsers() {
           setDialog(null);
         }}
       />
+
+      {/* Reset password */}
+      <AdminActionDialog
+        open={dialog?.kind === "password"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        title="Redefinir senha"
+        description={dialog?.kind === "password" ? `Usuário: ${dialog.email ?? "—"}` : ""}
+        confirmLabel="Redefinir"
+        destructive
+        loading={pwBusy}
+        onConfirm={async (reason) => {
+          if (dialog?.kind !== "password") return;
+          if (!newPassword || newPassword.length < 6) {
+            toast.error("Senha mínima de 6 caracteres");
+            return;
+          }
+          setPwBusy(true);
+          try {
+            const { data, error } = await supabase.functions.invoke("admin-reset-password", {
+              body: { target_user_id: dialog.userId, new_password: newPassword, reason },
+            });
+            if (error) throw error;
+            if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+            toast.success("Senha redefinida");
+            setDialog(null);
+            setNewPassword("");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falha ao redefinir senha");
+          } finally {
+            setPwBusy(false);
+          }
+        }}
+      >
+        <div className="space-y-2">
+          <Label>Nova senha</Label>
+          <Input
+            type="text"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+          />
+          <p className="text-xs text-muted-foreground">
+            O usuário poderá entrar imediatamente com a nova senha.
+          </p>
+        </div>
+      </AdminActionDialog>
     </div>
   );
 }
