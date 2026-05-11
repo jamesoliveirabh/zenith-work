@@ -147,13 +147,18 @@ export function useUpdateSubtask(taskId: string) {
       subtaskId: string;
       patch: { title?: string; description?: string | null; is_completed?: boolean };
     }) => {
-      const update: Record<string, unknown> = { ...patch };
+      const update: {
+        title?: string;
+        description?: string | null;
+        is_completed?: boolean;
+        completed_at?: string | null;
+      } = { ...patch };
       if (patch.is_completed !== undefined) {
         update.completed_at = patch.is_completed ? new Date().toISOString() : null;
       }
       const { error } = await supabase
         .from("task_subtasks")
-        .update(update)
+        .update(update as never)
         .eq("id", subtaskId);
       if (error) throw error;
     },
