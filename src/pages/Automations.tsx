@@ -94,6 +94,25 @@ export default function Automations() {
 
   const openNew = () => { setEditing(null); setOpen(true); };
   const openEdit = (a: Automation) => { setEditing(a); setOpen(true); };
+  const openTemplate = (tpl: TemplateSeed) => {
+    if (!workspaceId) return;
+    setEditing({
+      id: "",
+      workspace_id: workspaceId,
+      list_id: null,
+      name: tpl.name,
+      is_active: true,
+      trigger: tpl.trigger,
+      trigger_config: tpl.trigger_config ?? {},
+      conditions: tpl.conditions ?? [],
+      actions: tpl.actions,
+      run_count: 0,
+      last_run_at: null,
+      created_at: "",
+      created_by: null,
+    } as unknown as Automation);
+    setOpen(true);
+  };
 
   const handleDelete = async (a: Automation) => {
     if (!confirm(`Remover "${a.name}"?`)) return;
