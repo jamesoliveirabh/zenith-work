@@ -453,6 +453,39 @@ export default function KanbanView() {
         open={!!openTaskId}
         onOpenChange={(o) => { if (!o) setOpenTaskId(null); }}
       />
+
+      <AlertDialog open={!!pendingMove} onOpenChange={(o) => { if (!o) setPendingMove(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Task ainda bloqueada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta task ainda está bloqueada por outras tarefas pendentes. Tem certeza que deseja concluí-la mesmo assim?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (pendingMove) setOpenTaskId(pendingMove.blockerTaskId);
+                setPendingMove(null);
+              }}
+            >
+              Ver task bloqueante
+            </Button>
+            <div className="flex gap-2">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingMove) reorderTasks.mutate(pendingMove.updates);
+                  setPendingMove(null);
+                }}
+              >
+                Concluir mesmo assim
+              </AlertDialogAction>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
