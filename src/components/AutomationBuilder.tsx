@@ -246,18 +246,23 @@ export default function AutomationBuilder({
               )}
               {draft.trigger === "due_date_approaching" && (
                 <div>
-                  <Label className="text-xs">Dias antes do vencimento</Label>
+                  <Label className="text-xs">Quantos dias antes?</Label>
                   <Input
                     type="number"
-                    min={0}
-                    value={draft.trigger_config.days_before ?? ""}
-                    onChange={(e) => setDraft({
-                      ...draft,
-                      trigger_config: { ...draft.trigger_config, days_before: Number(e.target.value) },
-                    })}
+                    min={1}
+                    max={30}
+                    value={draft.trigger_config.days_before ?? 3}
+                    onChange={(e) => {
+                      const raw = Number(e.target.value);
+                      const clamped = Number.isFinite(raw) ? Math.min(30, Math.max(1, raw)) : 3;
+                      setDraft({
+                        ...draft,
+                        trigger_config: { ...draft.trigger_config, days_before: clamped },
+                      });
+                    }}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Avaliado periodicamente em background.
+                    Entre 1 e 30 dias (padrão: 3). Avaliado periodicamente em background.
                   </p>
                 </div>
               )}
