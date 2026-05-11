@@ -463,21 +463,21 @@ export default function GanttView() {
           <h1 className="text-lg font-semibold truncate">{listData ?? "Lista"}</h1>
         </div>
 
-        <div className="flex gap-1 rounded-md border p-0.5 max-w-full overflow-x-auto scrollbar-thin">
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
-            <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 mr-1.5" />Lista</Link>
+        <div className="flex gap-1 rounded-md border p-0.5 max-w-full overflow-x-auto">
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Lista">
+            <Link to={`/list/${listId}`}><LayoutList className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Lista</span></Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
-            <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 mr-1.5" />Kanban</Link>
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Kanban">
+            <Link to={`/list/${listId}/kanban`}><Trello className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Kanban</span></Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
-            <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 mr-1.5" />Tabela</Link>
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Tabela">
+            <Link to={`/list/${listId}/table`}><TableIcon className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Tabela</span></Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0">
-            <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 mr-1.5" />Calendário</Link>
+          <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Calendário">
+            <Link to={`/list/${listId}/calendar`}><CalendarDays className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Calendário</span></Link>
           </Button>
-          <Button variant="secondary" size="sm" className="h-8 shrink-0">
-            <GanttChart className="h-4 w-4 mr-1.5" />Gantt
+          <Button variant="secondary" size="sm" className="h-8 shrink-0 px-2 xl:px-3" title="Gantt">
+            <GanttChart className="h-4 w-4 xl:mr-1.5" /><span className="hidden xl:inline">Gantt</span>
           </Button>
         </div>
 
