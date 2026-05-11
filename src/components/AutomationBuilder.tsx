@@ -152,7 +152,7 @@ export default function AutomationBuilder({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader>
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0 border-b">
           <DialogTitle>{initial?.id ? "Editar automação" : "Nova automação"}</DialogTitle>
           <div className="flex gap-2 pt-2">
             {[1, 2, 3].map((n) => (
@@ -162,10 +162,12 @@ export default function AutomationBuilder({
               )} />
             ))}
           </div>
-          <div className="text-sm text-muted-foreground pt-1">
+          <div className="text-sm text-muted-foreground pt-1 pb-2">
             Etapa {step} de 3 — {step === 1 ? "Quando" : step === 2 ? "Se (condições)" : "Então (ações)"}
           </div>
         </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
 
         {/* STEP 1 */}
         {step === 1 && (
