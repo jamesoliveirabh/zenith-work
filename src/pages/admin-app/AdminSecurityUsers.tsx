@@ -239,6 +239,53 @@ export default function AdminSecurityUsers() {
           setDialog(null);
         }}
       />
+
+      {/* Reset password */}
+      <AdminActionDialog
+        open={dialog?.kind === "password"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        title="Redefinir senha"
+        description={dialog?.kind === "password" ? `Usuário: ${dialog.email ?? "—"}` : ""}
+        confirmLabel="Redefinir"
+        destructive
+        loading={pwBusy}
+        onConfirm={async (reason) => {
+          if (dialog?.kind !== "password") return;
+          if (!newPassword || newPassword.length < 6) {
+            toast.error("Senha mínima de 6 caracteres");
+            return;
+          }
+          setPwBusy(true);
+          try {
+            const { data, error } = await supabase.functions.invoke("admin-reset-password", {
+              body: { target_user_id: dialog.userId, new_password: newPassword, reason },
+            });
+            if (error) throw error;
+            if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+            toast.success("Senha redefinida");
+            setDialog(null);
+            setNewPassword("");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falha ao redefinir senha");
+          } finally {
+            setPwBusy(false);
+          }
+        }}
+      >
+        <div className="space-y-2">
+          <Label>Nova senha</Label>
+          <Input
+            type="text"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+          />
+          <p className="text-xs text-muted-foreground">
+            O usuário poderá entrar imediatamente com a nova senha.
+          </p>
+        </div>
+      </AdminActionDialog>
     </div>
   );
 }
