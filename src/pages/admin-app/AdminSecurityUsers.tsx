@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, UserPlus, Power, PowerOff } from "lucide-react";
+import { ShieldCheck, ShieldOff, UserPlus, Power, PowerOff, KeyRound } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
