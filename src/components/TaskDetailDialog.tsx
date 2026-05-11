@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, CheckCircle2, Circle, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Circle, Link2, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTaskDependencies } from "@/hooks/useTaskDependencies";
+import { DependencyList } from "@/components/dependencies/DependencyList";
+import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
