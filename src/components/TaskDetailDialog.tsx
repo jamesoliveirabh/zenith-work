@@ -10,7 +10,7 @@ import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { SubtasksList } from "@/components/subtasks/SubtasksList";
 import { useTaskPresence } from "@/hooks/useRealtimeUpdates";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip as PresenceTooltip,
   TooltipContent as PresenceTooltipContent,
