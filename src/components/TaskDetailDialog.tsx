@@ -41,7 +41,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenChange }: Props) {
+export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, open, onOpenChange }: Props) {
   const { user } = useAuth();
   const { current } = useWorkspace();
   const qc = useQueryClient();
