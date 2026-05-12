@@ -62,13 +62,13 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
 
   const updateMeta = useUpdateTaskMeta(taskId ?? "");
   const createSubtask = useCreateSubtask(taskId ?? "");
+  void createSubtask;
   const createComment = useCreateComment(taskId ?? "");
   const deleteCommentMut = useDeleteComment(taskId ?? "");
   const updateAssignees = useUpdateTaskAssignees(taskId ?? "");
 
   // Local UI state for inputs (kept controlled)
   const [title, setTitle] = useState("");
-  const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
