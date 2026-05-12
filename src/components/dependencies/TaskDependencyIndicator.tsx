@@ -184,8 +184,8 @@ export function TaskDependencyIndicator({
         <DependencyViewer
           taskId={taskId}
           taskTitle={taskTitle}
-          open={open}
-          onOpenChange={setOpen}
+          isOpen={open}
+          onClose={() => setOpen(false)}
         />
       )}
     </>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +16,12 @@ import { DependencyForm } from "./DependencyForm";
 interface Props {
   taskId: string;
   taskTitle?: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function DependencyViewer({ taskId, taskTitle, open, onOpenChange }: Props) {
+export function DependencyViewer({ taskId, taskTitle, isOpen, onClose }: Props) {
+  const { current } = useWorkspace();
   const [formOpen, setFormOpen] = useState(false);
   const { data } = useTaskDependencies(taskId);
 
@@ -34,8 +36,8 @@ export function DependencyViewer({ taskId, taskTitle, open, onOpenChange }: Prop
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+      <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="truncate">
               Dependências{taskTitle ? ` de ${taskTitle}` : ""}
@@ -45,21 +47,23 @@ export function DependencyViewer({ taskId, taskTitle, open, onOpenChange }: Prop
           <DependencyList taskId={taskId} />
 
           <DialogFooter className="sm:justify-between">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
+            <Button variant="ghost" onClick={onClose}>Fechar</Button>
             <Button onClick={() => setFormOpen(true)}>
               <Plus className="h-4 w-4 mr-1.5" />
-              Nova dependência
+              Nova Dependência
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <DependencyForm
-        taskId={taskId}
-        excludeTaskIds={existingIds}
-        open={formOpen}
-        onOpenChange={setFormOpen}
-      />
+      {formOpen && (
+        <DependencyForm
+          taskId={taskId}
+          workspaceId={current?.id}
+          excludeTaskIds={existingIds}
+          onClose={() => setFormOpen(false)}
+        />
+      )}
     </>
   );
 }

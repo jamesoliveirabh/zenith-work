@@ -457,12 +457,14 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
                 </Button>
               </div>
               <DependencyList taskId={taskId} />
-              <DependencyForm
-                taskId={taskId}
-                excludeTaskIds={existingDepIds}
-                open={depFormOpen}
-                onOpenChange={setDepFormOpen}
-              />
+              {depFormOpen && (
+                <DependencyForm
+                  taskId={taskId}
+                  workspaceId={current?.id}
+                  excludeTaskIds={existingDepIds}
+                  onClose={() => setDepFormOpen(false)}
+                />
+              )}
             </section>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Loader2, Search } from "lucide-react";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { toast } from "sonner";
 import { useDebouncedValue, useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { useCreateDependency, type DependencyType } from "@/hooks/useTaskDependencies";
 import {
@@ -25,23 +25,52 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  /** Task that the new dependency is being added to (the "source"). */
+  /** Source task that the new dependency is being added to. */
   taskId: string;
-  /** Existing related task ids — excluded from search results. */
+  /** Workspace scope (required for creation + circular check). */
+  workspaceId: string | undefined;
+  /** Called when the dialog should close (cancel or after success). */
+  onClose: () => void;
+  /** Called after a successful create. */
+  onSuccess?: (dependencyId: string) => void;
+  /** Existing related task ids — excluded from the search results. */
   excludeTaskIds?: string[];
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  /** Controls visibility. Defaults to true (form is mounted = open). */
+  open?: boolean;
 }
 
 const TYPE_OPTIONS: { value: DependencyType; label: string; hint: string }[] = [
   { value: "blocks", label: "Bloqueia", hint: "Esta task precisa terminar antes da outra" },
   { value: "blocked_by", label: "Bloqueada por", hint: "A outra precisa terminar antes desta" },
-  { value: "related_to", label: "Relacionada", hint: "Sem ordem de dependência" },
+  { value: "related_to", label: "Relacionada a", hint: "Sem ordem de dependência" },
 ];
 
-export function DependencyForm({ taskId, excludeTaskIds = [], open, onOpenChange }: Props) {
-  const { current } = useWorkspace();
-  const create = useCreateDependency(current?.id);
+/** Map a Postgres error code (or message hint) to a friendly PT-BR string. */
+function mapErrorCode(err: unknown): string {
+  const e = err as { code?: string; message?: string };
+  const code = e?.code;
+  const msg = (e?.message ?? "").toLowerCase();
+  if (code === "42501" || msg.includes("row-level security")) {
+    return "Você não tem permissão para editar esta task";
+  }
+  if (code === "23505" || msg.includes("duplicate") || msg.includes("unique")) {
+    return "Esta dependência já existe";
+  }
+  if (code === "23514" || msg.includes("circular") || msg.includes("check")) {
+    return "Não é possível criar esta dependência (circular)";
+  }
+  return e?.message || "Erro ao criar dependência";
+}
+
+export function DependencyForm({
+  taskId,
+  workspaceId,
+  onClose,
+  onSuccess,
+  excludeTaskIds = [],
+  open = true,
+}: Props) {
+  const create = useCreateDependency(workspaceId);
 
   const [type, setType] = useState<DependencyType>("blocks");
   const [query, setQuery] = useState("");
@@ -49,7 +78,7 @@ export function DependencyForm({ taskId, excludeTaskIds = [], open, onOpenChange
   const [error, setError] = useState<string | null>(null);
 
   const debounced = useDebouncedValue(query, 250);
-  const { data: results = [], isFetching } = useGlobalSearch(debounced, current?.id);
+  const { data: results = [], isFetching } = useGlobalSearch(debounced, workspaceId);
 
   const exclude = useMemo(() => new Set([taskId, ...excludeTaskIds]), [taskId, excludeTaskIds]);
   const tasks = results.filter((r) => r.result_type === "task" && !exclude.has(r.id));
@@ -61,9 +90,9 @@ export function DependencyForm({ taskId, excludeTaskIds = [], open, onOpenChange
     setError(null);
   };
 
-  const close = (next: boolean) => {
-    if (!next) reset();
-    onOpenChange(next);
+  const handleClose = () => {
+    reset();
+    onClose();
   };
 
   const handleSave = async () => {
@@ -73,23 +102,28 @@ export function DependencyForm({ taskId, excludeTaskIds = [], open, onOpenChange
       return;
     }
     if (picked.id === taskId) {
-      setError("Não é possível depender da própria tarefa");
+      setError("Uma tarefa não pode depender de si mesma");
       return;
     }
     try {
-      await create.mutateAsync({
+      const res = await create.mutateAsync({
         sourceTaskId: taskId,
         targetTaskId: picked.id,
         dependencyType: type,
       });
-      close(false);
+      onSuccess?.(res.id);
+      reset();
+      onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao criar dependência");
+      const msg = mapErrorCode(e);
+      setError(msg);
+      // useCreateDependency already toasts on error; avoid double toast for known mapped codes
+      if (!toast) return;
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={close}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) handleClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Nova dependência</DialogTitle>
@@ -187,12 +221,12 @@ export function DependencyForm({ taskId, excludeTaskIds = [], open, onOpenChange
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => close(false)} disabled={create.isPending}>
+          <Button variant="outline" onClick={handleClose} disabled={create.isPending}>
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={create.isPending || !picked}>
             {create.isPending ? (
-              <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Salvando...</>
+              <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Validando...</>
             ) : (
               "Salvar"
             )}
