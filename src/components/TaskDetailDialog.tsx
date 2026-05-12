@@ -381,12 +381,16 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
 
           {/* Tabs: Subtasks + Dependencies */}
           {taskId && (
-            <Tabs defaultValue="subtasks" className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as "subtasks" | "dependencies")}
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="subtasks">
-                  Subtasks{subtasks.length > 0 && (
+                  Subtasks{subtasksCount > 0 && (
                     <span className="ml-1.5 text-muted-foreground font-normal">
-                      {completedCount}/{subtasks.length}
+                      {subtasksData?.completed ?? 0}/{subtasksCount}
                     </span>
                   )}
                 </TabsTrigger>
@@ -400,19 +404,36 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="subtasks" className="space-y-2">
-                <SubtasksList taskId={taskId} />
-                <form onSubmit={addSubtask} className="flex gap-2 pt-2">
-                  <Input
-                    value={newSubtask}
-                    onChange={(e) => setNewSubtask(e.target.value)}
-                    placeholder="Adicionar subtarefa..."
-                    className="h-8 text-sm"
-                  />
-                  <Button type="submit" size="sm" variant="outline" disabled={!newSubtask.trim()}>
-                    <Plus className="h-3.5 w-3.5" />
+              <TabsContent value="subtasks" className="space-y-4">
+                <SubtaskProgressBar
+                  taskId={taskId}
+                  size="md"
+                  showPercentage
+                  showLabel
+                />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">
+                    Subtasks <span className="text-muted-foreground font-normal">({subtasksCount})</span>
+                  </h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowCreateForm((v) => !v)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    {showCreateForm ? "Fechar" : "Novo Subtask"}
                   </Button>
-                </form>
+                </div>
+                {showCreateForm && (
+                  <div className="rounded-md border p-3">
+                    <SubtaskCreateForm
+                      taskId={taskId}
+                      onSuccess={() => setShowCreateForm(false)}
+                      onCancel={() => setShowCreateForm(false)}
+                    />
+                  </div>
+                )}
+                <SubtasksList taskId={taskId} />
               </TabsContent>
 
               <TabsContent value="dependencies" className="space-y-3">
