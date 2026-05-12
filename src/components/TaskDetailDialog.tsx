@@ -179,6 +179,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   // Dependencies for this task (used for the blocked banner + section).
   const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
   const blockedBy = deps?.blockedBy ?? [];
+  const presence = useTaskPresence(open ? taskId : null);
   const [depFormOpen, setDepFormOpen] = useState(false);
   const existingDepIds = useMemo(
     () => [
