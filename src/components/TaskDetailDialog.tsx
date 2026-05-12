@@ -9,6 +9,14 @@ import { DependencyList } from "@/components/dependencies/DependencyList";
 import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { SubtasksList } from "@/components/subtasks/SubtasksList";
+import { useTaskPresence } from "@/hooks/useRealtimeUpdates";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip as PresenceTooltip,
+  TooltipContent as PresenceTooltipContent,
+  TooltipProvider as PresenceTooltipProvider,
+  TooltipTrigger as PresenceTooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
