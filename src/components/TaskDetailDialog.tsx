@@ -51,8 +51,6 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
 
   const updateMeta = useUpdateTaskMeta(taskId ?? "");
   const createSubtask = useCreateSubtask(taskId ?? "");
-  const toggleSubtaskMut = useToggleSubtask(taskId ?? "", doneStatusId);
-  const deleteSubtaskMut = useDeleteSubtask(taskId ?? "");
   const createComment = useCreateComment(taskId ?? "");
   const deleteCommentMut = useDeleteComment(taskId ?? "");
   const updateAssignees = useUpdateTaskAssignees(taskId ?? "");
