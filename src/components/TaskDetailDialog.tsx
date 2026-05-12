@@ -127,19 +127,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
     updateMeta.mutate({ tags: next });
   };
 
-  const addSubtask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubtask.trim() || !taskId || !current || !user) return;
-    const t = newSubtask.trim();
-    setNewSubtask("");
-    await createSubtask.mutateAsync({
-      title: t,
-      list_id: listId,
-      workspace_id: current.id,
-      created_by: user.id,
-      position: detail?.subtasks.length ?? 0,
-    });
-  };
+  // Legacy subtask creation removed; SubtaskCreateForm handles it now.
 
   const postComment = async (e: React.FormEvent) => {
     e.preventDefault();
