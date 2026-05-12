@@ -9,6 +9,14 @@ import { DependencyList } from "@/components/dependencies/DependencyList";
 import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { SubtasksList } from "@/components/subtasks/SubtasksList";
+import { useTaskPresence } from "@/hooks/useRealtimeUpdates";
+import { AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip as PresenceTooltip,
+  TooltipContent as PresenceTooltipContent,
+  TooltipProvider as PresenceTooltipProvider,
+  TooltipTrigger as PresenceTooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -171,6 +179,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   // Dependencies for this task (used for the blocked banner + section).
   const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
   const blockedBy = deps?.blockedBy ?? [];
+  const presence = useTaskPresence(open ? taskId : null);
   const [depFormOpen, setDepFormOpen] = useState(false);
   const existingDepIds = useMemo(
     () => [
@@ -200,6 +209,39 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
                 className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1 flex-1 min-w-0"
                 placeholder="Título da tarefa"
               />
+              {presence.length > 0 && (
+                <PresenceTooltipProvider delayDuration={150}>
+                  <div className="flex -space-x-1.5 items-center pl-1" aria-label="Pessoas vendo agora">
+                    {presence.slice(0, 4).map((v) => {
+                      const initial = (v.displayName ?? "?").charAt(0).toUpperCase();
+                      return (
+                        <PresenceTooltip key={v.userId}>
+                          <PresenceTooltipTrigger asChild>
+                            <span className="relative inline-flex h-6 w-6 rounded-full ring-2 ring-background bg-muted overflow-hidden">
+                              {v.avatarUrl ? (
+                                <AvatarImage src={v.avatarUrl} alt={v.displayName ?? ""} className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="flex h-full w-full items-center justify-center text-[10px] font-medium">
+                                  {initial}
+                                </span>
+                              )}
+                              <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-priority-low ring-2 ring-background" />
+                            </span>
+                          </PresenceTooltipTrigger>
+                          <PresenceTooltipContent side="bottom">
+                            {(v.displayName ?? "Usuário")} está vendo isso agora
+                          </PresenceTooltipContent>
+                        </PresenceTooltip>
+                      );
+                    })}
+                    {presence.length > 4 && (
+                      <span className="ml-2 text-[11px] text-muted-foreground">
+                        +{presence.length - 4}
+                      </span>
+                    )}
+                  </div>
+                </PresenceTooltipProvider>
+              )}
               {taskId && (
                 <TaskDependencyIndicator taskId={taskId} taskTitle={detail?.title} compact size="sm" />
               )}

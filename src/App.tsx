@@ -37,6 +37,7 @@ import Integrations from "./pages/settings/Integrations";
 import AdminBillingHome from "./pages/admin/billing/AdminBillingHome";
 import AdminBillingAccountDetail from "./pages/admin/billing/AdminBillingAccountDetail";
 import { EntitlementGuardProvider } from "@/components/billing/EntitlementGuardProvider";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ const App = () => (
           <AuthProvider>
             <WorkspaceProvider>
               <EntitlementGuardProvider>
+              <NotificationCenter />
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/invite/:token" element={<AcceptInvite />} />
