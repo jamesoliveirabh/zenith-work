@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, CheckCircle2, Circle, Link2, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskDependencies } from "@/hooks/useTaskDependencies";
 import { DependencyList } from "@/components/dependencies/DependencyList";
 import { DependencyForm } from "@/components/dependencies/DependencyForm";
+import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
+import { SubtasksList } from "@/components/subtasks/SubtasksList";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,13 +27,11 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import {
   taskDetailKey, useCreateComment, useCreateSubtask, useDeleteComment,
-  useDeleteSubtask, useTaskDetail, useToggleSubtask, useUpdateTaskAssignees,
-  useUpdateTaskMeta,
+  useTaskDetail, useUpdateTaskAssignees, useUpdateTaskMeta,
 } from "@/hooks/useTaskDetail";
 import { useListMembers } from "@/hooks/useListMembers";
 import { uploadAttachment, createSignedUrl, isImageMime, attachmentsKey } from "@/hooks/useTaskAttachments";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface Props {
   taskId: string | null;
@@ -40,7 +41,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenChange }: Props) {
+export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, open, onOpenChange }: Props) {
   const { user } = useAuth();
   const { current } = useWorkspace();
   const qc = useQueryClient();
@@ -50,8 +51,6 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
 
   const updateMeta = useUpdateTaskMeta(taskId ?? "");
   const createSubtask = useCreateSubtask(taskId ?? "");
-  const toggleSubtaskMut = useToggleSubtask(taskId ?? "", doneStatusId);
-  const deleteSubtaskMut = useDeleteSubtask(taskId ?? "");
   const createComment = useCreateComment(taskId ?? "");
   const deleteCommentMut = useDeleteComment(taskId ?? "");
   const updateAssignees = useUpdateTaskAssignees(taskId ?? "");
@@ -190,16 +189,21 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           {loading ? (
             <div className="h-8 flex items-center"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
           ) : (
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => {
-                const v = title.trim();
-                if (v && v !== detail?.title) updateMeta.mutate({ title: v });
-              }}
-              className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1"
-              placeholder="Título da tarefa"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => {
+                  const v = title.trim();
+                  if (v && v !== detail?.title) updateMeta.mutate({ title: v });
+                }}
+                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1 flex-1 min-w-0"
+                placeholder="Título da tarefa"
+              />
+              {taskId && (
+                <TaskDependencyIndicator taskId={taskId} taskTitle={detail?.title} compact size="sm" />
+              )}
+            </div>
           )}
         </DialogHeader>
 
@@ -306,58 +310,60 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
 
           <Separator />
 
-          {/* Subtasks */}
-          <section>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">
-                Subtarefas {subtasks.length > 0 && (
-                  <span className="text-muted-foreground font-normal ml-1">
-                    {completedCount}/{subtasks.length}
-                  </span>
-                )}
-              </h3>
-            </div>
-            <div className="space-y-1">
-              {subtasks.map((s) => {
-                const done = !!s.completed_at;
-                return (
-                  <div key={s.id} className="flex items-center gap-2 group rounded-md hover:bg-muted/40 px-1 py-0.5">
-                    <button
-                      onClick={() => toggleSubtaskMut.mutate({ subtask: s })}
-                      aria-label="Alternar conclusão"
-                    >
-                      {done ? (
-                        <CheckCircle2 className="h-4 w-4 text-priority-low" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
-                    <span className={cn("flex-1 text-sm", done && "line-through text-muted-foreground")}>
-                      {s.title}
+          {/* Tabs: Subtasks + Dependencies */}
+          {taskId && (
+            <Tabs defaultValue="subtasks" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="subtasks">
+                  Subtasks{subtasks.length > 0 && (
+                    <span className="ml-1.5 text-muted-foreground font-normal">
+                      {completedCount}/{subtasks.length}
                     </span>
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={() => deleteSubtaskMut.mutate(s.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-            <form onSubmit={addSubtask} className="flex gap-2 mt-2">
-              <Input
-                value={newSubtask}
-                onChange={(e) => setNewSubtask(e.target.value)}
-                placeholder="Adicionar subtarefa..."
-                className="h-8 text-sm"
-              />
-              <Button type="submit" size="sm" variant="outline" disabled={!newSubtask.trim()}>
-                <Plus className="h-3.5 w-3.5" />
-              </Button>
-            </form>
-          </section>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="dependencies">
+                  Dependências
+                  {deps && (deps.blocks.length + deps.blockedBy.length + deps.relatedTo.length) > 0 && (
+                    <span className="ml-1.5 text-muted-foreground font-normal">
+                      {deps.blocks.length + deps.blockedBy.length + deps.relatedTo.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="subtasks" className="space-y-2">
+                <SubtasksList taskId={taskId} />
+                <form onSubmit={addSubtask} className="flex gap-2 pt-2">
+                  <Input
+                    value={newSubtask}
+                    onChange={(e) => setNewSubtask(e.target.value)}
+                    placeholder="Adicionar subtarefa..."
+                    className="h-8 text-sm"
+                  />
+                  <Button type="submit" size="sm" variant="outline" disabled={!newSubtask.trim()}>
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="dependencies" className="space-y-3">
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => setDepFormOpen(true)}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Nova dependência
+                  </Button>
+                </div>
+                <DependencyList taskId={taskId} />
+                {depFormOpen && (
+                  <DependencyForm
+                    taskId={taskId}
+                    workspaceId={current?.id}
+                    excludeTaskIds={existingDepIds}
+                    onClose={() => setDepFormOpen(false)}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
 
           <Separator />
 
@@ -443,30 +449,6 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
             </form>
           </section>
 
-          <Separator />
-
-          {/* Dependências */}
-          {taskId && (
-            <section>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium flex items-center gap-1.5">
-                  <Link2 className="h-4 w-4" /> Dependências
-                </h3>
-                <Button size="sm" variant="outline" onClick={() => setDepFormOpen(true)}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Nova
-                </Button>
-              </div>
-              <DependencyList taskId={taskId} />
-              {depFormOpen && (
-                <DependencyForm
-                  taskId={taskId}
-                  workspaceId={current?.id}
-                  excludeTaskIds={existingDepIds}
-                  onClose={() => setDepFormOpen(false)}
-                />
-              )}
-            </section>
-          )}
         </div>
       </DialogContent>
     </Dialog>
