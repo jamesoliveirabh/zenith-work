@@ -453,30 +453,6 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
             </form>
           </section>
 
-          <Separator />
-
-          {/* Dependências */}
-          {taskId && (
-            <section>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium flex items-center gap-1.5">
-                  <Link2 className="h-4 w-4" /> Dependências
-                </h3>
-                <Button size="sm" variant="outline" onClick={() => setDepFormOpen(true)}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Nova
-                </Button>
-              </div>
-              <DependencyList taskId={taskId} />
-              {depFormOpen && (
-                <DependencyForm
-                  taskId={taskId}
-                  workspaceId={current?.id}
-                  excludeTaskIds={existingDepIds}
-                  onClose={() => setDepFormOpen(false)}
-                />
-              )}
-            </section>
-          )}
         </div>
       </DialogContent>
     </Dialog>
