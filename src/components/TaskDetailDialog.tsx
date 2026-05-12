@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertTriangle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
+import { Activity, AlertTriangle, Check, Loader2, MessageSquare, Plus } from "lucide-react";
+import { CommentThread } from "@/components/CommentThread";
+import { ActivityLog } from "@/components/ActivityLog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskDependencies } from "@/hooks/useTaskDependencies";
@@ -172,7 +174,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   const blockedBy = deps?.blockedBy ?? [];
   const presence = useTaskPresence(open ? taskId : null);
   const [depFormOpen, setDepFormOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"subtasks" | "dependencies">("subtasks");
+  const [activeTab, setActiveTab] = useState<"subtasks" | "dependencies" | "comments" | "activity">("subtasks");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { data: subtasksData } = useSubtasks(open && taskId ? taskId : undefined);
   const subtasksCount = subtasksData?.total ?? 0;
@@ -371,10 +373,10 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
           {taskId && (
             <Tabs
               value={activeTab}
-              onValueChange={(v) => setActiveTab(v as "subtasks" | "dependencies")}
+              onValueChange={(v) => setActiveTab(v as typeof activeTab)}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="subtasks">
                   Subtasks{subtasksCount > 0 && (
                     <span className="ml-1.5 text-muted-foreground font-normal">
@@ -389,6 +391,17 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
                       {deps.blocks.length + deps.blockedBy.length + deps.relatedTo.length}
                     </span>
                   )}
+                </TabsTrigger>
+                <TabsTrigger value="comments">
+                  <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                  Comentários
+                  {comments.length > 0 && (
+                    <span className="ml-1.5 text-muted-foreground font-normal">{comments.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="activity">
+                  <Activity className="h-3.5 w-3.5 mr-1" />
+                  Histórico
                 </TabsTrigger>
               </TabsList>
 
