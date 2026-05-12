@@ -1734,6 +1734,54 @@ export type Database = {
           },
         ]
       }
+      task_activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          task_id: string
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id: string
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id?: string
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_activity_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_activity_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_assignees: {
         Row: {
           assigned_at: string
@@ -1827,7 +1875,10 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          mentions: string[]
+          parent_comment_id: string | null
           task_id: string
+          updated_at: string
           workspace_id: string
         }
         Insert: {
@@ -1835,7 +1886,10 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          mentions?: string[]
+          parent_comment_id?: string | null
           task_id: string
+          updated_at?: string
           workspace_id: string
         }
         Update: {
@@ -1843,10 +1897,20 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          mentions?: string[]
+          parent_comment_id?: string | null
           task_id?: string
+          updated_at?: string
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "task_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "task_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_comments_task_id_fkey"
             columns: ["task_id"]
