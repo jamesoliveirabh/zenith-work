@@ -184,6 +184,10 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   const blockedBy = deps?.blockedBy ?? [];
   const presence = useTaskPresence(open ? taskId : null);
   const [depFormOpen, setDepFormOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"subtasks" | "dependencies">("subtasks");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { data: subtasksData } = useSubtasks(open && taskId ? taskId : undefined);
+  const subtasksCount = subtasksData?.total ?? 0;
   const existingDepIds = useMemo(
     () => [
       ...(deps?.blocks ?? []).map((r) => r.taskId),
