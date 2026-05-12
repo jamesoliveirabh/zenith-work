@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,11 +11,28 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import type { Priority } from "@/types/task";
 
 interface Props {
   taskId: string;
+  readOnly?: boolean;
 }
 
 interface EnrichedTask {
@@ -70,13 +87,13 @@ function Row({
   ref_,
   meta,
   canDelete,
-  onDelete,
+  onRequestDelete,
   deleting,
 }: {
   ref_: RelatedTaskRef;
   meta?: EnrichedTask;
   canDelete: boolean;
-  onDelete: () => void;
+  onRequestDelete: () => void;
   deleting: boolean;
 }) {
   return (
@@ -111,20 +128,34 @@ function Row({
         </div>
       </div>
       {canDelete && (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7 opacity-0 group-hover:opacity-100"
-          onClick={onDelete}
-          disabled={deleting}
-          aria-label="Remover dependência"
-        >
-          {deleting ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-          )}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+              disabled={deleting}
+              aria-label="Ações da dependência"
+            >
+              {deleting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                onRequestDelete();
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-2" /> Remover
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </li>
   );
@@ -132,14 +163,17 @@ function Row({
 
 function Empty() {
   return (
-    <p className="text-sm text-muted-foreground text-center py-6">Nenhuma dependência</p>
+    <p className="text-sm text-muted-foreground text-center py-6">
+      Nenhuma dependência neste tipo
+    </p>
   );
 }
 
-export function DependencyList({ taskId }: Props) {
+export function DependencyList({ taskId, readOnly = false }: Props) {
   const { user } = useAuth();
   const { data, isLoading } = useTaskDependencies(taskId);
   const del = useDeleteDependency(undefined);
+  const [confirm, setConfirm] = useState<RelatedTaskRef | null>(null);
 
   const allIds = useMemo(() => {
     if (!data) return [];
@@ -171,51 +205,77 @@ export function DependencyList({ taskId }: Props) {
             key={r.dependencyId}
             ref_={r}
             meta={meta[r.taskId]}
-            canDelete={r.createdBy === user?.id}
+            canDelete={!readOnly && r.createdBy === user?.id}
             deleting={del.isPending && del.variables?.dependencyId === r.dependencyId}
-            onDelete={() =>
-              del.mutate({
-                dependencyId: r.dependencyId,
-                sourceTaskId: taskId,
-                targetTaskId: r.taskId,
-              })
-            }
+            onRequestDelete={() => setConfirm(r)}
           />
         ))}
       </ul>
     );
 
   return (
-    <Tabs defaultValue="blocks" className="w-full">
-      <TabsList className="grid grid-cols-3 w-full">
-        <TabsTrigger value="blocks">
-          Bloqueia
-          {(data?.blocks.length ?? 0) > 0 && (
-            <span className="ml-1.5 text-[10px] text-muted-foreground">
-              {data!.blocks.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="blockedBy">
-          Bloqueada por
-          {(data?.blockedBy.length ?? 0) > 0 && (
-            <span className="ml-1.5 text-[10px] text-muted-foreground">
-              {data!.blockedBy.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="relatedTo">
-          Relacionada
-          {(data?.relatedTo.length ?? 0) > 0 && (
-            <span className="ml-1.5 text-[10px] text-muted-foreground">
-              {data!.relatedTo.length}
-            </span>
-          )}
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="blocks" className="mt-3">{renderList(data?.blocks ?? [])}</TabsContent>
-      <TabsContent value="blockedBy" className="mt-3">{renderList(data?.blockedBy ?? [])}</TabsContent>
-      <TabsContent value="relatedTo" className="mt-3">{renderList(data?.relatedTo ?? [])}</TabsContent>
-    </Tabs>
+    <>
+      <Tabs defaultValue="blocks" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full">
+          <TabsTrigger value="blocks">
+            Bloqueia
+            {(data?.blocks.length ?? 0) > 0 && (
+              <span className="ml-1.5 text-[10px] text-muted-foreground">
+                {data!.blocks.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="blockedBy">
+            Bloqueada por
+            {(data?.blockedBy.length ?? 0) > 0 && (
+              <span className="ml-1.5 text-[10px] text-muted-foreground">
+                {data!.blockedBy.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="relatedTo">
+            Relacionada a
+            {(data?.relatedTo.length ?? 0) > 0 && (
+              <span className="ml-1.5 text-[10px] text-muted-foreground">
+                {data!.relatedTo.length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="blocks" className="mt-3">{renderList(data?.blocks ?? [])}</TabsContent>
+        <TabsContent value="blockedBy" className="mt-3">{renderList(data?.blockedBy ?? [])}</TabsContent>
+        <TabsContent value="relatedTo" className="mt-3">{renderList(data?.relatedTo ?? [])}</TabsContent>
+      </Tabs>
+
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover dependência?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm
+                ? `A relação com "${confirm.title}" será removida. Esta ação não pode ser desfeita.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!confirm) return;
+                del.mutate({
+                  dependencyId: confirm.dependencyId,
+                  sourceTaskId: taskId,
+                  targetTaskId: confirm.taskId,
+                });
+                setConfirm(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
