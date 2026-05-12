@@ -193,16 +193,21 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId, open, onOpenCha
           {loading ? (
             <div className="h-8 flex items-center"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
           ) : (
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => {
-                const v = title.trim();
-                if (v && v !== detail?.title) updateMeta.mutate({ title: v });
-              }}
-              className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1"
-              placeholder="Título da tarefa"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => {
+                  const v = title.trim();
+                  if (v && v !== detail?.title) updateMeta.mutate({ title: v });
+                }}
+                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2 h-auto py-1 flex-1 min-w-0"
+                placeholder="Título da tarefa"
+              />
+              {taskId && (
+                <TaskDependencyIndicator taskId={taskId} taskTitle={detail?.title} compact size="sm" />
+              )}
+            </div>
           )}
         </DialogHeader>
 
