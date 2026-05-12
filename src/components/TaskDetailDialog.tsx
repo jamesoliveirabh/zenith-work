@@ -259,17 +259,37 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
         <div className="space-y-5">
           {blockedBy.length > 0 && (
             <Alert variant="destructive" className="border-destructive/40 bg-destructive/10">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-xs">
-                <span className="font-medium">⚠️ Esta task está bloqueada por </span>
-                {blockedBy.slice(0, 3).map((b, i) => (
-                  <span key={b.dependencyId}>
-                    {i > 0 && ", "}
-                    <span className="font-medium underline-offset-2 underline">{b.title}</span>
-                  </span>
-                ))}
-                {blockedBy.length > 3 && ` +${blockedBy.length - 3}`}
-                . Conclua a{blockedBy.length > 1 ? "s" : ""} task{blockedBy.length > 1 ? "s" : ""} bloqueante{blockedBy.length > 1 ? "s" : ""} primeiro.
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>⚠️ Esta task está bloqueada</AlertTitle>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="text-xs">
+                    Bloqueada por {blockedBy.length} task{blockedBy.length > 1 ? "s" : ""}.
+                    Conclua as bloqueantes primeiro.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {blockedBy.slice(0, 3).map((dep) => (
+                      <button
+                        key={dep.dependencyId}
+                        type="button"
+                        onClick={() => setActiveTab("dependencies")}
+                        className="text-sm underline hover:opacity-80"
+                      >
+                        {dep.title}
+                      </button>
+                    ))}
+                    {blockedBy.length > 3 && (
+                      <span className="text-sm">+{blockedBy.length - 3} mais</span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveTab("dependencies")}
+                  >
+                    Ver todas as dependências
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
           )}
