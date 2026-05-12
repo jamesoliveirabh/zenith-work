@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskDependencies } from "@/hooks/useTaskDependencies";
 import { DependencyList } from "@/components/dependencies/DependencyList";
 import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { SubtasksList } from "@/components/subtasks/SubtasksList";
+import { SubtaskCreateForm } from "@/components/subtasks/SubtaskCreateForm";
+import { SubtaskProgressBar } from "@/components/subtasks/SubtaskProgressBar";
+import { useSubtasks } from "@/hooks/useSubtasks";
 import { useTaskPresence } from "@/hooks/useRealtimeUpdates";
 import { AvatarImage } from "@/components/ui/avatar";
 import {
@@ -59,13 +62,13 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
 
   const updateMeta = useUpdateTaskMeta(taskId ?? "");
   const createSubtask = useCreateSubtask(taskId ?? "");
+  void createSubtask;
   const createComment = useCreateComment(taskId ?? "");
   const deleteCommentMut = useDeleteComment(taskId ?? "");
   const updateAssignees = useUpdateTaskAssignees(taskId ?? "");
 
   // Local UI state for inputs (kept controlled)
   const [title, setTitle] = useState("");
-  const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -124,19 +127,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
     updateMeta.mutate({ tags: next });
   };
 
-  const addSubtask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubtask.trim() || !taskId || !current || !user) return;
-    const t = newSubtask.trim();
-    setNewSubtask("");
-    await createSubtask.mutateAsync({
-      title: t,
-      list_id: listId,
-      workspace_id: current.id,
-      created_by: user.id,
-      position: detail?.subtasks.length ?? 0,
-    });
-  };
+  // Legacy subtask creation removed; SubtaskCreateForm handles it now.
 
   const postComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,13 +165,17 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   const tags = detail?.tags ?? [];
   const assigneeIds = (detail?.assignees ?? []).map((a) => a.id);
   const description = (detail?.description ?? null) as JSONContent | null;
-  const completedCount = subtasks.filter((s) => s.completed_at).length;
+  void subtasks; // legacy detail.subtasks no longer rendered (replaced by useSubtasks)
 
   // Dependencies for this task (used for the blocked banner + section).
   const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
   const blockedBy = deps?.blockedBy ?? [];
   const presence = useTaskPresence(open ? taskId : null);
   const [depFormOpen, setDepFormOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"subtasks" | "dependencies">("subtasks");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { data: subtasksData } = useSubtasks(open && taskId ? taskId : undefined);
+  const subtasksCount = subtasksData?.total ?? 0;
   const existingDepIds = useMemo(
     () => [
       ...(deps?.blocks ?? []).map((r) => r.taskId),
@@ -252,17 +247,37 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
         <div className="space-y-5">
           {blockedBy.length > 0 && (
             <Alert variant="destructive" className="border-destructive/40 bg-destructive/10">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-xs">
-                <span className="font-medium">⚠️ Esta task está bloqueada por </span>
-                {blockedBy.slice(0, 3).map((b, i) => (
-                  <span key={b.dependencyId}>
-                    {i > 0 && ", "}
-                    <span className="font-medium underline-offset-2 underline">{b.title}</span>
-                  </span>
-                ))}
-                {blockedBy.length > 3 && ` +${blockedBy.length - 3}`}
-                . Conclua a{blockedBy.length > 1 ? "s" : ""} task{blockedBy.length > 1 ? "s" : ""} bloqueante{blockedBy.length > 1 ? "s" : ""} primeiro.
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>⚠️ Esta task está bloqueada</AlertTitle>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="text-xs">
+                    Bloqueada por {blockedBy.length} task{blockedBy.length > 1 ? "s" : ""}.
+                    Conclua as bloqueantes primeiro.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {blockedBy.slice(0, 3).map((dep) => (
+                      <button
+                        key={dep.dependencyId}
+                        type="button"
+                        onClick={() => setActiveTab("dependencies")}
+                        className="text-sm underline hover:opacity-80"
+                      >
+                        {dep.title}
+                      </button>
+                    ))}
+                    {blockedBy.length > 3 && (
+                      <span className="text-sm">+{blockedBy.length - 3} mais</span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveTab("dependencies")}
+                  >
+                    Ver todas as dependências
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
           )}
@@ -354,12 +369,16 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
 
           {/* Tabs: Subtasks + Dependencies */}
           {taskId && (
-            <Tabs defaultValue="subtasks" className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as "subtasks" | "dependencies")}
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="subtasks">
-                  Subtasks{subtasks.length > 0 && (
+                  Subtasks{subtasksCount > 0 && (
                     <span className="ml-1.5 text-muted-foreground font-normal">
-                      {completedCount}/{subtasks.length}
+                      {subtasksData?.completed ?? 0}/{subtasksCount}
                     </span>
                   )}
                 </TabsTrigger>
@@ -373,19 +392,36 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="subtasks" className="space-y-2">
-                <SubtasksList taskId={taskId} />
-                <form onSubmit={addSubtask} className="flex gap-2 pt-2">
-                  <Input
-                    value={newSubtask}
-                    onChange={(e) => setNewSubtask(e.target.value)}
-                    placeholder="Adicionar subtarefa..."
-                    className="h-8 text-sm"
-                  />
-                  <Button type="submit" size="sm" variant="outline" disabled={!newSubtask.trim()}>
-                    <Plus className="h-3.5 w-3.5" />
+              <TabsContent value="subtasks" className="space-y-4">
+                <SubtaskProgressBar
+                  taskId={taskId}
+                  size="md"
+                  showPercentage
+                  showLabel
+                />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">
+                    Subtasks <span className="text-muted-foreground font-normal">({subtasksCount})</span>
+                  </h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowCreateForm((v) => !v)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    {showCreateForm ? "Fechar" : "Novo Subtask"}
                   </Button>
-                </form>
+                </div>
+                {showCreateForm && (
+                  <div className="rounded-md border p-3">
+                    <SubtaskCreateForm
+                      taskId={taskId}
+                      onSuccess={() => setShowCreateForm(false)}
+                      onCancel={() => setShowCreateForm(false)}
+                    />
+                  </div>
+                )}
+                <SubtasksList taskId={taskId} />
               </TabsContent>
 
               <TabsContent value="dependencies" className="space-y-3">
