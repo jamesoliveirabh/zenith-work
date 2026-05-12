@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, AlertTriangle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskDependencies } from "@/hooks/useTaskDependencies";
 import { DependencyList } from "@/components/dependencies/DependencyList";
 import { DependencyForm } from "@/components/dependencies/DependencyForm";
 import { TaskDependencyIndicator } from "@/components/dependencies/TaskDependencyIndicator";
 import { SubtasksList } from "@/components/subtasks/SubtasksList";
+import { SubtaskCreateForm } from "@/components/subtasks/SubtaskCreateForm";
+import { SubtaskProgressBar } from "@/components/subtasks/SubtaskProgressBar";
+import { useSubtasks } from "@/hooks/useSubtasks";
 import { useTaskPresence } from "@/hooks/useRealtimeUpdates";
 import { AvatarImage } from "@/components/ui/avatar";
 import {
