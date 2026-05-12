@@ -72,7 +72,7 @@ export function DependencyForm({
 }: Props) {
   const create = useCreateDependency(workspaceId);
 
-  const [type, setType] = useState<DependencyType>("blocks");
+  const [type, setType] = useState<DependencyType>("blocked_by");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<{ id: string; title: string; subtitle?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
