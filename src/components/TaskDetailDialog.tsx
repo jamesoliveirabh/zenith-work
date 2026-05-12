@@ -453,92 +453,16 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
                   />
                 )}
               </TabsContent>
+
+              <TabsContent value="comments" className="space-y-3">
+                {taskId && <CommentThread taskId={taskId} workspaceId={current?.id} />}
+              </TabsContent>
+
+              <TabsContent value="activity" className="space-y-3">
+                {taskId && <ActivityLog taskId={taskId} />}
+              </TabsContent>
             </Tabs>
           )}
-
-          <Separator />
-
-          {/* Comments */}
-          <section>
-            <h3 className="text-sm font-medium mb-3 flex items-center gap-1.5">
-              <MessageSquare className="h-4 w-4" />
-              Comentários
-              <span className="text-muted-foreground font-normal">({comments.length})</span>
-              <span className="ml-auto text-[10px] text-muted-foreground font-normal flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-priority-low animate-pulse" />
-                ao vivo
-              </span>
-            </h3>
-            <div className="space-y-3 mb-3">
-              {comments.map((c) => {
-                const prof = profiles[c.author_id];
-                const name = prof?.display_name || prof?.email || "Usuário";
-                const initial = name.charAt(0).toUpperCase();
-                const mine = c.author_id === user?.id;
-                return (
-                  <div key={c.id} className="flex gap-2.5 group">
-                    <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-xs">{initial}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-medium">{name}</span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: ptBR })}
-                        </span>
-                        {mine && (
-                          <button
-                            onClick={() => deleteCommentMut.mutate(c.id)}
-                            className="ml-auto text-[11px] text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-                          >
-                            Excluir
-                          </button>
-                        )}
-                      </div>
-                      <p className="text-sm whitespace-pre-wrap mt-0.5">{c.body}</p>
-                    </div>
-                  </div>
-                );
-              })}
-              {comments.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-3">Nenhum comentário ainda.</p>
-              )}
-            </div>
-            <form onSubmit={postComment} className="space-y-2">
-              <Textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                    e.preventDefault();
-                    postComment(e as unknown as React.FormEvent);
-                  }
-                }}
-                placeholder="Escreva um comentário... (Ctrl+Enter para enviar)"
-                className="min-h-[70px] resize-none text-sm"
-              />
-              <div className="flex items-center justify-end gap-2">
-                {newComment.trim() && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setNewComment("")}
-                    disabled={posting}
-                  >
-                    Cancelar
-                  </Button>
-                )}
-                <Button type="submit" size="sm" disabled={posting || !newComment.trim()}>
-                  {posting ? (
-                    <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Enviando...</>
-                  ) : (
-                    <><Send className="h-4 w-4 mr-1.5" /> Comentar</>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </section>
 
         </div>
       </DialogContent>
