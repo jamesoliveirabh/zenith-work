@@ -177,7 +177,7 @@ export function TaskDetailDialog({ taskId, listId, doneStatusId: _doneStatusId, 
   const tags = detail?.tags ?? [];
   const assigneeIds = (detail?.assignees ?? []).map((a) => a.id);
   const description = (detail?.description ?? null) as JSONContent | null;
-  const completedCount = subtasks.filter((s) => s.completed_at).length;
+  void subtasks; // legacy detail.subtasks no longer rendered (replaced by useSubtasks)
 
   // Dependencies for this task (used for the blocked banner + section).
   const { data: deps } = useTaskDependencies(open && taskId ? taskId : undefined);
