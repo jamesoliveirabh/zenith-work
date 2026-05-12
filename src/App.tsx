@@ -67,6 +67,7 @@ const App = () => (
           <AuthProvider>
             <WorkspaceProvider>
               <EntitlementGuardProvider>
+              <NotificationCenter />
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/invite/:token" element={<AcceptInvite />} />
