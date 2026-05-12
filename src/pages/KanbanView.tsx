@@ -68,6 +68,11 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
         <p className="mt-1 text-xs text-muted-foreground/70 line-clamp-2">{task.description_text}</p>
       )}
       <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+        {isBlocked && (
+          <Badge variant="outline" className="font-normal text-[10px] py-0 h-5 bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/60">
+            <Lock className="h-2.5 w-2.5 mr-1" />Bloqueada
+          </Badge>
+        )}
         <Badge variant="outline" className={cn("font-normal text-[10px] py-0 h-5", priorityClass[task.priority])}>
           {priorityLabel[task.priority]}
         </Badge>
