@@ -48,6 +48,8 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen?: (id: string) => void 
     id: task.id,
     data: { type: "task", task },
   });
+  const { data: deps } = useTaskDependencies(task.id);
+  const isBlocked = (deps?.blockedBy.length ?? 0) > 0;
   const style = { transform: CSS.Translate.toString(transform), transition };
   return (
     <div
