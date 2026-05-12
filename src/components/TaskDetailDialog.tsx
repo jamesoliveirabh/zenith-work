@@ -27,13 +27,11 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { RichTextEditor, type JSONContent } from "@/components/RichTextEditor";
 import {
   taskDetailKey, useCreateComment, useCreateSubtask, useDeleteComment,
-  useDeleteSubtask, useTaskDetail, useToggleSubtask, useUpdateTaskAssignees,
-  useUpdateTaskMeta,
+  useTaskDetail, useUpdateTaskAssignees, useUpdateTaskMeta,
 } from "@/hooks/useTaskDetail";
 import { useListMembers } from "@/hooks/useListMembers";
 import { uploadAttachment, createSignedUrl, isImageMime, attachmentsKey } from "@/hooks/useTaskAttachments";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface Props {
   taskId: string | null;
