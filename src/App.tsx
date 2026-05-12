@@ -17,6 +17,7 @@ import KanbanView from "./pages/KanbanView";
 import TableView from "./pages/TableView";
 import CalendarView from "./pages/CalendarView";
 import GanttView from "./pages/GanttView";
+import ReportsView from "./pages/ReportsView";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
 import FieldsSettings from "./pages/FieldsSettings";
@@ -95,6 +96,7 @@ const App = () => (
                   <Route path="/list/:listId/table" element={<TableView />} />
                   <Route path="/list/:listId/calendar" element={<CalendarView />} />
                   <Route path="/list/:listId/gantt" element={<GanttView />} />
+                  <Route path="/list/:listId/reports" element={<ReportsView />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings/fields" element={<FieldsSettings />} />
                   <Route path="/automations" element={<Automations />} />
