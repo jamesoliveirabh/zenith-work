@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, CheckCircle2, Circle, Link2, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Loader2, MessageSquare, Plus, Send } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskDependencies } from "@/hooks/useTaskDependencies";
