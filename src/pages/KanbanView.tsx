@@ -25,6 +25,8 @@ import {
 import { ListFilterBar, applyFilters, EMPTY_FILTERS, type ListFilters } from "@/components/ListFilterBar";
 import { useStatuses } from "@/hooks/useStatuses";
 import { useCreateTask, useReorderTasks, useTasks } from "@/hooks/useTasks";
+import { useTaskDependencies } from "@/hooks/useTaskDependencies";
+import { Lock } from "lucide-react";
 import { useListMembers } from "@/hooks/useListMembers";
 import type { Priority, Status, Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
