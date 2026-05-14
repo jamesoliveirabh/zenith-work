@@ -23,6 +23,7 @@ export default function Onboarding() {
   const { user } = useAuth();
   const { refresh } = useWorkspace();
   const navigate = useNavigate();
+  const { globalRole } = useRoleBasedAccess();
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
