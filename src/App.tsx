@@ -34,6 +34,7 @@ import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
 import BillingSettings from "./pages/BillingSettings";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
 import Integrations from "./pages/settings/Integrations";
 import AdminBillingHome from "./pages/admin/billing/AdminBillingHome";
 import AdminBillingAccountDetail from "./pages/admin/billing/AdminBillingAccountDetail";
