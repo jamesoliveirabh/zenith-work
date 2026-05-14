@@ -104,36 +104,45 @@ export type Database = {
           action: string
           actor_email: string | null
           actor_id: string | null
+          changes: Json | null
           created_at: string
           entity_id: string | null
           entity_type: string
           id: string
           ip_address: string | null
           metadata: Json
+          resource_id: string | null
+          resource_type: string | null
           workspace_id: string
         }
         Insert: {
           action: string
           actor_email?: string | null
           actor_id?: string | null
+          changes?: Json | null
           created_at?: string
           entity_id?: string | null
           entity_type: string
           id?: string
           ip_address?: string | null
           metadata?: Json
+          resource_id?: string | null
+          resource_type?: string | null
           workspace_id: string
         }
         Update: {
           action?: string
           actor_email?: string | null
           actor_id?: string | null
+          changes?: Json | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string
           id?: string
           ip_address?: string | null
           metadata?: Json
+          resource_id?: string | null
+          resource_type?: string | null
           workspace_id?: string
         }
         Relationships: []
@@ -2383,6 +2392,33 @@ export type Database = {
           },
         ]
       }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          global_role: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          global_role?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          global_role?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       workspace_admin_notes: {
         Row: {
           author_email: string | null
@@ -2606,24 +2642,30 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          invited_by: string | null
           org_role: Database["public"]["Enums"]["org_role"]
           role: Database["public"]["Enums"]["workspace_role"]
+          status: string | null
           user_id: string
           workspace_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          invited_by?: string | null
           org_role?: Database["public"]["Enums"]["org_role"]
           role?: Database["public"]["Enums"]["workspace_role"]
+          status?: string | null
           user_id: string
           workspace_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          invited_by?: string | null
           org_role?: Database["public"]["Enums"]["org_role"]
           role?: Database["public"]["Enums"]["workspace_role"]
+          status?: string | null
           user_id?: string
           workspace_id?: string
         }
@@ -2709,6 +2751,7 @@ export type Database = {
       workspaces: {
         Row: {
           created_at: string
+          created_by_role: string | null
           id: string
           is_suspended: boolean
           name: string
@@ -2720,6 +2763,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by_role?: string | null
           id?: string
           is_suspended?: boolean
           name: string
@@ -2731,6 +2775,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by_role?: string | null
           id?: string
           is_suspended?: boolean
           name?: string
@@ -3045,6 +3090,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_global_role: { Args: { _user_id: string }; Returns: string }
       global_search: {
         Args: { p_limit?: number; p_query: string; p_workspace_id: string }
         Returns: {
