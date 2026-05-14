@@ -34,6 +34,7 @@ import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
 import BillingSettings from "./pages/BillingSettings";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
 import Integrations from "./pages/settings/Integrations";
 import AdminBillingHome from "./pages/admin/billing/AdminBillingHome";
 import AdminBillingAccountDetail from "./pages/admin/billing/AdminBillingAccountDetail";
@@ -91,6 +92,7 @@ const App = () => (
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/workspace/:workspaceId/settings" element={<WorkspaceSettings />} />
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
                   <Route path="/list/:listId/table" element={<TableView />} />

@@ -57,20 +57,28 @@ export function ConvidarPessoa({ workspaceId, onInviteSent }: Props) {
 
     setLoading(true);
     try {
-      // Look up target user by email
-      const { data: target, error: lookupErr } = await (supabase as any)
+      // Resolve email → user_id before inserting
+      const { data: targetUser, error: userError } = await (supabase as any)
         .from("users")
         .select("id")
         .eq("email", email.trim().toLowerCase())
-        .maybeSingle();
-      if (lookupErr) throw lookupErr;
-      if (!target?.id) throw new Error("Usuário não encontrado com este e-mail");
+        .single();
+
+      if (userError || !targetUser) {
+        toast({
+          title: "Erro",
+          description: "Email não encontrado no sistema. Peça ao usuário para se cadastrar primeiro.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
       const { error } = await supabase
         .from("workspace_members")
         .insert({
           workspace_id: workspaceId,
-          user_id: target.id,
+          user_id: targetUser.id,
           role: selectedRole as any,
           invited_by: user.id,
           status: "pending",
