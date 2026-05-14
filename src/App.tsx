@@ -92,6 +92,7 @@ const App = () => (
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/workspace/:workspaceId/settings" element={<WorkspaceSettings />} />
                   <Route path="/list/:listId" element={<ListView />} />
                   <Route path="/list/:listId/kanban" element={<KanbanView />} />
                   <Route path="/list/:listId/table" element={<TableView />} />
