@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useRoleBasedAccess } from "@/hooks/useRoleBasedAccess";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -22,6 +23,7 @@ export default function Onboarding() {
   const { user } = useAuth();
   const { refresh } = useWorkspace();
   const navigate = useNavigate();
+  const { globalRole } = useRoleBasedAccess();
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,12 +33,16 @@ export default function Onboarding() {
     const parsed = schema.safeParse({ name: fd.get("name") });
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
 
+    if (!globalRole || !["superadmin", "admin", "gestor"].includes(globalRole)) {
+      return toast.error("Apenas Admins e Gestores podem criar workspaces");
+    }
     setBusy(true);
     const baseSlug = slugify(parsed.data.name);
     const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+    const createdByRole = globalRole === "gestor" ? "gestor" : "admin";
     const { error } = await supabase
       .from("workspaces")
-      .insert({ name: parsed.data.name, slug, owner_id: user.id });
+      .insert({ name: parsed.data.name, slug, owner_id: user.id, created_by_role: createdByRole } as any);
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Workspace criado!");
