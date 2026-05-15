@@ -51,15 +51,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-      .eq('workspace_id', workspace_id)
-      .eq('provider', 'slack')
-      .maybeSingle();
-    if (error) throw error;
-    if (!integ || !integ.is_active) {
-      return new Response(JSON.stringify({ ok: false, error: 'Slack not configured' }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+
     const botToken = (integ.config as any)?.bot_token;
     if (!botToken) {
       return new Response(JSON.stringify({ ok: false, error: 'Bot token missing' }), {
@@ -73,7 +65,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${botToken}`,
         'Content-Type': 'application/json; charset=utf-8',
       },
-      body: JSON.stringify({ channel: channel_id, text: message }),
+      body: JSON.stringify({ channel: targetChannel, text: message }),
     });
     const slack = await slackRes.json();
     if (!slack.ok) {
