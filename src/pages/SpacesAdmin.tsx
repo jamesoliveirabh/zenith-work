@@ -15,6 +15,8 @@ import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X } from "lucide
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { SpaceSlackChannelPicker } from "@/components/SpaceSlackChannelPicker";
 import type { Team } from "@/types/org";
 
 type EditTarget = { kind: "team" | "space"; id: string } | null;
@@ -27,6 +29,7 @@ export default function SpacesAdmin() {
   const { data: teams = [] } = useTeams();
   const { data: spaces = [] } = useSpacesAdmin();
   const { data: orgAccess } = useMyOrgAccess();
+  const { current: currentWorkspace } = useWorkspace();
 
   const isOrgAdmin = !!orgAccess?.isOrgAdmin;
   const isGestor = !!orgAccess?.isGestor;
@@ -125,54 +128,64 @@ export default function SpacesAdmin() {
     return (
       <div
         key={s.id}
-        className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 hover:bg-accent/30 transition-colors"
+        className="rounded-md border bg-card px-3 py-2 hover:bg-accent/30 transition-colors"
       >
-        <FolderKanban className="h-4 w-4 shrink-0" style={{ color: s.color ?? undefined }} />
-        {isEditing ? (
-          <>
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              autoFocus
-              className="h-8 flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") saveEdit();
-                if (e.key === "Escape") cancelEdit();
-              }}
+        <div className="flex items-center gap-2">
+          <FolderKanban className="h-4 w-4 shrink-0" style={{ color: s.color ?? undefined }} />
+          {isEditing ? (
+            <>
+              <Input
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                autoFocus
+                className="h-8 flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit();
+                  if (e.key === "Escape") cancelEdit();
+                }}
+              />
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <span className="flex-1 truncate text-sm">{s.name}</span>
+              {canManage && (
+                <>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-60 hover:opacity-100"
+                    onClick={() => startEdit("space", s.id, s.name)}
+                    aria-label="Editar nome"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-60 hover:opacity-100 text-destructive"
+                    onClick={() => setDeleteTarget({ kind: "space", space: s })}
+                    aria-label="Excluir space"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+        {canManage && !isEditing && currentWorkspace && (
+          <div className="mt-2 pl-6">
+            <SpaceSlackChannelPicker
+              workspaceId={currentWorkspace.id}
+              spaceId={s.id}
             />
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
-              <X className="h-4 w-4" />
-            </Button>
-          </>
-        ) : (
-          <>
-            <span className="flex-1 truncate text-sm">{s.name}</span>
-            {canManage && (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 opacity-60 hover:opacity-100"
-                  onClick={() => startEdit("space", s.id, s.name)}
-                  aria-label="Editar nome"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 opacity-60 hover:opacity-100 text-destructive"
-                  onClick={() => setDeleteTarget({ kind: "space", space: s })}
-                  aria-label="Excluir space"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            )}
-          </>
+          </div>
         )}
       </div>
     );

@@ -12,7 +12,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const { workspace_id, channel_id, message } = await req.json();
+    const { workspace_id, channel_id, space_id, message } = await req.json();
     if (!workspace_id || !message) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -33,7 +33,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    const targetChannel = channel_id || (integ as any).slack_default_channel_id;
+    let resolvedChannel: string | null = channel_id ?? null;
+    if (!resolvedChannel && space_id) {
+      const { data: spaceCfg } = await admin
+        .from('space_slack_settings')
+        .select('slack_channel_id, is_configured')
+        .eq('workspace_id', workspace_id)
+        .eq('space_id', space_id)
+        .maybeSingle();
+      if (spaceCfg?.is_configured && spaceCfg.slack_channel_id) {
+        resolvedChannel = spaceCfg.slack_channel_id;
+      }
+    }
+    if (!resolvedChannel) {
+      resolvedChannel = (integ as any).slack_default_channel_id ?? null;
+    }
+    const targetChannel = resolvedChannel;
     if (!targetChannel) {
       return new Response(JSON.stringify({ ok: false, error: 'No channel provided and no default configured' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
