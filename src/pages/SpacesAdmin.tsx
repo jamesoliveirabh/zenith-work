@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -11,7 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X } from "lucide-react";
+import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X, Slack } from "lucide-react";
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
@@ -19,7 +18,6 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { SpaceSlackChannelPicker } from "@/components/SpaceSlackChannelPicker";
 import type { Team } from "@/types/org";
 
-type EditTarget = { kind: "team" | "space"; id: string } | null;
 type DeleteTarget =
   | { kind: "team"; team: Team }
   | { kind: "space"; space: Space }
@@ -48,8 +46,11 @@ export default function SpacesAdmin() {
   const [newSpaceTeamId, setNewSpaceTeamId] = useState<string | null | undefined>(undefined);
   const [newSpaceName, setNewSpaceName] = useState("");
 
-  const [editTarget, setEditTarget] = useState<EditTarget>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editTeamValue, setEditTeamValue] = useState("");
+
+  const [editingSpace, setEditingSpace] = useState<Space | null>(null);
+  const [editSpaceName, setEditSpaceName] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
@@ -78,25 +79,33 @@ export default function SpacesAdmin() {
   const canManageTeam = (teamId: string) =>
     isOrgAdmin || teamRoles[teamId] === "gestor";
 
-  const startEdit = (kind: "team" | "space", id: string, currentName: string) => {
-    setEditTarget({ kind, id });
-    setEditValue(currentName);
+  const startEditTeam = (team: Team) => {
+    setEditingTeamId(team.id);
+    setEditTeamValue(team.name);
   };
 
-  const saveEdit = async () => {
-    if (!editTarget || !editValue.trim()) return;
-    if (editTarget.kind === "team") {
-      await updateTeam.mutateAsync({ id: editTarget.id, patch: { name: editValue.trim() } });
-    } else {
-      await updateSpace.mutateAsync({ id: editTarget.id, patch: { name: editValue.trim() } });
-    }
-    setEditTarget(null);
-    setEditValue("");
+  const saveTeamEdit = async () => {
+    if (!editingTeamId || !editTeamValue.trim()) return;
+    await updateTeam.mutateAsync({ id: editingTeamId, patch: { name: editTeamValue.trim() } });
+    setEditingTeamId(null);
+    setEditTeamValue("");
   };
 
-  const cancelEdit = () => {
-    setEditTarget(null);
-    setEditValue("");
+  const cancelTeamEdit = () => {
+    setEditingTeamId(null);
+    setEditTeamValue("");
+  };
+
+  const openSpaceEdit = (space: Space) => {
+    setEditingSpace(space);
+    setEditSpaceName(space.name);
+  };
+
+  const saveSpaceEdit = async () => {
+    if (!editingSpace || !editSpaceName.trim()) return;
+    await updateSpace.mutateAsync({ id: editingSpace.id, patch: { name: editSpaceName.trim() } });
+    setEditingSpace(null);
+    setEditSpaceName("");
   };
 
   const confirmDelete = async () => {
@@ -124,7 +133,6 @@ export default function SpacesAdmin() {
   };
 
   const renderSpaceRow = (s: Space, canManage: boolean) => {
-    const isEditing = editTarget?.kind === "space" && editTarget.id === s.id;
     return (
       <div
         key={s.id}
@@ -132,61 +140,30 @@ export default function SpacesAdmin() {
       >
         <div className="flex items-center gap-2">
           <FolderKanban className="h-4 w-4 shrink-0" style={{ color: s.color ?? undefined }} />
-          {isEditing ? (
+          <span className="flex-1 truncate text-sm">{s.name}</span>
+          {canManage && (
             <>
-              <Input
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                autoFocus
-                className="h-8 flex-1"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveEdit();
-                  if (e.key === "Escape") cancelEdit();
-                }}
-              />
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
-                <Check className="h-4 w-4" />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 opacity-60 hover:opacity-100"
+                onClick={() => openSpaceEdit(s)}
+                aria-label="Editar espaço"
+              >
+                <Pencil className="h-3.5 w-3.5" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
-                <X className="h-4 w-4" />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 opacity-60 hover:opacity-100 text-destructive"
+                onClick={() => setDeleteTarget({ kind: "space", space: s })}
+                aria-label="Excluir space"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
-            </>
-          ) : (
-            <>
-              <span className="flex-1 truncate text-sm">{s.name}</span>
-              {canManage && (
-                <>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 opacity-60 hover:opacity-100"
-                    onClick={() => startEdit("space", s.id, s.name)}
-                    aria-label="Editar nome"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 opacity-60 hover:opacity-100 text-destructive"
-                    onClick={() => setDeleteTarget({ kind: "space", space: s })}
-                    aria-label="Excluir space"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </>
-              )}
             </>
           )}
         </div>
-        {canManage && !isEditing && currentWorkspace && (
-          <div className="mt-2 pl-6">
-            <SpaceSlackChannelPicker
-              workspaceId={currentWorkspace.id}
-              spaceId={s.id}
-            />
-          </div>
-        )}
       </div>
     );
   };
@@ -223,7 +200,7 @@ export default function SpacesAdmin() {
         {teams.map((team) => {
           const teamSpaces = spacesByTeam[team.id] ?? [];
           const canManage = canManageTeam(team.id);
-          const isEditingTeam = editTarget?.kind === "team" && editTarget.id === team.id;
+          const isEditingTeam = editingTeamId === team.id;
           return (
             <Card key={team.id}>
               <CardHeader className="pb-3">
@@ -236,19 +213,19 @@ export default function SpacesAdmin() {
                   {isEditingTeam ? (
                     <>
                       <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
+                        value={editTeamValue}
+                        onChange={(e) => setEditTeamValue(e.target.value)}
                         autoFocus
                         className="h-8 max-w-sm"
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") saveEdit();
-                          if (e.key === "Escape") cancelEdit();
+                          if (e.key === "Enter") saveTeamEdit();
+                          if (e.key === "Escape") cancelTeamEdit();
                         }}
                       />
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveTeamEdit}>
                         <Check className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelTeamEdit}>
                         <X className="h-4 w-4" />
                       </Button>
                     </>
@@ -276,7 +253,7 @@ export default function SpacesAdmin() {
                               size="icon"
                               variant="ghost"
                               className="h-7 w-7"
-                              onClick={() => startEdit("team", team.id, team.name)}
+                              onClick={() => startEditTeam(team)}
                               aria-label="Editar nome"
                             >
                               <Pencil className="h-3.5 w-3.5" />
@@ -386,6 +363,57 @@ export default function SpacesAdmin() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit space dialog */}
+      <Dialog open={!!editingSpace} onOpenChange={(v) => !v && setEditingSpace(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar espaço</DialogTitle>
+            <DialogDescription>
+              Atualize as configurações deste espaço.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="space-edit-name">Nome do espaço</Label>
+              <Input
+                id="space-edit-name"
+                value={editSpaceName}
+                onChange={(e) => setEditSpaceName(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            {currentWorkspace && editingSpace && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Slack className="h-4 w-4" />
+                  <span>Integração Slack</span>
+                </div>
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                  <Label className="text-xs text-muted-foreground">Canal Slack para este espaço</Label>
+                  <SpaceSlackChannelPicker
+                    workspaceId={currentWorkspace.id}
+                    spaceId={editingSpace.id}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="outline" onClick={() => setEditingSpace(null)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={updateSpace.isPending || !editSpaceName.trim()}
+              onClick={saveSpaceEdit}
+            >
+              {updateSpace.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
