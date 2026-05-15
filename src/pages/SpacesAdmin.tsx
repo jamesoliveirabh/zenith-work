@@ -16,10 +16,9 @@ import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/u
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { SpaceSlackChannelPicker } from "@/components/SpaceSlackChannelPicker";
 import type { Team } from "@/types/org";
 
-type EditTarget = { kind: "team" | "space"; id: string } | null;
+type EditTarget = { kind: "team"; id: string } | null;
 type DeleteTarget =
   | { kind: "team"; team: Team }
   | { kind: "space"; space: Space }
