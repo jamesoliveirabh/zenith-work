@@ -22,6 +22,7 @@ function SlackIcon({ className = "h-6 w-6" }: { className?: string }) {
 export default function Integrations() {
   const { current } = useWorkspace();
   const slack = useSlackIntegration(current?.id);
+  const channelsHook = useSlackChannels(current?.id);
   const [token, setToken] = useState("");
   const [showToken, setShowToken] = useState(false);
 
