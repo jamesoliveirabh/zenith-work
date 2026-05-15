@@ -381,23 +381,6 @@ export default function SpacesAdmin() {
                 onChange={(e) => setEditSpaceName(e.target.value)}
                 autoFocus
               />
-            </div>
-
-            {currentWorkspace && editingSpace && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Slack className="h-4 w-4" />
-                  <span>Integração Slack</span>
-                </div>
-                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
-                  <Label className="text-xs text-muted-foreground">Canal Slack para este espaço</Label>
-                  <SpaceSlackChannelPicker
-                    workspaceId={currentWorkspace.id}
-                    spaceId={editingSpace.id}
-                  />
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => setEditingSpace(null)}>
