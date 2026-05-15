@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
     const { workspace_id, channel_id, message } = await req.json();
-    if (!workspace_id || !channel_id || !message) {
+    if (!workspace_id || !message) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -22,7 +22,35 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: integ, error } = await admin
       .from('workspace_integrations')
-      .select('config,is_active')
+      .select('config,is_active,slack_default_channel_id')
+      .eq('workspace_id', workspace_id)
+      .eq('provider', 'slack')
+      .maybeSingle();
+    if (error) throw error;
+    if (!integ || !integ.is_active) {
+      return new Response(JSON.stringify({ ok: false, error: 'Slack not configured' }), {
+        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const targetChannel = channel_id || (integ as any).slack_default_channel_id;
+    if (!targetChannel) {
+      return new Response(JSON.stringify({ ok: false, error: 'No channel provided and no default configured' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: ch } = await admin
+      .from('slack_channels')
+      .select('channel_id')
+      .eq('workspace_id', workspace_id)
+      .eq('channel_id', targetChannel)
+      .maybeSingle();
+    if (!ch) {
+      return new Response(JSON.stringify({ ok: false, error: 'Channel not found in workspace. Sync channels first.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
       .eq('workspace_id', workspace_id)
       .eq('provider', 'slack')
       .maybeSingle();
