@@ -33,11 +33,17 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     // Verify caller is workspace admin
+    const userId = claims.claims.sub;
     const { data: isAdmin } = await admin.rpc('is_workspace_admin', {
-      _workspace_id: workspace_id,
-      _user_id: claims.claims.sub,
+      _ws: workspace_id,
+      _user: userId,
     });
-    if (!isAdmin) return json({ ok: false, error: 'Forbidden' }, 403);
+    let allowed = !!isAdmin;
+    if (!allowed) {
+      const { data: u } = await admin.from('users').select('global_role').eq('id', userId).maybeSingle();
+      if ((u as any)?.global_role === 'superadmin') allowed = true;
+    }
+    if (!allowed) return json({ ok: false, error: 'Forbidden' }, 403);
 
     // Get bot token
     const { data: integ, error: iErr } = await admin
