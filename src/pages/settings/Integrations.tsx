@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useSlackIntegration } from "@/hooks/useWorkspaceIntegrations";
+import { useSlackChannels } from "@/hooks/useSlackChannels";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, RefreshCw, Trash2, ExternalLink } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, EyeOff, RefreshCw, Trash2, ExternalLink, Lock, Hash } from "lucide-react";
 
 function SlackIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
@@ -19,6 +22,7 @@ function SlackIcon({ className = "h-6 w-6" }: { className?: string }) {
 export default function Integrations() {
   const { current } = useWorkspace();
   const slack = useSlackIntegration(current?.id);
+  const channelsHook = useSlackChannels(current?.id);
   const [token, setToken] = useState("");
   const [showToken, setShowToken] = useState(false);
 
@@ -76,22 +80,73 @@ export default function Integrations() {
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium">Canais disponíveis ({slack.channels.length})</p>
-                  <Button variant="ghost" size="sm" onClick={() => slack.refreshChannels()} disabled={slack.refreshing}>
-                    <RefreshCw className={`h-3.5 w-3.5 mr-1 ${slack.refreshing ? "animate-spin" : ""}`} />
-                    Atualizar
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">
+                    Canais disponíveis ({channelsHook.channels.length})
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => channelsHook.syncChannels()}
+                    disabled={channelsHook.syncing}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 mr-1 ${channelsHook.syncing ? "animate-spin" : ""}`} />
+                    Atualizar Canais
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {slack.channels.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Nenhum canal encontrado.</p>
-                  )}
-                  {slack.channels.map((c) => (
-                    <Badge key={c.id} variant="secondary">#{c.name}</Badge>
-                  ))}
-                </div>
+
+                {channelsHook.loading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                ) : channelsHook.channels.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Clique em <strong>Atualizar Canais</strong> para sincronizar canais do Slack.
+                  </p>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Canal padrão para automações</label>
+                      <Select
+                        value={channelsHook.selectedChannel ?? undefined}
+                        onValueChange={(v) => channelsHook.selectChannel(v)}
+                        disabled={channelsHook.selecting}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um canal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {channelsHook.channels.map((c) => (
+                            <SelectItem key={c.channel_id} value={c.channel_id}>
+                              <span className="inline-flex items-center gap-2">
+                                {c.channel_type === "private" ? (
+                                  <Lock className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Hash className="h-3.5 w-3.5" />
+                                )}
+                                {c.channel_name}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {channelsHook.channels.map((c) => (
+                        <Badge key={c.channel_id} variant="secondary" className="gap-1">
+                          {c.channel_type === "private" ? (
+                            <Lock className="h-3 w-3" />
+                          ) : (
+                            <Hash className="h-3 w-3" />
+                          )}
+                          {c.channel_name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="pt-2 border-t flex justify-end">
