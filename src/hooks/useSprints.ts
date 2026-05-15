@@ -197,7 +197,7 @@ export function useUpdateSprintTask() {
   return useMutation({
     mutationFn: async ({
       id, sprint_id: _s, patch,
-    }: { id: string; sprint_id: string; patch: Partial<SprintTask> }) => {
+    }: { id: string; sprint_id: string; patch: { story_points?: number | null; status_in_sprint?: SprintTaskStatus; order?: number } }) => {
       const { error } = await supabase.from("sprint_tasks").update(patch).eq("id", id);
       if (error) throw error;
     },
