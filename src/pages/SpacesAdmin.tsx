@@ -14,6 +14,8 @@ import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X } from "lucide
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { TeamSlackChannelPicker } from "@/components/TeamSlackChannelPicker";
 import type { Team } from "@/types/org";
 
 type DeleteTarget =
@@ -25,6 +27,7 @@ export default function SpacesAdmin() {
   const { data: teams = [] } = useTeams();
   const { data: spaces = [] } = useSpacesAdmin();
   const { data: orgAccess } = useMyOrgAccess();
+  const { current: currentWorkspace } = useWorkspace();
 
   const isOrgAdmin = !!orgAccess?.isOrgAdmin;
   const isGestor = !!orgAccess?.isGestor;
@@ -277,6 +280,14 @@ export default function SpacesAdmin() {
                 )}
               </CardHeader>
               <CardContent className="space-y-2">
+                {canManage && currentWorkspace && (
+                  <div className="rounded-md border bg-muted/30 px-3 py-2">
+                    <TeamSlackChannelPicker
+                      workspaceId={currentWorkspace.id}
+                      teamId={team.id}
+                    />
+                  </div>
+                )}
                 {teamSpaces.map((s) => renderSpaceRow(s, canManage))}
                 {teamSpaces.length === 0 && (
                   <p className="text-xs text-muted-foreground py-1">
