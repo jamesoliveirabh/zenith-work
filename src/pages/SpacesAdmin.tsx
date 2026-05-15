@@ -280,6 +280,14 @@ export default function SpacesAdmin() {
                 )}
               </CardHeader>
               <CardContent className="space-y-2">
+                {canManage && currentWorkspace && (
+                  <div className="rounded-md border bg-muted/30 px-3 py-2">
+                    <TeamSlackChannelPicker
+                      workspaceId={currentWorkspace.id}
+                      teamId={team.id}
+                    />
+                  </div>
+                )}
                 {teamSpaces.map((s) => renderSpaceRow(s, canManage))}
                 {teamSpaces.length === 0 && (
                   <p className="text-xs text-muted-foreground py-1">
