@@ -1728,6 +1728,123 @@ export type Database = {
           },
         ]
       }
+      sprint_tasks: {
+        Row: {
+          added_at: string
+          completed_at: string | null
+          id: string
+          order: number
+          sprint_id: string
+          status_in_sprint: string
+          story_points: number | null
+          task_id: string
+        }
+        Insert: {
+          added_at?: string
+          completed_at?: string | null
+          id?: string
+          order?: number
+          sprint_id: string
+          status_in_sprint?: string
+          story_points?: number | null
+          task_id: string
+        }
+        Update: {
+          added_at?: string
+          completed_at?: string | null
+          id?: string
+          order?: number
+          sprint_id?: string
+          status_in_sprint?: string
+          story_points?: number | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprint_tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sprint_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprints: {
+        Row: {
+          actual_velocity: number
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          goal: string | null
+          id: string
+          is_deleted: boolean
+          name: string
+          planned_velocity: number
+          start_date: string
+          status: string
+          team_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          actual_velocity?: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          goal?: string | null
+          id?: string
+          is_deleted?: boolean
+          name: string
+          planned_velocity?: number
+          start_date: string
+          status?: string
+          team_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          actual_velocity?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          goal?: string | null
+          id?: string
+          is_deleted?: boolean
+          name?: string
+          planned_velocity?: number
+          start_date?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sprints_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       status_columns: {
         Row: {
           color: string | null
@@ -2499,6 +2616,51 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      velocity_history: {
+        Row: {
+          actual_velocity: number
+          completion_rate: number
+          created_at: string
+          id: string
+          planned_velocity: number
+          sprint_id: string
+          team_id: string
+        }
+        Insert: {
+          actual_velocity?: number
+          completion_rate?: number
+          created_at?: string
+          id?: string
+          planned_velocity?: number
+          sprint_id: string
+          team_id: string
+        }
+        Update: {
+          actual_velocity?: number
+          completion_rate?: number
+          created_at?: string
+          id?: string
+          planned_velocity?: number
+          sprint_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "velocity_history_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: true
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "velocity_history_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_admin_notes: {
         Row: {
