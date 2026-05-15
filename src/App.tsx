@@ -33,6 +33,7 @@ import DocsHome from "./pages/DocsHome";
 import DocEditor from "./pages/DocEditor";
 import PublishedDoc from "./pages/PublishedDoc";
 import TeamsAdmin from "./pages/TeamsAdmin";
+import Sprints from "./pages/Sprints";
 import BillingSettings from "./pages/BillingSettings";
 import WorkspaceSettings from "./pages/WorkspaceSettings";
 import Integrations from "./pages/settings/Integrations";
@@ -105,6 +106,7 @@ const App = () => (
                   <Route path="/teams" element={<TeamsAdmin />} />
                   <Route path="/goals" element={<Goals />} />
                   <Route path="/goals/:goalId" element={<GoalDetail />} />
+                  <Route path="/sprints" element={<Sprints />} />
                   <Route path="/security" element={<Security />} />
                   <Route path="/security/people" element={<Team />} />
                   <Route path="/security/permissions" element={<Permissions />} />
