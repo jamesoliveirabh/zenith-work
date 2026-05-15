@@ -1674,54 +1674,6 @@ export type Database = {
           },
         ]
       }
-      space_slack_settings: {
-        Row: {
-          created_at: string
-          id: string
-          is_configured: boolean
-          slack_channel_id: string | null
-          slack_channel_name: string | null
-          space_id: string
-          updated_at: string
-          workspace_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_configured?: boolean
-          slack_channel_id?: string | null
-          slack_channel_name?: string | null
-          space_id: string
-          updated_at?: string
-          workspace_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_configured?: boolean
-          slack_channel_id?: string | null
-          slack_channel_name?: string | null
-          space_id?: string
-          updated_at?: string
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "space_slack_settings_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "space_slack_settings_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       spaces: {
         Row: {
           color: string | null
@@ -2374,6 +2326,54 @@ export type Database = {
           },
           {
             foreignKeyName: "team_memberships_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_slack_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_configured: boolean
+          slack_channel_id: string | null
+          slack_channel_name: string | null
+          team_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          slack_channel_id?: string | null
+          slack_channel_name?: string | null
+          team_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          slack_channel_id?: string | null
+          slack_channel_name?: string | null
+          team_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_slack_settings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_slack_settings_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
