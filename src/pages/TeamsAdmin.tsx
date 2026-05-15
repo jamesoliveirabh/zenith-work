@@ -48,6 +48,7 @@ interface WsMember {
 }
 
 function TeamDetail({ teamId, wsMembers }: { teamId: string; wsMembers: WsMember[] }) {
+  const { current: ws } = useWorkspace();
   const { data: members = [] } = useTeamMembers(teamId);
   const addMember = useAddTeamMember();
   const removeMember = useRemoveTeamMember();
