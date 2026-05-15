@@ -381,6 +381,7 @@ export default function SpacesAdmin() {
                 onChange={(e) => setEditSpaceName(e.target.value)}
                 autoFocus
               />
+            </div>
           </div>
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => setEditingSpace(null)}>
