@@ -14,6 +14,8 @@ import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X } from "lucide
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
 import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
 import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { TeamSlackChannelPicker } from "@/components/TeamSlackChannelPicker";
 import type { Team } from "@/types/org";
 
 type DeleteTarget =
