@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useSlackIntegration } from "@/hooks/useWorkspaceIntegrations";
+import { useSlackChannels } from "@/hooks/useSlackChannels";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, RefreshCw, Trash2, ExternalLink } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, EyeOff, RefreshCw, Trash2, ExternalLink, Lock, Hash } from "lucide-react";
 
 function SlackIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
