@@ -29,6 +29,7 @@ export default function SpacesAdmin() {
   const { data: teams = [] } = useTeams();
   const { data: spaces = [] } = useSpacesAdmin();
   const { data: orgAccess } = useMyOrgAccess();
+  const { current: currentWorkspace } = useWorkspace();
 
   const isOrgAdmin = !!orgAccess?.isOrgAdmin;
   const isGestor = !!orgAccess?.isGestor;
