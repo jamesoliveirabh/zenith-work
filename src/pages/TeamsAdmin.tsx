@@ -31,8 +31,9 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Users, Plus, Trash2, UserPlus, Shield, Crown } from 'lucide-react';
+import { Users, Plus, Trash2, UserPlus, Shield, Crown, Slack } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { TeamSlackChannelPicker } from '@/components/TeamSlackChannelPicker';
 import type { TeamRole } from '@/types/org';
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
