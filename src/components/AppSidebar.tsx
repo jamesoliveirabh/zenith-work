@@ -308,6 +308,14 @@ export function AppSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
+                  <NavLink to="/sprints">
+                    <Activity className="h-4 w-4" />
+                    {!collapsed && <span>Sprints</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
                   <NavLink to="/automations">
                     <Zap className="h-4 w-4" />
                     {!collapsed && <span>Automações</span>}
