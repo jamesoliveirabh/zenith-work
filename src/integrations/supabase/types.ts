@@ -1674,6 +1674,54 @@ export type Database = {
           },
         ]
       }
+      space_slack_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_configured: boolean
+          slack_channel_id: string | null
+          slack_channel_name: string | null
+          space_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          slack_channel_id?: string | null
+          slack_channel_name?: string | null
+          space_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_configured?: boolean
+          slack_channel_id?: string | null
+          slack_channel_name?: string | null
+          space_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_slack_settings_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_slack_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spaces: {
         Row: {
           color: string | null
