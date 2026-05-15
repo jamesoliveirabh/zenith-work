@@ -1592,6 +1592,39 @@ export type Database = {
           },
         ]
       }
+      slack_channels: {
+        Row: {
+          channel_id: string
+          channel_name: string
+          channel_type: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          channel_id: string
+          channel_name: string
+          channel_type?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          channel_id?: string
+          channel_name?: string
+          channel_type?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       space_memberships: {
         Row: {
           created_at: string
@@ -2502,6 +2535,7 @@ export type Database = {
           id: string
           is_active: boolean
           provider: string
+          slack_default_channel_id: string | null
           updated_at: string
           workspace_id: string
         }
@@ -2511,6 +2545,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           provider: string
+          slack_default_channel_id?: string | null
           updated_at?: string
           workspace_id: string
         }
@@ -2520,6 +2555,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           provider?: string
+          slack_default_channel_id?: string | null
           updated_at?: string
           workspace_id?: string
         }
