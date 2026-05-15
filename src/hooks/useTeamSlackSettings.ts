@@ -2,52 +2,52 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export interface SpaceSlackSettings {
+export interface TeamSlackSettings {
   id: string;
   workspace_id: string;
-  space_id: string;
+  team_id: string;
   slack_channel_id: string | null;
   slack_channel_name: string | null;
   is_configured: boolean;
 }
 
-export function useSpaceSlackSettings(spaceId: string | undefined, workspaceId: string | undefined) {
+export function useTeamSlackSettings(teamId: string | undefined, workspaceId: string | undefined) {
   const qc = useQueryClient();
 
   const settingsQuery = useQuery({
-    queryKey: ["space-slack-settings", workspaceId, spaceId],
-    enabled: !!spaceId && !!workspaceId,
+    queryKey: ["team-slack-settings", workspaceId, teamId],
+    enabled: !!teamId && !!workspaceId,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("space_slack_settings")
+        .from("team_slack_settings")
         .select("*")
         .eq("workspace_id", workspaceId!)
-        .eq("space_id", spaceId!)
+        .eq("team_id", teamId!)
         .maybeSingle();
       if (error) throw error;
-      return (data ?? null) as SpaceSlackSettings | null;
+      return (data ?? null) as TeamSlackSettings | null;
     },
   });
 
   const updateChannel = useMutation({
     mutationFn: async (params: { channelId: string | null; channelName: string | null }) => {
-      if (!spaceId || !workspaceId) throw new Error("Espaço/workspace não selecionado");
+      if (!teamId || !workspaceId) throw new Error("Equipe/workspace não selecionado");
       const payload = {
         workspace_id: workspaceId,
-        space_id: spaceId,
+        team_id: teamId,
         slack_channel_id: params.channelId,
         slack_channel_name: params.channelName,
         is_configured: !!params.channelId,
         updated_at: new Date().toISOString(),
       };
       const { error } = await (supabase as any)
-        .from("space_slack_settings")
-        .upsert(payload, { onConflict: "workspace_id,space_id" });
+        .from("team_slack_settings")
+        .upsert(payload, { onConflict: "workspace_id,team_id" });
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["space-slack-settings", workspaceId, spaceId] });
-      toast.success("Canal do espaço atualizado");
+      qc.invalidateQueries({ queryKey: ["team-slack-settings", workspaceId, teamId] });
+      toast.success("Canal da equipe atualizado");
     },
     onError: (e: any) => toast.error(e.message || "Falha ao salvar canal"),
   });
@@ -61,12 +61,12 @@ export function useSpaceSlackSettings(spaceId: string | undefined, workspaceId: 
   };
 }
 
-export async function getSpaceSlackChannel(spaceId: string, workspaceId: string) {
+export async function getTeamSlackChannel(teamId: string, workspaceId: string) {
   const { data, error } = await (supabase as any)
-    .from("space_slack_settings")
+    .from("team_slack_settings")
     .select("slack_channel_id, slack_channel_name, is_configured")
     .eq("workspace_id", workspaceId)
-    .eq("space_id", spaceId)
+    .eq("team_id", teamId)
     .maybeSingle();
   if (error) throw error;
   return {

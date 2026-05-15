@@ -1,5 +1,5 @@
 import { useSlackChannels } from "@/hooks/useSlackChannels";
-import { useSpaceSlackSettings } from "@/hooks/useSpaceSlackSettings";
+import { useTeamSlackSettings } from "@/hooks/useTeamSlackSettings";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -7,15 +7,15 @@ import { Hash, Lock, Slack, Loader2 } from "lucide-react";
 
 interface Props {
   workspaceId: string;
-  spaceId: string;
+  teamId: string;
 }
 
 const GLOBAL_VALUE = "__global__";
 
-export function SpaceSlackChannelPicker({ workspaceId, spaceId }: Props) {
+export function TeamSlackChannelPicker({ workspaceId, teamId }: Props) {
   const { channels, loading: loadingChannels } = useSlackChannels(workspaceId);
   const { settings, loading: loadingSettings, updateChannel, saving } =
-    useSpaceSlackSettings(spaceId, workspaceId);
+    useTeamSlackSettings(teamId, workspaceId);
 
   const value =
     settings?.is_configured && settings.slack_channel_id
