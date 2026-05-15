@@ -12,7 +12,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const { workspace_id, channel_id, message } = await req.json();
+    const { workspace_id, channel_id, space_id, message } = await req.json();
     if (!workspace_id || !message) {
       return new Response(JSON.stringify({ ok: false, error: 'Missing fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
