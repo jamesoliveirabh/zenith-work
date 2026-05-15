@@ -74,6 +74,18 @@ function TeamDetail({ teamId, wsMembers }: { teamId: string; wsMembers: WsMember
 
   return (
     <div className="space-y-4 p-4">
+      {ws && (
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Slack className="h-4 w-4" />
+            <span>Integração Slack</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Canal Slack para notificações desta equipe (espaços e listas herdam).
+          </p>
+          <TeamSlackChannelPicker workspaceId={ws.id} teamId={teamId} />
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-2 items-end">
         <div className="space-y-1">
           <Label className="text-xs">Adicionar membro</Label>
