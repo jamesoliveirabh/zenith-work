@@ -1,21 +1,21 @@
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@components/ui/card";
-import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@components/ui/dialog";
+} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import { LayoutGrid, Plus, Pencil, Trash2, FolderKanban, Check, X, Slack } from "lucide-react";
-import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@hooks/useTeams";
-import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@hooks/useSpaces";
-import { useMyOrgAccess } from "@hooks/useOrgRole";
-import { useWorkspace } from "@contexts/WorkspaceContext";
-import { SpaceSlackChannelPicker } from "@components/SpaceSlackChannelPicker";
+import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/useTeams";
+import { useSpacesAdmin, useCreateSpace, useUpdateSpace, useDeleteSpace, type Space } from "@/hooks/useSpaces";
+import { useMyOrgAccess } from "@/hooks/useOrgRole";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { SpaceSlackChannelPicker } from "@/components/SpaceSlackChannelPicker";
 import type { Team } from "@/types/org";
 
 type DeleteTarget =
