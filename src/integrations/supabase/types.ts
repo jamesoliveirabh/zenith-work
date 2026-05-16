@@ -99,6 +99,299 @@ export type Database = {
           },
         ]
       }
+      approval_audit_logs: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          from_status:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          id: string
+          metadata: Json
+          request_id: string
+          step_order: number | null
+          to_status:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          workspace_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          from_status?:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          id?: string
+          metadata?: Json
+          request_id: string
+          step_order?: number | null
+          to_status?:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          workspace_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          id?: string
+          metadata?: Json
+          request_id?: string
+          step_order?: number | null
+          to_status?:
+            | Database["public"]["Enums"]["approval_request_status"]
+            | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "approval_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_decisions: {
+        Row: {
+          approver_id: string
+          comment: string | null
+          decided_at: string
+          decision: Database["public"]["Enums"]["approval_step_decision"]
+          id: string
+          request_id: string
+          step_id: string
+          step_order: number
+        }
+        Insert: {
+          approver_id: string
+          comment?: string | null
+          decided_at?: string
+          decision: Database["public"]["Enums"]["approval_step_decision"]
+          id?: string
+          request_id: string
+          step_id: string
+          step_order: number
+        }
+        Update: {
+          approver_id?: string
+          comment?: string | null
+          decided_at?: string
+          decision?: Database["public"]["Enums"]["approval_step_decision"]
+          id?: string
+          request_id?: string
+          step_id?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_decisions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_decisions_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflow_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_requests: {
+        Row: {
+          completed_at: string | null
+          context: Json
+          created_at: string
+          current_step_order: number
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["approval_entity_type"]
+          expires_at: string | null
+          id: string
+          reason: string | null
+          requested_by: string
+          status: Database["public"]["Enums"]["approval_request_status"]
+          updated_at: string
+          workflow_id: string
+          workspace_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          current_step_order?: number
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["approval_entity_type"]
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_by: string
+          status?: Database["public"]["Enums"]["approval_request_status"]
+          updated_at?: string
+          workflow_id: string
+          workspace_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          current_step_order?: number
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["approval_entity_type"]
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_by?: string
+          status?: Database["public"]["Enums"]["approval_request_status"]
+          updated_at?: string
+          workflow_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_workflow_steps: {
+        Row: {
+          allow_self_approval: boolean
+          approver_role: string | null
+          approver_team_id: string | null
+          approver_type: Database["public"]["Enums"]["approval_approver_type"]
+          approver_user_id: string | null
+          created_at: string
+          id: string
+          name: string
+          required_approvals: number
+          step_order: number
+          workflow_id: string
+        }
+        Insert: {
+          allow_self_approval?: boolean
+          approver_role?: string | null
+          approver_team_id?: string | null
+          approver_type: Database["public"]["Enums"]["approval_approver_type"]
+          approver_user_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          required_approvals?: number
+          step_order: number
+          workflow_id: string
+        }
+        Update: {
+          allow_self_approval?: boolean
+          approver_role?: string | null
+          approver_team_id?: string | null
+          approver_type?: Database["public"]["Enums"]["approval_approver_type"]
+          approver_user_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          required_approvals?: number
+          step_order?: number
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_workflow_steps_approver_team_id_fkey"
+            columns: ["approver_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_workflow_steps_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_workflows: {
+        Row: {
+          auto_approve_requester: boolean
+          created_at: string
+          created_by: string
+          description: string | null
+          entity_type: Database["public"]["Enums"]["approval_entity_type"]
+          expires_after_hours: number | null
+          id: string
+          is_active: boolean
+          name: string
+          team_id: string | null
+          trigger_condition: Json
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          auto_approve_requester?: boolean
+          created_at?: string
+          created_by: string
+          description?: string | null
+          entity_type: Database["public"]["Enums"]["approval_entity_type"]
+          expires_after_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          team_id?: string | null
+          trigger_condition?: Json
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          auto_approve_requester?: boolean
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          entity_type?: Database["public"]["Enums"]["approval_entity_type"]
+          expires_after_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          team_id?: string | null
+          trigger_condition?: Json
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_workflows_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_workflows_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -4024,6 +4317,10 @@ export type Database = {
       }
       is_org_admin: { Args: { _user: string; _ws: string }; Returns: boolean }
       is_platform_admin: { Args: { _user: string }; Returns: boolean }
+      is_step_approver: {
+        Args: { _step_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_team_gestor: {
         Args: { _team: string; _user: string }
         Returns: boolean
@@ -4490,6 +4787,27 @@ export type Database = {
         | "member_joined"
         | "goal_created"
         | "goal_target_updated"
+      approval_approver_type:
+        | "user"
+        | "workspace_role"
+        | "team_role"
+        | "team_member"
+      approval_entity_type:
+        | "task"
+        | "sprint"
+        | "technical_debt"
+        | "tech_spike"
+        | "pull_request"
+        | "time_entry"
+        | "goal"
+        | "custom"
+      approval_request_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "expired"
+      approval_step_decision: "pending" | "approved" | "rejected" | "skipped"
       automation_action_type:
         | "set_status"
         | "set_assignee"
@@ -4681,6 +4999,30 @@ export const Constants = {
         "goal_created",
         "goal_target_updated",
       ],
+      approval_approver_type: [
+        "user",
+        "workspace_role",
+        "team_role",
+        "team_member",
+      ],
+      approval_entity_type: [
+        "task",
+        "sprint",
+        "technical_debt",
+        "tech_spike",
+        "pull_request",
+        "time_entry",
+        "goal",
+        "custom",
+      ],
+      approval_request_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "expired",
+      ],
+      approval_step_decision: ["pending", "approved", "rejected", "skipped"],
       automation_action_type: [
         "set_status",
         "set_assignee",
