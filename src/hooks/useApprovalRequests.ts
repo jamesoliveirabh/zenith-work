@@ -96,8 +96,9 @@ export function useCreateApprovalRequest() {
 }
 
 /**
- * Record a decision for an approval request. Inserts a row in approval_decisions
- * and (when approving the final step or rejecting) updates the request status.
+ * Record a decision for an approval request. The DB trigger
+ * `trg_advance_approval_on_decision` handles status transitions
+ * (advance step / approve / reject) and writes the audit entry.
  */
 export function useDecideApprovalRequest() {
   const qc = useQueryClient();
@@ -108,9 +109,8 @@ export function useDecideApprovalRequest() {
       step_id: string;
       decision: "approved" | "rejected";
       comment?: string;
-      isFinalStep?: boolean;
     }) => {
-      const { error: decErr } = await supabase.from("approval_decisions").insert({
+      const { error } = await supabase.from("approval_decisions").insert({
         request_id: input.request.id,
         step_id: input.step_id,
         step_order: input.request.current_step_order,
@@ -118,28 +118,7 @@ export function useDecideApprovalRequest() {
         decision: input.decision,
         comment: input.comment ?? null,
       } as never);
-      if (decErr) throw decErr;
-
-      const now = new Date().toISOString();
-      if (input.decision === "rejected") {
-        const { error } = await supabase
-          .from("approval_requests")
-          .update({ status: "rejected", completed_at: now } as never)
-          .eq("id", input.request.id);
-        if (error) throw error;
-      } else if (input.isFinalStep) {
-        const { error } = await supabase
-          .from("approval_requests")
-          .update({ status: "approved", completed_at: now } as never)
-          .eq("id", input.request.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("approval_requests")
-          .update({ current_step_order: input.request.current_step_order + 1 } as never)
-          .eq("id", input.request.id);
-        if (error) throw error;
-      }
+      if (error) throw error;
     },
     onError: (e: Error) => toast.error(e.message),
     onSuccess: (_d, vars) => {
