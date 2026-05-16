@@ -132,7 +132,9 @@ export function useDecideApprovalRequest() {
     },
     onError: (e: Error) => {
       const msg = e.message ?? "";
-      if (msg.includes("already decided")) {
+      if (msg.includes("Access denied")) {
+        toast.error("Você não tem permissão para decidir esta solicitação.");
+      } else if (msg.includes("already decided")) {
         toast.error("Você já decidiu este passo.");
       } else if (msg.includes("Wrong step")) {
         toast.error("Outro aprovador já avançou esta solicitação. Recarregue.");
@@ -140,6 +142,8 @@ export function useDecideApprovalRequest() {
         toast.error("Esta solicitação já foi finalizada.");
       } else if (msg.includes("not found")) {
         toast.error("Solicitação não encontrada.");
+      } else if (msg.includes("Not authenticated")) {
+        toast.error("Sessão expirada. Faça login novamente.");
       } else {
         toast.error(msg || "Falha ao registrar decisão.");
       }
