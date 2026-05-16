@@ -1554,6 +1554,124 @@ export type Database = {
         }
         Relationships: []
       }
+      retrospective_item_votes: {
+        Row: {
+          created_at: string
+          retrospective_item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          retrospective_item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          retrospective_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retrospective_item_votes_retrospective_item_id_fkey"
+            columns: ["retrospective_item_id"]
+            isOneToOne: false
+            referencedRelation: "retrospective_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retrospective_items: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          content: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          is_action_item: boolean
+          retrospective_id: string
+          updated_at: string
+          votes: number
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          content: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          is_action_item?: boolean
+          retrospective_id: string
+          updated_at?: string
+          votes?: number
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          is_action_item?: boolean
+          retrospective_id?: string
+          updated_at?: string
+          votes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retrospective_items_retrospective_id_fkey"
+            columns: ["retrospective_id"]
+            isOneToOne: false
+            referencedRelation: "retrospectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retrospectives: {
+        Row: {
+          conducted_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_deleted: boolean
+          notes: string | null
+          sprint_id: string
+          status: string
+          team_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          conducted_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          sprint_id: string
+          status?: string
+          team_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          conducted_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          sprint_id?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           enabled: boolean
@@ -1724,6 +1842,121 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprint_metrics: {
+        Row: {
+          avg_points_per_task: number
+          blocked_tasks_count: number
+          calculated_at: string
+          date: string
+          id: string
+          points_completed: number
+          points_in_progress: number
+          points_remaining: number
+          sprint_id: string
+          task_completion_rate: number
+          team_id: string
+          velocity_percentage: number
+        }
+        Insert: {
+          avg_points_per_task?: number
+          blocked_tasks_count?: number
+          calculated_at?: string
+          date: string
+          id?: string
+          points_completed?: number
+          points_in_progress?: number
+          points_remaining?: number
+          sprint_id: string
+          task_completion_rate?: number
+          team_id: string
+          velocity_percentage?: number
+        }
+        Update: {
+          avg_points_per_task?: number
+          blocked_tasks_count?: number
+          calculated_at?: string
+          date?: string
+          id?: string
+          points_completed?: number
+          points_in_progress?: number
+          points_remaining?: number
+          sprint_id?: string
+          task_completion_rate?: number
+          team_id?: string
+          velocity_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprint_metrics_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprint_reports: {
+        Row: {
+          achievements: string | null
+          actual_velocity: number | null
+          avg_story_points_per_person: number | null
+          blockers_summary: string | null
+          completion_percentage: number | null
+          generated_at: string
+          id: string
+          improvements: string | null
+          longest_task_days: number | null
+          planned_velocity: number | null
+          report_json: Json
+          sprint_id: string
+          team_id: string
+          team_members_count: number | null
+          workspace_id: string
+        }
+        Insert: {
+          achievements?: string | null
+          actual_velocity?: number | null
+          avg_story_points_per_person?: number | null
+          blockers_summary?: string | null
+          completion_percentage?: number | null
+          generated_at?: string
+          id?: string
+          improvements?: string | null
+          longest_task_days?: number | null
+          planned_velocity?: number | null
+          report_json?: Json
+          sprint_id: string
+          team_id: string
+          team_members_count?: number | null
+          workspace_id: string
+        }
+        Update: {
+          achievements?: string | null
+          actual_velocity?: number | null
+          avg_story_points_per_person?: number | null
+          blockers_summary?: string | null
+          completion_percentage?: number | null
+          generated_at?: string
+          id?: string
+          improvements?: string | null
+          longest_task_days?: number | null
+          planned_velocity?: number | null
+          report_json?: Json
+          sprint_id?: string
+          team_id?: string
+          team_members_count?: number | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprint_reports_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: true
+            referencedRelation: "sprints"
             referencedColumns: ["id"]
           },
         ]
@@ -2082,6 +2315,56 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_cycle_times: {
+        Row: {
+          calculated_at: string
+          completed_at: string | null
+          created_at: string | null
+          dev_days: number | null
+          id: string
+          sprint_id: string
+          started_at: string | null
+          status: string | null
+          task_id: string
+          total_days: number | null
+          waiting_days: number | null
+        }
+        Insert: {
+          calculated_at?: string
+          completed_at?: string | null
+          created_at?: string | null
+          dev_days?: number | null
+          id?: string
+          sprint_id: string
+          started_at?: string | null
+          status?: string | null
+          task_id: string
+          total_days?: number | null
+          waiting_days?: number | null
+        }
+        Update: {
+          calculated_at?: string
+          completed_at?: string | null
+          created_at?: string | null
+          dev_days?: number | null
+          id?: string
+          sprint_id?: string
+          started_at?: string | null
+          status?: string | null
+          task_id?: string
+          total_days?: number | null
+          waiting_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_cycle_times_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
             referencedColumns: ["id"]
           },
         ]
@@ -3336,6 +3619,10 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_sprint_report: {
+        Args: { p_sprint_id: string }
+        Returns: undefined
+      }
       get_global_role: { Args: { _user_id: string }; Returns: string }
       global_search: {
         Args: { p_limit?: number; p_query: string; p_workspace_id: string }
@@ -3803,6 +4090,10 @@ export type Database = {
       }
       platform_kill_switch_active: { Args: never; Returns: boolean }
       seed_role_permissions: { Args: { _ws: string }; Returns: undefined }
+      snapshot_sprint_metrics: {
+        Args: { p_sprint_id: string }
+        Returns: undefined
+      }
       task_dependency_would_cycle: {
         Args: { _source: string; _target: string; _type: string }
         Returns: boolean
