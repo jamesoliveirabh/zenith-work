@@ -17,6 +17,9 @@ import { SprintBoard } from "@/components/sprints/SprintBoard";
 import { SprintBurndownChart } from "@/components/sprints/SprintBurndownChart";
 import { SprintVelocityChart } from "@/components/sprints/SprintVelocityChart";
 import { SprintFormDialog } from "@/components/sprints/SprintFormDialog";
+import { SprintMetricsDashboard } from "@/components/sprints/SprintMetricsDashboard";
+import { RetrospectiveBoard } from "@/components/sprints/RetrospectiveBoard";
+import { SprintReportView } from "@/components/sprints/SprintReportView";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
