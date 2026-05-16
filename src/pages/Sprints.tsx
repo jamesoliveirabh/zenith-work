@@ -20,6 +20,10 @@ import { SprintFormDialog } from "@/components/sprints/SprintFormDialog";
 import { SprintMetricsDashboard } from "@/components/sprints/SprintMetricsDashboard";
 import { RetrospectiveBoard } from "@/components/sprints/RetrospectiveBoard";
 import { SprintReportView } from "@/components/sprints/SprintReportView";
+import { TechnicalDebtTracker } from "@/components/tech/TechnicalDebtTracker";
+import { TechSpikeBoard } from "@/components/tech/TechSpikeBoard";
+import { QualityMetricsDashboard } from "@/components/tech/QualityMetricsDashboard";
+import { PullRequestList } from "@/components/tech/PullRequestList";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
