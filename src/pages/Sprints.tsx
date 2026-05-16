@@ -120,10 +120,14 @@ export default function Sprints() {
         <Card><CardContent className="py-10 text-center text-muted-foreground">Selecione uma equipa.</CardContent></Card>
       ) : (
         <Tabs defaultValue="board" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="board">Sprint Atual</TabsTrigger>
             <TabsTrigger value="planning">Planejamento ({planning.length})</TabsTrigger>
             <TabsTrigger value="history">Histórico ({completed.length})</TabsTrigger>
+            <TabsTrigger value="debt">Débito Técnico</TabsTrigger>
+            <TabsTrigger value="spikes">Tech Spikes</TabsTrigger>
+            <TabsTrigger value="quality">Qualidade</TabsTrigger>
+            <TabsTrigger value="prs">Pull Requests</TabsTrigger>
           </TabsList>
 
           <TabsContent value="board" className="space-y-4">
