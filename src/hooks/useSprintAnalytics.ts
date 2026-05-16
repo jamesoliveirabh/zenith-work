@@ -209,7 +209,7 @@ export function useUpdateRetroItem() {
   return useMutation({
     mutationFn: async ({
       id, retroId: _r, patch,
-    }: { id: string; retroId: string; patch: Partial<RetrospectiveItem> }) => {
+    }: { id: string; retroId: string; patch: Partial<Omit<RetrospectiveItem, "has_voted">> }) => {
       const { error } = await supabase.from("retrospective_items").update(patch).eq("id", id);
       if (error) throw error;
     },
