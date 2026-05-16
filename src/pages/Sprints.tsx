@@ -20,6 +20,10 @@ import { SprintFormDialog } from "@/components/sprints/SprintFormDialog";
 import { SprintMetricsDashboard } from "@/components/sprints/SprintMetricsDashboard";
 import { RetrospectiveBoard } from "@/components/sprints/RetrospectiveBoard";
 import { SprintReportView } from "@/components/sprints/SprintReportView";
+import { TechnicalDebtTracker } from "@/components/tech/TechnicalDebtTracker";
+import { TechSpikeBoard } from "@/components/tech/TechSpikeBoard";
+import { QualityMetricsDashboard } from "@/components/tech/QualityMetricsDashboard";
+import { PullRequestList } from "@/components/tech/PullRequestList";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -120,10 +124,14 @@ export default function Sprints() {
         <Card><CardContent className="py-10 text-center text-muted-foreground">Selecione uma equipa.</CardContent></Card>
       ) : (
         <Tabs defaultValue="board" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="board">Sprint Atual</TabsTrigger>
             <TabsTrigger value="planning">Planejamento ({planning.length})</TabsTrigger>
             <TabsTrigger value="history">Histórico ({completed.length})</TabsTrigger>
+            <TabsTrigger value="debt">Débito Técnico</TabsTrigger>
+            <TabsTrigger value="spikes">Tech Spikes</TabsTrigger>
+            <TabsTrigger value="quality">Qualidade</TabsTrigger>
+            <TabsTrigger value="prs">Pull Requests</TabsTrigger>
           </TabsList>
 
           <TabsContent value="board" className="space-y-4">
@@ -231,6 +239,19 @@ export default function Sprints() {
                 </CardHeader>
               </Card>
             ))}
+          </TabsContent>
+
+          <TabsContent value="debt" className="space-y-4">
+            <TechnicalDebtTracker teamId={teamId} canEdit={canEdit} />
+          </TabsContent>
+          <TabsContent value="spikes" className="space-y-4">
+            <TechSpikeBoard teamId={teamId} canEdit={canEdit} />
+          </TabsContent>
+          <TabsContent value="quality" className="space-y-4">
+            <QualityMetricsDashboard teamId={teamId} />
+          </TabsContent>
+          <TabsContent value="prs" className="space-y-4">
+            <PullRequestList canEdit={canEdit} />
           </TabsContent>
         </Tabs>
       )}

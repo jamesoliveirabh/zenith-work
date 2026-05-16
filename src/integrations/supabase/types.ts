@@ -569,6 +569,154 @@ export type Database = {
           },
         ]
       }
+      ci_cd_pipelines: {
+        Row: {
+          artifacts: Json
+          build_time_seconds: number | null
+          completed_at: string | null
+          id: string
+          pipeline_id: string
+          pr_id: string | null
+          stages: Json
+          status: string
+          task_id: string | null
+          triggered_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          artifacts?: Json
+          build_time_seconds?: number | null
+          completed_at?: string | null
+          id?: string
+          pipeline_id: string
+          pr_id?: string | null
+          stages?: Json
+          status: string
+          task_id?: string | null
+          triggered_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          artifacts?: Json
+          build_time_seconds?: number | null
+          completed_at?: string | null
+          id?: string
+          pipeline_id?: string
+          pr_id?: string | null
+          stages?: Json
+          status?: string
+          task_id?: string | null
+          triggered_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      code_quality_metrics: {
+        Row: {
+          calculated_at: string
+          code_smells: number
+          cyclomatic_complexity: number
+          date: string
+          duplicated_lines_percentage: number
+          id: string
+          linting_issues: number
+          security_vulnerabilities: number
+          source: string | null
+          sprint_id: string | null
+          team_id: string
+          test_coverage_percentage: number | null
+        }
+        Insert: {
+          calculated_at?: string
+          code_smells?: number
+          cyclomatic_complexity?: number
+          date: string
+          duplicated_lines_percentage?: number
+          id?: string
+          linting_issues?: number
+          security_vulnerabilities?: number
+          source?: string | null
+          sprint_id?: string | null
+          team_id: string
+          test_coverage_percentage?: number | null
+        }
+        Update: {
+          calculated_at?: string
+          code_smells?: number
+          cyclomatic_complexity?: number
+          date?: string
+          duplicated_lines_percentage?: number
+          id?: string
+          linting_issues?: number
+          security_vulnerabilities?: number
+          source?: string | null
+          sprint_id?: string | null
+          team_id?: string
+          test_coverage_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_quality_metrics_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      code_review_metrics: {
+        Row: {
+          approvals_required: number
+          avg_comments_per_pr: number
+          avg_review_time_hours: number
+          calculated_at: string
+          date: string
+          failed_ci_builds: number
+          id: string
+          merge_conflicts: number
+          open_prs: number
+          sprint_id: string | null
+          team_id: string
+          total_prs: number
+        }
+        Insert: {
+          approvals_required?: number
+          avg_comments_per_pr?: number
+          avg_review_time_hours?: number
+          calculated_at?: string
+          date: string
+          failed_ci_builds?: number
+          id?: string
+          merge_conflicts?: number
+          open_prs?: number
+          sprint_id?: string | null
+          team_id: string
+          total_prs?: number
+        }
+        Update: {
+          approvals_required?: number
+          avg_comments_per_pr?: number
+          avg_review_time_hours?: number
+          calculated_at?: string
+          date?: string
+          failed_ci_builds?: number
+          id?: string
+          merge_conflicts?: number
+          open_prs?: number
+          sprint_id?: string | null
+          team_id?: string
+          total_prs?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_review_metrics_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_fields: {
         Row: {
           created_at: string
@@ -1554,6 +1702,63 @@ export type Database = {
         }
         Relationships: []
       }
+      pull_requests_sync: {
+        Row: {
+          author: string | null
+          ci_status: string | null
+          ci_url: string | null
+          created_at: string | null
+          id: string
+          merged_at: string | null
+          pr_id: string
+          pr_number: number
+          raw_json: Json | null
+          repository: string
+          review_count: number
+          status: string
+          synced_at: string
+          task_id: string | null
+          title: string | null
+          workspace_id: string
+        }
+        Insert: {
+          author?: string | null
+          ci_status?: string | null
+          ci_url?: string | null
+          created_at?: string | null
+          id?: string
+          merged_at?: string | null
+          pr_id: string
+          pr_number: number
+          raw_json?: Json | null
+          repository: string
+          review_count?: number
+          status: string
+          synced_at?: string
+          task_id?: string | null
+          title?: string | null
+          workspace_id: string
+        }
+        Update: {
+          author?: string | null
+          ci_status?: string | null
+          ci_url?: string | null
+          created_at?: string | null
+          id?: string
+          merged_at?: string | null
+          pr_id?: string
+          pr_number?: number
+          raw_json?: Json | null
+          repository?: string
+          review_count?: number
+          status?: string
+          synced_at?: string
+          task_id?: string | null
+          title?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       retrospective_item_votes: {
         Row: {
           created_at: string
@@ -1709,6 +1914,42 @@ export type Database = {
             referencedColumns: ["key"]
           },
         ]
+      }
+      service_dependencies: {
+        Row: {
+          created_at: string
+          description: string | null
+          health_status: string
+          id: string
+          is_optional: boolean
+          last_incident: string | null
+          source_service: string
+          target_service: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          health_status?: string
+          id?: string
+          is_optional?: boolean
+          last_incident?: string | null
+          source_service: string
+          target_service: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          health_status?: string
+          id?: string
+          is_optional?: boolean
+          last_incident?: string | null
+          source_service?: string
+          target_service?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       slack_channels: {
         Row: {
@@ -2375,7 +2616,10 @@ export type Database = {
           created_by: string | null
           dependency_type: string
           id: string
+          reason: string | null
+          resolved_at: string | null
           source_task_id: string
+          sprint_id: string | null
           target_task_id: string
           workspace_id: string
         }
@@ -2384,7 +2628,10 @@ export type Database = {
           created_by?: string | null
           dependency_type: string
           id?: string
+          reason?: string | null
+          resolved_at?: string | null
           source_task_id: string
+          sprint_id?: string | null
           target_task_id: string
           workspace_id: string
         }
@@ -2393,7 +2640,10 @@ export type Database = {
           created_by?: string | null
           dependency_type?: string
           id?: string
+          reason?: string | null
+          resolved_at?: string | null
           source_task_id?: string
+          sprint_id?: string | null
           target_task_id?: string
           workspace_id?: string
         }
@@ -2821,6 +3071,123 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tech_spikes: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          duration_hours: number | null
+          findings: string | null
+          goal: string | null
+          id: string
+          recommended_action: string | null
+          started_at: string | null
+          status: string
+          story_points_to_implement: number | null
+          task_id: string | null
+          team_id: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          duration_hours?: number | null
+          findings?: string | null
+          goal?: string | null
+          id?: string
+          recommended_action?: string | null
+          started_at?: string | null
+          status?: string
+          story_points_to_implement?: number | null
+          task_id?: string | null
+          team_id: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          duration_hours?: number | null
+          findings?: string | null
+          goal?: string | null
+          id?: string
+          recommended_action?: string | null
+          started_at?: string | null
+          status?: string
+          story_points_to_implement?: number | null
+          task_id?: string | null
+          team_id?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      technical_debt_items: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_points: number | null
+          id: string
+          impact_score: number | null
+          is_resolved: boolean
+          resolution_sprint_id: string | null
+          resolved_at: string | null
+          severity: string
+          task_id: string | null
+          team_id: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_points?: number | null
+          id?: string
+          impact_score?: number | null
+          is_resolved?: boolean
+          resolution_sprint_id?: string | null
+          resolved_at?: string | null
+          severity: string
+          task_id?: string | null
+          team_id?: string | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_points?: number | null
+          id?: string
+          impact_score?: number | null
+          is_resolved?: boolean
+          resolution_sprint_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          task_id?: string | null
+          team_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       time_entries: {
         Row: {
