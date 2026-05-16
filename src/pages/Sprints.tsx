@@ -164,6 +164,11 @@ export default function Sprints() {
                     <SprintBurndownChart sprint={selectedSprint} tasks={selectedTasks} />
                   </div>
                 </div>
+                <SprintMetricsDashboard sprint={selectedSprint} />
+                <RetrospectiveBoard sprint={selectedSprint} canEdit={canEdit} />
+                {selectedSprint.status === "completed" && (
+                  <SprintReportView sprint={selectedSprint} />
+                )}
               </>
             )}
           </TabsContent>
