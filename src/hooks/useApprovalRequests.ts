@@ -96,38 +96,68 @@ export function useCreateApprovalRequest() {
 }
 
 /**
- * Record a decision for an approval request. The DB trigger
- * `trg_advance_approval_on_decision` handles status transitions
- * (advance step / approve / reject) and writes the audit entry.
+ * Record a decision for an approval request via the atomic RPC
+ * `decide_approval_request`. The RPC locks the request (SELECT FOR UPDATE),
+ * validates state (status=pending, correct step, no duplicate by same
+ * approver), inserts the decision, and the AFTER INSERT trigger advances
+ * the step / finalizes the request and writes the audit log — all in one
+ * transaction.
+ *
+ * Returns: { success, status, current_step_order, completed }.
  */
+export interface DecideApprovalResult {
+  success: boolean;
+  status: "pending" | "approved" | "rejected" | "cancelled" | "expired";
+  current_step_order: number;
+  completed: boolean;
+}
+
 export function useDecideApprovalRequest() {
   const qc = useQueryClient();
-  const { user } = useAuth();
   return useMutation({
     mutationFn: async (input: {
-      request: ApprovalRequest;
-      step_id: string;
+      requestId: string;
+      stepOrder: number;
       decision: "approved" | "rejected";
       comment?: string;
-    }) => {
-      const { error } = await supabase.from("approval_decisions").insert({
-        request_id: input.request.id,
-        step_id: input.step_id,
-        step_order: input.request.current_step_order,
-        approver_id: user!.id,
-        decision: input.decision,
-        comment: input.comment ?? null,
+    }): Promise<DecideApprovalResult> => {
+      const { data, error } = await supabase.rpc("decide_approval_request" as never, {
+        p_request_id: input.requestId,
+        p_step_order: input.stepOrder,
+        p_decision: input.decision,
+        p_comment: input.comment ?? null,
       } as never);
       if (error) throw error;
+      return data as unknown as DecideApprovalResult;
     },
-    onError: (e: Error) => toast.error(e.message),
-    onSuccess: (_d, vars) => {
-      toast.success(vars.decision === "approved" ? "Aprovado" : "Rejeitado");
+    onError: (e: Error) => {
+      const msg = e.message ?? "";
+      if (msg.includes("already decided")) {
+        toast.error("Você já decidiu este passo.");
+      } else if (msg.includes("Wrong step")) {
+        toast.error("Outro aprovador já avançou esta solicitação. Recarregue.");
+      } else if (msg.includes("not pending")) {
+        toast.error("Esta solicitação já foi finalizada.");
+      } else if (msg.includes("not found")) {
+        toast.error("Solicitação não encontrada.");
+      } else {
+        toast.error(msg || "Falha ao registrar decisão.");
+      }
+    },
+    onSuccess: (result, vars) => {
+      toast.success(
+        result.completed
+          ? vars.decision === "approved"
+            ? "Aprovação concluída"
+            : "Solicitação rejeitada"
+          : "Passo aprovado — avançando para o próximo",
+      );
       qc.invalidateQueries({ queryKey: ["approval-requests"] });
-      qc.invalidateQueries({ queryKey: approvalDecisionsKey(vars.request.id) });
+      qc.invalidateQueries({ queryKey: approvalDecisionsKey(vars.requestId) });
     },
   });
 }
+
 
 export function useCancelApprovalRequest() {
   const qc = useQueryClient();

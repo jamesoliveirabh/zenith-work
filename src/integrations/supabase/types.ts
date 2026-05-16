@@ -4556,6 +4556,15 @@ export type Database = {
         }
         Returns: Json
       }
+      decide_approval_request: {
+        Args: {
+          p_comment?: string
+          p_decision: Database["public"]["Enums"]["approval_step_decision"]
+          p_request_id: string
+          p_step_order: number
+        }
+        Returns: Json
+      }
       generate_sprint_report: {
         Args: { p_sprint_id: string }
         Returns: undefined
