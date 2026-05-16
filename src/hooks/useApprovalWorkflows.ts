@@ -62,10 +62,10 @@ export function useCreateApprovalWorkflow() {
           entity_type: input.entity_type,
           description: input.description ?? null,
           team_id: input.team_id ?? null,
-          trigger_condition: input.trigger_condition ?? null,
+          trigger_condition: (input.trigger_condition ?? null) as never,
           auto_approve_requester: input.auto_approve_requester ?? false,
           expires_after_hours: input.expires_after_hours ?? null,
-        })
+        } as never)
         .select()
         .single();
       if (error) throw error;
