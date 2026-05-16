@@ -83,7 +83,7 @@ export function useUpdateApprovalWorkflow() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<ApprovalWorkflow> }) => {
-      const { error } = await supabase.from("approval_workflows").update(patch).eq("id", id);
+      const { error } = await supabase.from("approval_workflows").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onError: (e: Error) => toast.error(e.message),
