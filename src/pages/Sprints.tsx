@@ -240,6 +240,19 @@ export default function Sprints() {
               </Card>
             ))}
           </TabsContent>
+
+          <TabsContent value="debt" className="space-y-4">
+            <TechnicalDebtTracker teamId={teamId} canEdit={canEdit} />
+          </TabsContent>
+          <TabsContent value="spikes" className="space-y-4">
+            <TechSpikeBoard teamId={teamId} canEdit={canEdit} />
+          </TabsContent>
+          <TabsContent value="quality" className="space-y-4">
+            <QualityMetricsDashboard teamId={teamId} />
+          </TabsContent>
+          <TabsContent value="prs" className="space-y-4">
+            <PullRequestList canEdit={canEdit} />
+          </TabsContent>
         </Tabs>
       )}
 
