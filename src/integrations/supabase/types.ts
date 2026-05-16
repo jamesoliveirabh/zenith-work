@@ -862,6 +862,113 @@ export type Database = {
           },
         ]
       }
+      change_requests: {
+        Row: {
+          approval_request_id: string | null
+          approved_at: string | null
+          change_type: Database["public"]["Enums"]["change_type"]
+          created_at: string
+          description: string | null
+          id: string
+          impacted_areas: string[]
+          implemented_at: string | null
+          implemented_by: string | null
+          related_entity_id: string | null
+          related_entity_type:
+            | Database["public"]["Enums"]["approval_entity_type"]
+            | null
+          requested_by: string
+          risk_level: Database["public"]["Enums"]["risk_level"]
+          rollback_plan: string | null
+          status: Database["public"]["Enums"]["change_request_status"]
+          target_release_id: string | null
+          team_id: string | null
+          testing_plan: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          approval_request_id?: string | null
+          approved_at?: string | null
+          change_type: Database["public"]["Enums"]["change_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          impacted_areas?: string[]
+          implemented_at?: string | null
+          implemented_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["approval_entity_type"]
+            | null
+          requested_by: string
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+          rollback_plan?: string | null
+          status?: Database["public"]["Enums"]["change_request_status"]
+          target_release_id?: string | null
+          team_id?: string | null
+          testing_plan?: string | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          approval_request_id?: string | null
+          approved_at?: string | null
+          change_type?: Database["public"]["Enums"]["change_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          impacted_areas?: string[]
+          implemented_at?: string | null
+          implemented_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["approval_entity_type"]
+            | null
+          requested_by?: string
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+          rollback_plan?: string | null
+          status?: Database["public"]["Enums"]["change_request_status"]
+          target_release_id?: string | null
+          team_id?: string | null
+          testing_plan?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_approval_request_id_fkey"
+            columns: ["approval_request_id"]
+            isOneToOne: false
+            referencedRelation: "approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_target_release_id_fkey"
+            columns: ["target_release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ci_cd_pipelines: {
         Row: {
           artifacts: Json
@@ -2052,6 +2159,129 @@ export type Database = {
         }
         Relationships: []
       }
+      release_items: {
+        Row: {
+          added_at: string
+          added_by: string
+          id: string
+          item_id: string
+          item_type: string
+          notes: string | null
+          release_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by: string
+          id?: string
+          item_id: string
+          item_type: string
+          notes?: string | null
+          release_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          notes?: string | null
+          release_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_items_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      releases: {
+        Row: {
+          created_at: string
+          created_by: string
+          deployed_by: string | null
+          description: string | null
+          id: string
+          name: string | null
+          release_notes: string | null
+          released_at: string | null
+          rollback_reason: string | null
+          rolled_back_at: string | null
+          rolled_back_by: string | null
+          sprint_id: string | null
+          status: Database["public"]["Enums"]["release_status"]
+          target_date: string | null
+          team_id: string | null
+          updated_at: string
+          version: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deployed_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          release_notes?: string | null
+          released_at?: string | null
+          rollback_reason?: string | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          sprint_id?: string | null
+          status?: Database["public"]["Enums"]["release_status"]
+          target_date?: string | null
+          team_id?: string | null
+          updated_at?: string
+          version: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deployed_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          release_notes?: string | null
+          released_at?: string | null
+          rollback_reason?: string | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          sprint_id?: string | null
+          status?: Database["public"]["Enums"]["release_status"]
+          target_date?: string | null
+          team_id?: string | null
+          updated_at?: string
+          version?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "releases_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "releases_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "releases_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retrospective_item_votes: {
         Row: {
           created_at: string
@@ -2791,6 +3021,53 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_audit_trail: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          field_name: string | null
+          id: string
+          metadata: Json
+          new_value: Json | null
+          old_value: Json | null
+          task_id: string
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          field_name?: string | null
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id: string
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          field_name?: string | null
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_audit_trail_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -4827,6 +5104,22 @@ export type Database = {
         | "priority_changed"
         | "due_date_approaching"
         | "comment_added"
+      change_request_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "implemented"
+        | "rolled_back"
+        | "cancelled"
+      change_type:
+        | "feature"
+        | "bugfix"
+        | "hotfix"
+        | "config"
+        | "infrastructure"
+        | "security"
+        | "docs"
       custom_field_type:
         | "text"
         | "number"
@@ -4854,6 +5147,14 @@ export type Database = {
         | "finance_admin"
         | "support_admin"
         | "security_admin"
+      release_status:
+        | "planning"
+        | "ready"
+        | "staging"
+        | "released"
+        | "rolled_back"
+        | "cancelled"
+      risk_level: "low" | "medium" | "high" | "critical"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_relation_type: "blocks" | "relates_to" | "duplicates"
       team_role: "gestor" | "member"
@@ -5044,6 +5345,24 @@ export const Constants = {
         "due_date_approaching",
         "comment_added",
       ],
+      change_request_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "implemented",
+        "rolled_back",
+        "cancelled",
+      ],
+      change_type: [
+        "feature",
+        "bugfix",
+        "hotfix",
+        "config",
+        "infrastructure",
+        "security",
+        "docs",
+      ],
       custom_field_type: [
         "text",
         "number",
@@ -5075,6 +5394,15 @@ export const Constants = {
         "support_admin",
         "security_admin",
       ],
+      release_status: [
+        "planning",
+        "ready",
+        "staging",
+        "released",
+        "rolled_back",
+        "cancelled",
+      ],
+      risk_level: ["low", "medium", "high", "critical"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_relation_type: ["blocks", "relates_to", "duplicates"],
       team_role: ["gestor", "member"],
